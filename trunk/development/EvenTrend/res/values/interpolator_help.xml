@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="interpolation_help_linear">Linear interpolation draws a line directly between 
+points.</string>
+<string name="interpolation_help_cubic">Cubic interpolation draws an 'S' shaped curve between
+two points.  This is cubic spine, with the controls points set such that the slope of the 
+path entering and exiting a point will be as close to 0 as possible while being monotonically 
+increasing on the X-axis. Note that this currently affects the display of the line only, 
+it does not affect interpolation of points for the purposes of correlation.  Linear 
+interpolation will be used.
+</string>
+<string name="interpolation_help_stepearly">StepEarly draws a continuous step function 
+from one point to the next, where the interpolated data will rise or lower to the next 
+datapoint immediately.  If a graph is descending, this will appear as a step in the form 
+of the letter 'L').
+</string>
+<string name="interpolation_help_steplate">StepLate draws a continuous step function 
+from one point to the next, where the interpolated data will retain the value of the 
+previous datapoint until the next datapoint is encountered.
+</string>
+<string name="interpolation_help_stepmid">StepLate draws a continuous step function 
+from one point to the next, where the interpolated data will rise or lower to the 
+next point at the midpoint between data points.
+</string>
+</resources>
