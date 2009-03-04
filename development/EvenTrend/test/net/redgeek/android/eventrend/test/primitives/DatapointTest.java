@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.eventrend.test.primitives;
 
 import junit.framework.TestCase;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.Tuple;
 
 // Note that several tests use equality comparison on float, which could be 
 // dangerous in general, but should be safe for such small predefined values.
