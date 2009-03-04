@@ -98,7 +98,7 @@ public class TimeSeriesCollector  {
         	
     		long id = CategoryDbTable.getId(c);
 
-    		ts = new TimeSeries(row, mHistory, mSmoothing);
+    		ts = new TimeSeries(row, mHistory, mSmoothing, null);
 			setSeriesInterpolator(ts, row.getInterpolation());
 
     		if (row.getSynthetic() == true) {
@@ -138,7 +138,7 @@ public class TimeSeriesCollector  {
 		waitForLock();
 		TimeSeries ts = getSeriesById(id);
 		if (ts == null) {
-    		ts = new TimeSeries(row, mHistory, mSmoothing);
+    		ts = new TimeSeries(row, mHistory, mSmoothing, null);
     		mSeries.add(ts);
     		mDatapointCache.addCacheableCategory(id, mHistory);
 		}

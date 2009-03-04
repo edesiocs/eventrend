@@ -384,16 +384,6 @@ public class CategoryDbTable {
 			return mColor;
 		}
 
-		public int getColorInt() {
-			int color = Color.BLACK;
-			try {
-				color = Color.parseColor(mColor);
-			} catch (IllegalArgumentException e) {
-				color = Color.BLACK;
-			}
-			return color;
-		}
-
 		public void setColor(String color) {
 			mColor = color;
 		}
