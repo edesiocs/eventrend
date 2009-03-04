@@ -28,10 +28,11 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 
 public class DatapointCache {	
 	private HashMap<Long,CategoryDatapointCache> mCache;
-	private EvenTrendDbAdapter                   mDbh;
+	private EvenTrendDbAdapter              mDbh;
 	    
 	public DatapointCache(Context context, EvenTrendDbAdapter dbh) {
 		mDbh     = dbh;
@@ -64,7 +65,30 @@ public class DatapointCache {
 		}
 		return;
 	}
-	
+
+	public long getCategoryCacheStart(long catId) {
+		CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
+		if (catCache == null || catCache.isValid() == false)
+			return Long.MAX_VALUE;
+
+		return catCache.getStart();
+	}
+
+	public long getCategoryCacheEnd(long catId) {
+		CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
+		if (catCache == null || catCache.isValid() == false)
+			return Long.MIN_VALUE;
+
+		return catCache.getEnd();
+	}
+
+	public boolean isCategoryCacheValid(long catId) {
+		CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
+		if (catCache == null)
+			return false;
+		return catCache.isValid();
+	}
+
 	public synchronized void refresh(long catId) {
 		CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
 		if (catCache == null || catCache.isValid() == false)
@@ -105,7 +129,7 @@ public class DatapointCache {
         	if (entry.getTimestamp() <= oldEnd) {
         		overlap = true;
         		break;
-        	}
+        	}	
         	catCache.addDatapoint(new Datapoint(entry));
         	c.moveToPrevious();        	
         }
@@ -172,18 +196,25 @@ public class DatapointCache {
 		long    query2Start = -1;
 		long    query2End   = -1;
 		
+		if (milliStart > milliEnd) {
+			Log.v("datacache", "populateRangeFromDb(): invalid args, returning");
+			return;
+		}
+
 		// SQL ops are the expensive thing, so see if we can minimize or obviate the query
 		// by checking the cache.  Note that if we're extending the cache in two direction
 		// (asking for a superset of the cache), we turn this into two queries for the pre
 		// and post.
-		if (milliStart > milliEnd)
-			return;
-		
-		if (catCache.isValid() == false) {
-			if (milliStart >= catCache.getStart() && milliEnd <= catCache.getEnd())
+		if (catCache.isValid() == true) {
+			Log.v("datacache", "populateRangeFromDb(): cache is valid");
+			if (milliStart >= catCache.getStart() && milliEnd <= catCache.getEnd()) {
+				Log.v("datacache", "populateRangeFromDb(): have range, returning");
 				return;
+			}
 		}
 		
+		Log.v("datacache", "populateRangeFromDb(): going to db");
+
 		if (catCache.isValid() == false) {
 			query1Start = milliStart;
 			query1End = milliEnd;
@@ -203,9 +234,8 @@ public class DatapointCache {
 		}
         
 		addDatapoints(catCache, query1Start, query1End);
-        if (query2Start >= 0 && query2End >= 0) {
+        if (query2Start >= 0 && query2End >= 0)
     		addDatapoints(catCache, query2Start, query2End);
-        }
         
         return;
 	}
