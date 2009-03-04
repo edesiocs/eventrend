@@ -68,8 +68,6 @@ public class AddEntryTask {
 	}
 
 	public void AddEntry(CategoryDbTable.Row category, long timestamp, float value) {
-		Debug.startMethodTracing("AddEntry");
-		
 		EntryDbTable.Row entry;
 		Calendar entryTScal = Calendar.getInstance();
 		Calendar lastTScal;
