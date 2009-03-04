@@ -166,7 +166,8 @@ public final class TimeSeries {
 		mInterpolator = series.mInterpolator;
 	}
 	
-	public String toString() {
+	@Override
+    public String toString() {
 		return mDbRow.getCategoryName() + " (id: " + mDbRow.getId() + ")";
 	}
 	
@@ -190,7 +191,7 @@ public final class TimeSeries {
 		mInterpolator = i;
 	}
 
-	public TimeSeriesInterpolator Interpolator() {
+	public TimeSeriesInterpolator getInterpolator() {
 		return mInterpolator;
 	}
 
@@ -240,60 +241,16 @@ public final class TimeSeries {
 		return mDatapointMaxs.y; 
 	}
 
-	public float getTrendValueMin() { 
-		return mValueTrend.mMin;
-	}
-	
-	public float getTrendValueMax() { 
-		return mValueTrend.mMax; 
+	public Number.RunningStats getValueStats() {
+	    return mValueStats;
 	}
 
-	public float getTrendValueAverage() { 
-		return mValueTrend.mMean; 
-	}
-
-	public float getVisibleValueAverage() { 
-		return mValueStats.mMean; 
+	public Number.RunningStats getTimestampStats() {
+	    return mTimestampStats;
 	}
 	
-	public float getVisibleValueTrend() { 
-		return mValueTrend.mTrend; 
-	}
-	
-	public float getVisibleValueTrendPrev() { 
-		return mValueTrend.mTrendPrev; 
-	}
-	
-	public float getVisibleValueVariance() { 
-		return mValueStats.mVar; 
-	}
-	
-	public float getVisibleValueStdDev() { 
-		return mValueStats.mStdDev; 
-	}
-
-	public long getVisibleTimestampMin() { 
-		return (long)mVisibleMins.x;
-	}
-	
-	public long getVisibleTimestampMax() { 
-		return (long)mVisibleMaxs.x; 
-	}
-	
-	public float getVisibleTimestampAveragePerPeriod() { 
-		return mTimestampStats.mMean; 
-	}
-	
-	public float getVisibleTimestampAveragePerEntry() { 
-		return mTimestampStats.mEntryMean;
-	}
-	
-	public float getVisibleTimestampVariance() { 
-		return mTimestampStats.mVar;
-	}
-	
-	public float getVisibleTimestampStdDev() { 
-		return mTimestampStats.mStdDev; 
+	public Number.Trend getTrendStats() {
+	    return mValueTrend;
 	}
 	
 	public Tuple getVisibleMins() {
@@ -417,21 +374,25 @@ public final class TimeSeries {
 	}
 	
 	public Datapoint getFirstVisible() {
-		return mDatapoints.get(mVisibleFirstIdx);
+	    if (mVisibleFirstIdx >= 0 && mVisibleFirstIdx < mDatapoints.size())
+	        return mDatapoints.get(mVisibleFirstIdx);
+	    return null;
 	}
 
 	public Datapoint getLastVisible() {
-		return mDatapoints.get(mVisibleLastIdx);
+        if (mVisibleLastIdx >= 0 && mVisibleLastIdx < mDatapoints.size())
+            return mDatapoints.get(mVisibleLastIdx);
+        return null;
 	}
 
 	public Datapoint getFirstPostVisible() {
-		if (mVisibleLastIdx + 1 < mDatapoints.size())
+        if (mVisibleLastIdx + 1 >= 0 && mVisibleLastIdx + 1< mDatapoints.size())
 			return mDatapoints.get(mVisibleLastIdx + 1);
 		return null;
 	}
 
 	public Datapoint getLastPreVisible() {
-		if (mVisibleFirstIdx - 1 >= 0)
+        if (mVisibleFirstIdx - 1 >= 0 && mVisibleFirstIdx - 1 < mDatapoints.size())
 			return mDatapoints.get(mVisibleFirstIdx - 1);
 		return null;
 	}

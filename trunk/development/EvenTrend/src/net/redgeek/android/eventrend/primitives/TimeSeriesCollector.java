@@ -46,7 +46,7 @@ public class TimeSeriesCollector  {
 	private boolean				  mAutoAggregation;
 	private int  				  mAutoAggregationOffset;
 	
-	private DataCache             mDatapointCache;
+	private DatapointCache             mDatapointCache;
 	private FormulaCache		  mFormulaCache;
 
 	private Context   			  mCtx;
@@ -66,7 +66,7 @@ public class TimeSeriesCollector  {
 		mSeries      = new ArrayList<TimeSeries>();
 
 		mAutoAggSpan     = new DateUtil();
-		mDatapointCache  = new DataCache(mCtx, mDbh);
+		mDatapointCache  = new DatapointCache(mCtx, mDbh);
 		mFormulaCache    = new FormulaCache();
 		mHistory         = history;
 		mAutoAggregation = false;
@@ -493,9 +493,9 @@ public class TimeSeriesCollector  {
 		if (ts == null)
 			return;
 
-		lastTrend = ts.getVisibleValueTrendPrev();
-		newTrend  = ts.getVisibleValueTrend();
-		stdDev    = ts.getVisibleValueStdDev();
+		lastTrend = ts.getTrendStats().mTrendPrev;
+		newTrend  = ts.getTrendStats().mTrend;
+		stdDev    = ts.getValueStats().mStdDev;
 
 		TrendState state = Number.getTrendState(lastTrend, newTrend, ts.getDbRow().getGoal(), 
 				sensitivity, stdDev);
@@ -516,9 +516,9 @@ public class TimeSeriesCollector  {
 		    	ArrayList<Datapoint> calculated = formula.apply(dependee.getDependents());
 				dependee.setDatapoints(null, calculated, null);
 		    	
-				lastTrend = dependee.getVisibleValueTrendPrev();
-				newTrend  = dependee.getVisibleValueTrend();
-				stdDev    = dependee.getVisibleValueStdDev();
+		        lastTrend = dependee.getTrendStats().mTrendPrev;
+		        newTrend  = dependee.getTrendStats().mTrend;
+		        stdDev    = dependee.getValueStats().mStdDev;
 
 				state = Number.getTrendState(lastTrend, newTrend, dependee.getDbRow().getGoal(), 
 						sensitivity, stdDev);

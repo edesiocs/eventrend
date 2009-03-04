@@ -16,22 +16,6 @@
 
 package net.redgeek.android.eventrend.calendar;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.graph.GraphActivity;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.util.DateUtil;
-import net.redgeek.android.eventrend.util.DynamicSpinner;
-import net.redgeek.android.eventrend.util.Number;
-import net.redgeek.android.eventrend.util.ProgressIndicator;
-import net.redgeek.android.eventrend.util.DateUtil.Period;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
@@ -51,6 +35,24 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
+import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.graph.GraphActivity;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.DynamicSpinner;
+import net.redgeek.android.eventrend.util.Number;
+import net.redgeek.android.eventrend.util.ProgressIndicator;
+import net.redgeek.android.eventrend.util.DateUtil.Period;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 
 public class CalendarActivity extends EvenTrendActivity {
 	// Menu items
@@ -397,22 +399,27 @@ public class CalendarActivity extends EvenTrendActivity {
 
     	String info = "Category: " + cat.getCategoryName() + "\n";
     	if (ts != null) {
-    		String tsAvgPeriod = DateUtil.toString(ts.getVisibleTimestampAveragePerPeriod());
-    		String tsAvgEntry = DateUtil.toString(ts.getVisibleTimestampAveragePerEntry());
-    		String tsVar = DateUtil.toStringSquared(ts.getVisibleTimestampVariance());
-    		String tsSD  = DateUtil.toString(ts.getVisibleTimestampStdDev());
-    		
+    	    Number.RunningStats valueStats = ts.getValueStats();
+            Number.RunningStats timestampStats = ts.getTimestampStats();
+        
+            String tsAvgPeriod = DateUtil.toString(timestampStats.mMean);
+            String tsAvgEntry = DateUtil.toString(timestampStats.mEntryMean);
+            String tsVar = DateUtil.toStringSquared(timestampStats.mVar);
+            String tsSD  = DateUtil.toString(timestampStats.mStdDev);
+          
+            Datapoint first = ts.getFirstVisible();
+            Datapoint last  = ts.getLastVisible();
+
     		info += "Values:\n"
-    			 + "  " + DateUtil.toTimestamp(ts.getVisibleTimestampMin()) + " -\n"
-    			 + "  " + DateUtil.toTimestamp(ts.getVisibleTimestampMax()) + "\n"
+    		     + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
+                 + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
     			 + "  Range:       " + ts.getDatapointValueMin() + " - " + ts.getDatapointValueMax() + "\n"
-    		     + "  Average:   " + Number.Round(ts.getVisibleValueAverage(), decimals) + "\n"
-    		   	 + "  Std Dev.:    " + Number.Round(ts.getVisibleValueStdDev(), decimals) + "\n"
-    		   	 + "  Variance:   " + Number.Round(ts.getVisibleValueVariance(), decimals) + "\n"
-    			 + "  Trend:       " + Number.Round(ts.getTrendValueMin(), decimals) + " - " 
-    			 					+ Number.Round(ts.getTrendValueMax(), decimals) + "\n"
+                 + "  Average:   " + Number.Round(valueStats.mMean, decimals) + "\n"
+                 + "  Std Dev.:    " + Number.Round(valueStats.mStdDev, decimals) + "\n"
+                 + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"
+                 + "  Trend:       " + Number.Round(ts.getTrendStats().mMin, decimals) + " - " 
+                                    + Number.Round(ts.getTrendStats().mMax, decimals) + "\n"
     			 + "Date Goal is Reached:\n"
-    			 
     			 + "Time Between Datapoints:\n"
     			 + "  Avgerage:  " + tsAvgPeriod + "\n"
     		     + "  Std Dev.:   " + tsSD + "\n"

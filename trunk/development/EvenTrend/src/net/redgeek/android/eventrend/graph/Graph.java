@@ -512,9 +512,11 @@ public class Graph {
         EvenTrendDbAdapter dbh = ((GraphActivity) mCtx).getDbh();
         CategoryDbTable.Row cat = dbh.fetchCategory(mSelected.mCatId);
 
+        Number.RunningStats stats = ts.getValueStats();
+        
         float value = mSelected.mValue.y;
         float trend = Number.Round(mSelected.mTrend.y, decimals);
-        float pointDeviation = Number.Round((value - trend) / ts.getVisibleValueStdDev(), decimals);
+        float pointDeviation = Number.Round((value - trend) / stats.mStdDev, decimals);
         String devStr = "" + pointDeviation;
         if (pointDeviation > 0)
         	devStr = "+" + pointDeviation;
@@ -568,20 +570,26 @@ public class Graph {
 
     	String info = "Category: " + cat.getCategoryName() + "\n";
     	if (ts != null) {
-    		String tsAvgPeriod = DateUtil.toString(ts.getVisibleTimestampAveragePerPeriod());
-    		String tsAvgEntry = DateUtil.toString(ts.getVisibleTimestampAveragePerEntry());
-    		String tsVar = DateUtil.toStringSquared(ts.getVisibleTimestampVariance());
-    		String tsSD  = DateUtil.toString(ts.getVisibleTimestampStdDev());
+            Number.RunningStats valueStats = ts.getValueStats();
+            Number.RunningStats timestampStats = ts.getTimestampStats();
+    	  
+    		String tsAvgPeriod = DateUtil.toString(timestampStats.mMean);
+    		String tsAvgEntry = DateUtil.toString(timestampStats.mEntryMean);
+    		String tsVar = DateUtil.toStringSquared(timestampStats.mVar);
+    		String tsSD  = DateUtil.toString(timestampStats.mStdDev);
+    		
+            Datapoint first = ts.getFirstVisible();
+            Datapoint last  = ts.getLastVisible();
     		
     		info += "Values:\n"
-    			 + "  " + DateUtil.toTimestamp(ts.getVisibleTimestampMin()) + " -\n"
-    			 + "  " + DateUtil.toTimestamp(ts.getVisibleTimestampMax()) + "\n"
+    			 + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
+    			 + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
     			 + "  Range:       " + ts.getDatapointValueMin() + " - " + ts.getDatapointValueMax() + "\n"
-    		     + "  Average:   " + Number.Round(ts.getVisibleValueAverage(), decimals) + "\n"
-    		   	 + "  Std Dev.:    " + Number.Round(ts.getVisibleValueStdDev(), decimals) + "\n"
-    		   	 + "  Variance:   " + Number.Round(ts.getVisibleValueVariance(), decimals) + "\n"
-    			 + "  Trend:       " + Number.Round(ts.getTrendValueMin(), decimals) + " - " 
-    			 					+ Number.Round(ts.getTrendValueMax(), decimals) + "\n"
+    		     + "  Average:   " + Number.Round(valueStats.mMean, decimals) + "\n"
+    		   	 + "  Std Dev.:    " + Number.Round(valueStats.mStdDev, decimals) + "\n"
+    		   	 + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"
+    			 + "  Trend:       " + Number.Round(ts.getTrendStats().mMin, decimals) + " - " 
+    			 					+ Number.Round(ts.getTrendStats().mMax, decimals) + "\n"
     			 + "Date Goal is Reached:\n"
     			 
     			 + "Time Between Datapoints:\n"
