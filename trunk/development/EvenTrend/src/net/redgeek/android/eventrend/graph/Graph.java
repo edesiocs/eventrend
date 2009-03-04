@@ -412,9 +412,9 @@ public class Graph {
 			y -= maxLabels * GraphView.TEXT_HEIGHT;
 		}
 		
-		canvas.drawText("" + Number.Round(mBoundsMaxs.y, mDecimals), x, y, ts.getLabelPaint());
+		ts.drawText(canvas, "" + Number.Round(mBoundsMaxs.y, mDecimals), x, y);
 		y = mGraphSize.y - y - GraphView.TEXT_HEIGHT;
-		canvas.drawText("" + Number.Round(mBoundsMins.y, mDecimals), x, y, ts.getLabelPaint());		
+		ts.drawText(canvas, "" + Number.Round(mBoundsMins.y, mDecimals), x, y);		
 		
 		canvas.drawLine(
 				GraphView.LEFT_MARGIN, 
@@ -442,14 +442,9 @@ public class Graph {
 		float y = d.mTrendScreen.y;
 		float label = Number.Round(d.mTrend.y, mDecimals);
 
-		canvas.drawText("" + label, 2, 
-				y + GraphView.TEXT_HEIGHT - 3, ts.getLabelPaint());
-		canvas.drawLine(
-				0, 
-				y, 
-				mGraphSize.x - GraphView.RIGHT_MARGIN, 
-				y, 
-				ts.getTrendMarkerPaint());
+		ts.drawText(canvas, "" + label, 2, y + GraphView.TEXT_HEIGHT - 3);
+	    ts.drawMarker(canvas, new Tuple(0,y), 
+	        new Tuple(mGraphSize.x - GraphView.RIGHT_MARGIN,y));
 	}
 
 	public void drawGoal(Canvas canvas, TimeSeries ts, int i) {
@@ -462,14 +457,11 @@ public class Graph {
 		if (y < 0 || y > mGraphSize.y)
 			return;
 		
-		canvas.drawText("" + Number.Round(goal, mDecimals), (i * GraphView.LEFT_MARGIN) + 2, 
-				y + GraphView.TEXT_HEIGHT - 3, ts.getLabelPaint());
-		canvas.drawLine(
-				0, 
-				y, 
-				mGraphSize.x - GraphView.RIGHT_MARGIN, 
-				y, 
-				ts.getGoalPaint());
+		ts.drawText(canvas, "" + Number.Round(goal, mDecimals), 
+		        (i * GraphView.LEFT_MARGIN) + 2, 
+				y + GraphView.TEXT_HEIGHT - 3);
+        ts.drawGoal(canvas, new Tuple(0,y), 
+            new Tuple(mGraphSize.x - GraphView.RIGHT_MARGIN, y));
 	}
 	
 	public void lookupDatapoint(Tuple t) {
@@ -485,7 +477,11 @@ public class Graph {
 
 	    mSelectedDatapoint = d;
     	if (mSelectedDatapoint != null) {
-    		mSelectedColor = ts.getColor();    		
+            try {
+              mSelectedColor = Color.parseColor(ts.getColor());
+            } catch (IllegalArgumentException e) {
+              mSelectedColor = Color.BLACK;
+            }
     		pointInfoDialog(mSelectedDatapoint).show();
     	}
     		
