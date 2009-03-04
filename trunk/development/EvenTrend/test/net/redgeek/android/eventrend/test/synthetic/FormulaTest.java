@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.eventrend.test.synthetic;
 
 import junit.framework.TestCase;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 
-// Note that several tests use equality comparison on float, which could be 
-// dangerous in general, but should be safe for such small predefined values.
-public class DataCacheTest extends TestCase {
-	public void testConstructors() {
+public class FormulaTest extends TestCase {
+	public void test() {
+		
+		
 	}
 }
 

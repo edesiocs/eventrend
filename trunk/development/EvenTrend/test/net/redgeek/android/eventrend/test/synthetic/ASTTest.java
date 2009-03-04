@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.synthetic;
+package net.redgeek.android.eventrend.test.synthetic;
 
+import net.redgeek.android.eventrend.synthetic.AST;
 import junit.framework.TestCase;
 
 public class ASTTest extends TestCase {

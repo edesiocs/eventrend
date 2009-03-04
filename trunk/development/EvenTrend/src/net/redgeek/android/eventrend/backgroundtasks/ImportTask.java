@@ -27,7 +27,6 @@ import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.importing.CSV;
-import android.database.Cursor;
 
 /** Import a CSV file into the database, replacing existing data.  (Merge import is
  * planned but not yet implemented.)  Categories are created on demand, as the

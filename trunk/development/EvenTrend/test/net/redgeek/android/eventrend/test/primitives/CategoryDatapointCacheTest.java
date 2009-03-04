@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.eventrend.test.primitives;
 
 import java.util.ArrayList;
+
+import net.redgeek.android.eventrend.primitives.CategoryDatapointCache;
+import net.redgeek.android.eventrend.primitives.Datapoint;
 
 import junit.framework.TestCase;
 
