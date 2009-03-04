@@ -184,6 +184,11 @@ public class InputActivity extends EvenTrendActivity {
     public void executeNonGuiTask() throws Exception {
 		mDataUpdater.fillAllCategories();
 	}
+    
+    @Override
+    public void onFailure(Throwable t) {
+    	mTSC.unlock();
+    }
 
     //*** main setup routines ***/
     private void getPrefs() {
