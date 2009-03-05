@@ -99,7 +99,7 @@ public class EntryListActivity extends EvenTrendActivity {
     }
 
     private void setupTasks() {
-    	mExporter = new ExportTask(mDbh);
+    	mExporter = new ExportTask(getDbh());
     }
     
     private void setupUI() {
@@ -124,7 +124,7 @@ public class EntryListActivity extends EvenTrendActivity {
         mNextButton = (Button) findViewById(R.id.edit_list_next);
         mNextButton.setOnClickListener(mNextButtonListener);    	
         
-        mProgress = new ProgressIndicator.DialogSoft(mCtx, DIALOG_PROGRESS);
+        mProgress = new ProgressIndicator.DialogSoft(getCtx(), DIALOG_PROGRESS);
     }
     
     private void setupListeners() {
@@ -154,7 +154,7 @@ public class EntryListActivity extends EvenTrendActivity {
     }
     
     public void setupMenu() {
-    	Cursor c = mDbh.fetchAllCategories();
+    	Cursor c = getDbh().fetchAllCategories();
         c.moveToFirst();
 
     	mCategoryMenu.addSpinnerItem("All", FILTER_ALL_ID);
@@ -173,9 +173,9 @@ public class EntryListActivity extends EvenTrendActivity {
     	Cursor c;
     	
     	if (mFilterCategoryId == -1)
-    		c = mDbh.fetchRecentEntries(EntryDbTable.EDIT_LIMIT, mSkip);
+    		c = getDbh().fetchRecentEntries(EntryDbTable.EDIT_LIMIT, mSkip);
     	else
-    		c = mDbh.fetchRecentEntries(EntryDbTable.EDIT_LIMIT, mFilterCategoryId, mSkip);
+    		c = getDbh().fetchRecentEntries(EntryDbTable.EDIT_LIMIT, mFilterCategoryId, mSkip);
     	startManagingCursor(c);
             	
         String status = "Rows " + mSkip + " - " + (mSkip+EntryDbTable.EDIT_LIMIT);
@@ -291,13 +291,13 @@ public class EntryListActivity extends EvenTrendActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
         case DIALOG_EXPORT_SUCCESS:
-        	return mDialogUtil.newOkDialog("Export Success", "Exported to " + mFilename);
+        	return getDialogUtil().newOkDialog("Export Success", "Exported to " + mFilename);
         case DIALOG_ERR_DIRECTORY:
-        	return mDialogUtil.newOkDialog("Export Failure", "Couldn't open/create " + mImportDir);
+        	return getDialogUtil().newOkDialog("Export Failure", "Couldn't open/create " + mImportDir);
         case DIALOG_ERR_FILEWRITE:
-        	return mDialogUtil.newOkDialog("Export Failure", "Error writing to " + mFilename + ": " + mErrMsg);
+        	return getDialogUtil().newOkDialog("Export Failure", "Error writing to " + mFilename + ": " + mErrMsg);
         case DIALOG_PROGRESS:
-        	return mDialogUtil.newProgressDialog("Exporting database ...");
+        	return getDialogUtil().newProgressDialog("Exporting database ...");
         default:
         }
         return null;

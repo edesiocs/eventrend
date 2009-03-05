@@ -86,16 +86,24 @@ public final class TimeSeries {
   // Interpolator
   private TimeSeriesInterpolator mInterpolator;
 
+  public TimeSeries(CategoryDbTable.Row row, int history, float smoothing) {
+    initialize(row, history, smoothing, null);
+  }
+
   public TimeSeries(CategoryDbTable.Row row, int history, 
       float smoothing, TimeSeriesPainter painter) {
-    mDbRow = row;
+    initialize(row, history, smoothing, painter);
+  }
 
-    mDatapoints = new ArrayList<Datapoint>();
+  private void initialize(CategoryDbTable.Row row, int history, float smoothing,
+      TimeSeriesPainter painter) {
+    mDbRow = row;
 
     mPainter = painter;
     if (painter == null)
       mPainter = new TimeSeriesPainter.Default();
 
+    mDatapoints = new ArrayList<Datapoint>();
     mEnabled = false;
     setColor(row.getColor());
     // set thusly so we can apply min()/max() operators indiscriminately
@@ -108,9 +116,9 @@ public final class TimeSeries {
     mStdDevWindow   = new Number.WindowedStdDev(history);
 
     mDependents = new ArrayList<TimeSeries>();
-    mDependees  = new ArrayList<TimeSeries>();	
+    mDependees  = new ArrayList<TimeSeries>();  
   }
-
+  
   public TimeSeries(TimeSeries series) {
     mDbRow = new CategoryDbTable.Row(series.mDbRow);
 

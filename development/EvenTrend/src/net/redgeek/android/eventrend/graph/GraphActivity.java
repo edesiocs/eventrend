@@ -117,8 +117,8 @@ public class GraphActivity extends EvenTrendActivity {
     }
 
     private void getPrefs() {
-    	mHistory = Preferences.getHistory(mCtx);
-    	mDecimals = Preferences.getDecimalPlaces(mCtx);
+    	mHistory = Preferences.getHistory(getCtx());
+    	mDecimals = Preferences.getDecimalPlaces(getCtx());
     }
     
     private void setupTasks() {
@@ -126,7 +126,7 @@ public class GraphActivity extends EvenTrendActivity {
     }
     
     private void setupData(Bundle icicle) {
-        mTSC = new TimeSeriesCollector(this, mDbh, mHistory);
+        mTSC = new TimeSeriesCollector(this, getDbh(), mHistory);
         mTSC.initialize();
         
 		mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
@@ -164,7 +164,7 @@ public class GraphActivity extends EvenTrendActivity {
         mGraphControls = (LinearLayout) findViewById(R.id.graph_controls);
         mGraphControls.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL );
         
-        mAggregationSpinner = new DynamicSpinner(mCtx);
+        mAggregationSpinner = new DynamicSpinner(getCtx());
         mAggregationSpinner.setPrompt("Aggregate By");
         mAggregationSpinnerLayout = (LinearLayout) findViewById(R.id.graph_view_agg_menu);
         mAggregationSpinnerLayout.addView(mAggregationSpinner, new LinearLayout.LayoutParams(
@@ -190,7 +190,7 @@ public class GraphActivity extends EvenTrendActivity {
         mShowMarkersToggle = (ToggleButton) findViewById(R.id.graph_view_markers);
         mShowMarkersToggle.setOnCheckedChangeListener(mShowMarkersToggleListener);
 
-        mProgress = new ProgressIndicator.Titlebar(mCtx);
+        mProgress = new ProgressIndicator.Titlebar(getCtx());
     }
     
     private void setupListeners() {
@@ -328,7 +328,7 @@ public class GraphActivity extends EvenTrendActivity {
     }
     
     public EvenTrendDbAdapter getDbh() {
-    	return mDbh;
+    	return getDbh();
     }
         
     @Override
@@ -347,7 +347,7 @@ public class GraphActivity extends EvenTrendActivity {
     }
     
     private Dialog filterDialog(String title) {
-    	Builder b = new AlertDialog.Builder(mCtx);
+    	Builder b = new AlertDialog.Builder(getCtx());
     	b.setTitle(title);
     	
     	mGFLA = new GraphFilterListAdapter(this, mTSC);
@@ -367,7 +367,7 @@ public class GraphActivity extends EvenTrendActivity {
 
     	b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
     		public void onClick(DialogInterface dialog, int whichButton) {
-    			((GraphActivity) mCtx).graph();
+    			((GraphActivity) getCtx()).graph();
     		}
     	});
     	Dialog d = b.create();
@@ -376,7 +376,7 @@ public class GraphActivity extends EvenTrendActivity {
     }        
     
     private Dialog correlateDialog(String title) {
-    	Builder b = new AlertDialog.Builder(mCtx);
+    	Builder b = new AlertDialog.Builder(getCtx());
         b.setTitle(title);
     	b.setMessage(mCorrelator.mOutput);
     	b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {

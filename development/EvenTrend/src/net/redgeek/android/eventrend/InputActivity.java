@@ -164,7 +164,7 @@ public class InputActivity extends EvenTrendActivity {
     }
     
     public EvenTrendDbAdapter getDb() {
-    	return mDbh;
+    	return getDbh();
     }
 
     public TextView getTimestampView() {
@@ -192,14 +192,14 @@ public class InputActivity extends EvenTrendActivity {
 
     //*** main setup routines ***/
     private void getPrefs() {
-    	mDefaultGroup = Preferences.getDefaultGroup(mCtx);
-    	mHistory = Preferences.getHistory(mCtx);
+    	mDefaultGroup = Preferences.getDefaultGroup(getCtx());
+    	mHistory = Preferences.getHistory(getCtx());
     }
     
     private void setupTasksAndData() {
     	mUndoLock = new ReentrantLock();
     	
-    	mTSC = new TimeSeriesCollector(mCtx, mDbh, mHistory);
+    	mTSC = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
     	mTSC.initialize();
     	
     	mDataUpdater = new UpdateRecentDataTask(mTSC);
@@ -223,7 +223,7 @@ public class InputActivity extends EvenTrendActivity {
         			mDataUpdater = new UpdateRecentDataTask(mTSC);
         	    	mDataUpdater.setZerofill(true);
         	    	mDataUpdater.setUpdateTrend(true);
-        	        GUITaskQueue.getInstance().addTask(mProgress, (GUITask) mCtx);    				
+        	        GUITaskQueue.getInstance().addTask(mProgress, (GUITask) getCtx());    				
     			}
 
     			mNowHandler.postDelayed(mUpdateNowTime, DateUtil.SECOND_MS);
@@ -238,7 +238,7 @@ public class InputActivity extends EvenTrendActivity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.category_list);
         
-        mProgress = new ProgressIndicator.Titlebar(mCtx);
+        mProgress = new ProgressIndicator.Titlebar(getCtx());
 
         mCategories = new ArrayList<ListView>();
         mCLAs       = new ArrayList<CategoryListAdapter>();
@@ -498,7 +498,7 @@ public class InputActivity extends EvenTrendActivity {
                 		mTimestamp.mMonth, mTimestamp.mDay);
             case HELP_DIALOG_ID:
             	String str = getResources().getString(R.string.overview); 
-            	return mDialogUtil.newOkDialog("Help", str);
+            	return getDialogUtil().newOkDialog("Help", str);
         }
         return null;
     }
@@ -525,7 +525,7 @@ public class InputActivity extends EvenTrendActivity {
     	if (mVisibleCategoriesLayout != null) {
     		mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
     		if (animate == true)
-    			slideDown(mVisibleCategoriesLayout, mCtx);
+    			slideDown(mVisibleCategoriesLayout, getCtx());
     	}
 
     	setEnabledSeries();
@@ -586,7 +586,7 @@ public class InputActivity extends EvenTrendActivity {
         		CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
         		if (row.getDbRow().getSynthetic() == true) {
         			row.populateFields();
-                	row.setLayoutAnimationSlideOutLeftIn(row, mCtx);
+                	row.setLayoutAnimationSlideOutLeftIn(row, getCtx());
         		}
         	}
     	}
@@ -693,25 +693,25 @@ public class InputActivity extends EvenTrendActivity {
     
     public void undo() {
 		while (mUndoLock.tryLock() == false) {}
-    	EntryDbTable.Row entry = mDbh.fetchEntry(mLastAddId);
+    	EntryDbTable.Row entry = getDbh().fetchEntry(mLastAddId);
     	if (entry == null)
     		return;
     	
-    	CategoryDbTable.Row cat = mDbh.fetchCategory(entry.getCategoryId());
+    	CategoryDbTable.Row cat = getDbh().fetchCategory(entry.getCategoryId());
     	if (cat == null)
     		return;
     	
     	float oldValue = entry.getValue();
     	String newValueStr;
     	if (entry.getNEntries() == 1) {
-    		mDbh.deleteEntry(mLastAddId);
+    	  getDbh().deleteEntry(mLastAddId);
     		newValueStr = "(deleted)";
     	}
     	else {
     		newValueStr ="" + mLastAddValue;
     		entry.setValue(mLastAddValue);
     		entry.setNEntries(entry.getNEntries() - 1);
-    		mDbh.updateEntry(entry);
+    		getDbh().updateEntry(entry);
     	}
     	mUndoLock.unlock();
 
@@ -723,7 +723,7 @@ public class InputActivity extends EvenTrendActivity {
 				+ DateUtil.toTimestamp(mLastAddTimestamp) + ": " + oldValue + " -> " + newValueStr;
     	mLastAddTextView.setText(shortStr);
     	Toast.makeText(this, longStr, Toast.LENGTH_LONG).show();
-        slideOutRightIn(mLastAddRowView, mCtx);
+        slideOutRightIn(mLastAddRowView, getCtx());
 
         mUndo.setClickable(false);
     	mUndo.setTextColor(Color.LTGRAY);
@@ -759,15 +759,15 @@ public class InputActivity extends EvenTrendActivity {
     	below.getDbRow().setRank(above.getDbRow().getRank());
     	above.getDbRow().setRank(rank);
 
-    	mDbh.updateCategoryRank(below.getDbRow().getId(), below.getDbRow().getRank());
-    	mDbh.updateCategoryRank(above.getDbRow().getId(), above.getDbRow().getRank());
+    	getDbh().updateCategoryRank(below.getDbRow().getId(), below.getDbRow().getRank());
+    	getDbh().updateCategoryRank(above.getDbRow().getId(), above.getDbRow().getRank());
 
     	cla.swapItems(higher, lower);
 	
     	CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(higher);
     	CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(lower);
 	
-    	swapUpDown(top, bottom, mCtx);
+    	swapUpDown(top, bottom, getCtx());
     }    
 
     public static void slideDown(ViewGroup group, Context ctx) {
