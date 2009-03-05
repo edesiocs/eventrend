@@ -82,7 +82,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
 
     mCtx        = this;
     mDialogUtil = new DialogUtil(mCtx);
-    mDbh        = new EvenTrendDbAdapter(this);
+    mDbh        = new EvenTrendDbAdapter.SqlAdapter(this);
     mDbh.open();
 
     mInterpolators = new ArrayList<TimeSeriesInterpolator>();
@@ -98,7 +98,6 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   @Override
   protected void onResume() {
     GUITaskQueue.getInstance().start();
-    mDbh.refreshPrefs();
     super.onResume();
   }
 

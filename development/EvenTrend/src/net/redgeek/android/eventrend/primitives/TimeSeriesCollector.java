@@ -60,9 +60,9 @@ public class TimeSeriesCollector {
   private long mQueryStart;
   private long mQueryEnd;
 
-  public TimeSeriesCollector(Context context, EvenTrendDbAdapter dataDroidDb, int history) {
+  public TimeSeriesCollector(Context context, EvenTrendDbAdapter dbh, int history) {
     mCtx = context;
-    mDbh = dataDroidDb;
+    mDbh = dbh;
     mSeries = new ArrayList<TimeSeries>();
 
     mAutoAggSpan = new DateUtil();

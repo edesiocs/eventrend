@@ -65,7 +65,7 @@ public class Preferences extends PreferenceActivity {
     }
 
     private PreferenceScreen createPreferenceHierarchy() {
-        mDbh = new EvenTrendDbAdapter(this);
+        mDbh = new EvenTrendDbAdapter.SqlAdapter(this);
         mDbh.open();
 
         // Root
