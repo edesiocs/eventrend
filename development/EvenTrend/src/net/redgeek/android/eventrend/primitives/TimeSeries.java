@@ -400,14 +400,14 @@ public final class TimeSeries {
       else if (max < min) {
         if (pre == true) {
           if (d.mMillis > timestamp) {
-            if (mid - 1 > 0)
+            if (mid - 1 >= 0)
               d = mDatapoints.get(mid - 1);
             else
               d = null;
           }
         } else {
           if (d.mMillis < timestamp) {
-            if (mid + 1 >= mDatapoints.size())
+            if (mid + 1 < mDatapoints.size())
               d = mDatapoints.get(mid + 1);					
             else
               d = null;

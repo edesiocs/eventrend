@@ -274,6 +274,141 @@ public class TimeSeriesTest extends TestCase {
     assertSame(d2, ts.getLastVisible());
   }
   
+  
+  public void testFindNeighbor() {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    Datapoint d1 = new Datapoint(100L, 1.0f, 1, 10, 1);
+    Datapoint d2 = new Datapoint(150L, 2.0f, 1, 11, 1);
+    Datapoint d3 = new Datapoint(250L, 3.0f, 1, 11, 1);
+    Datapoint result;
+   
+    TimeSeries ts = newDefaultTimeSeries();
+
+    // 1-item list
+    range.add(d1);
+    ts.setDatapoints(null, range, null);    
+
+    result = ts.findPreNeighbor(0);
+    assertNull(result);
+    result = ts.findPostNeighbor(0);
+    assertNotNull(result);
+    assertSame(d1, result);
+
+    result = ts.findPreNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPostNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+
+    result = ts.findPreNeighbor(110);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPostNeighbor(110);
+    assertNull(result);
+    
+    // 2-item list
+    range.add(d2);
+    ts.setDatapoints(null, range, null);    
+
+    result = ts.findPreNeighbor(0);
+    assertNull(result);
+    result = ts.findPostNeighbor(0);
+    assertNotNull(result);
+    assertSame(d1, result);
+
+    result = ts.findPreNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPostNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+
+    result = ts.findPreNeighbor(125);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPostNeighbor(125);
+    assertNotNull(result);
+    assertSame(d2, result);
+
+    result = ts.findPreNeighbor(150);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPostNeighbor(150);
+    assertNotNull(result);
+    assertSame(d2, result);
+
+    result = ts.findPreNeighbor(200);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPostNeighbor(200);
+    assertNull(result);
+    
+    // 3-item list
+    range.add(d3);
+    ts.setDatapoints(null, range, null);    
+
+    result = ts.findPreNeighbor(0);
+    assertNull(result);
+    result = ts.findPreNeighbor(99);
+    assertNull(result);
+    result = ts.findPreNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPreNeighbor(101);
+    assertNotNull(result);
+    assertSame(d1, result);    
+    result = ts.findPreNeighbor(149);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPreNeighbor(150);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPreNeighbor(151);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPreNeighbor(249);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPreNeighbor(250);
+    assertNotNull(result);
+    assertSame(d3, result);
+    result = ts.findPreNeighbor(251);
+    assertNotNull(result);
+    assertSame(d3, result);
+    
+
+    result = ts.findPostNeighbor(0);
+    assertNotNull(result);
+    assertSame(d1, result);    
+    result = ts.findPostNeighbor(99);
+    assertNotNull(result);
+    assertSame(d1, result);    
+    result = ts.findPostNeighbor(100);
+    assertNotNull(result);
+    assertSame(d1, result);
+    result = ts.findPostNeighbor(101);
+    assertNotNull(result);
+    assertSame(d2, result);    
+    result = ts.findPostNeighbor(149);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPostNeighbor(150);
+    assertNotNull(result);
+    assertSame(d2, result);
+    result = ts.findPostNeighbor(151);
+    assertNotNull(result);
+    assertSame(d3, result);
+    result = ts.findPostNeighbor(249);
+    assertNotNull(result);
+    assertSame(d3, result);
+    result = ts.findPostNeighbor(250);
+    assertNotNull(result);
+    assertSame(d3, result);
+    result = ts.findPostNeighbor(251);
+    assertNull(result);    
+  }
+  
   // These will be tested in Number.* unittests:
   //   testCalcStatsAndBounds()
   //   testRecalcStatsAndBounds()
