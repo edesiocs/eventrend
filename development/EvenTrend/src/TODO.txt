@@ -18,6 +18,7 @@ TODO:
 	Formula:
 		add menus for "insert term" && "insert op" && "()"
 	General:
+	    on upgrade:  export to CSV before DB alters/drops
 		set various text-entry to numeric (and see if numeric does floats)
 		move calendar views to plugins
 		fix locking on data collection/plotting
