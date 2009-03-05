@@ -17,9 +17,6 @@
 package net.redgeek.android.eventrend.primitives;
 
 import android.graphics.Canvas;
-import android.graphics.DashPathEffect;
-import android.graphics.Paint;
-import android.graphics.Path;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.GraphView;
@@ -30,7 +27,11 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 
 /** A representation of series of Datapoints plottable on screen.  
  * Specific per-category.
@@ -59,6 +60,8 @@ public final class TimeSeries {
   // Various stats used for bounding
   private float    mVisibleMinY;
   private float    mVisibleMaxY;
+  private long     mVisibleMinX;
+  private long     mVisibleMaxX;
 
   private long     mTimestampLast;
   private int	     mNumEntries = 0;
@@ -96,8 +99,7 @@ public final class TimeSeries {
     mEnabled = false;
     setColor(row.getColor());
     // set thusly so we can apply min()/max() operators indiscriminately
-    mVisibleMinY = Float.MAX_VALUE;
-    mVisibleMaxY = Float.MIN_VALUE;
+    resetMinMax();
     resetIndices();
 
     mValueStats     = new Number.RunningStats();
@@ -124,6 +126,8 @@ public final class TimeSeries {
     mEnabled     = series.mEnabled;
     mVisibleMinY = series.mVisibleMinY;
     mVisibleMaxY = series.mVisibleMaxY;
+    mVisibleMinX = series.mVisibleMinX;
+    mVisibleMaxX = series.mVisibleMaxX;
 
     mTimestampLast     = series.mTimestampLast;
     mNumEntries        = series.mNumEntries;
@@ -217,6 +221,14 @@ public final class TimeSeries {
     return mVisibleMaxY; 
   }
 
+  public long getVisibleTimestampMin() {
+    return mVisibleMinX; 
+  }
+
+  public long getVisibleTimestampMax() {
+    return mVisibleMaxX; 
+  }
+  
   public Number.RunningStats getValueStats() {
     return mValueStats;
   }
@@ -268,8 +280,7 @@ public final class TimeSeries {
   private void calcStatsAndBounds() {
     int firstNEntries = 0;
 
-    mVisibleMinY = Float.MAX_VALUE;
-    mVisibleMaxY = Float.MIN_VALUE;
+    resetMinMax();
 
     if (mDatapoints == null)
       return;
@@ -279,6 +290,8 @@ public final class TimeSeries {
       if (i >= mVisibleFirstIdx && i <= mVisibleLastIdx) {
         mVisibleMinY = Math.min(mVisibleMinY, d.mValue.y);
         mVisibleMaxY = Math.max(mVisibleMaxY, d.mValue.y);
+        mVisibleMinX = Math.min(mVisibleMinX, d.mMillis);
+        mVisibleMaxX = Math.max(mVisibleMaxX, d.mMillis);
         
         // we run stats on the y-values themselves ...
         mValueStats.update(d.mValue.y, d.mNEntries);
@@ -477,10 +490,17 @@ public final class TimeSeries {
   }
 
   public Float interpolateValue(long timestamp) {
-    Datapoint d1 = findPreNeighbor(timestamp - 1);
-    Datapoint d2 = findPostNeighbor(timestamp);
-    if (d1 == null || d2 == null)
+    Datapoint d2 = findPostNeighbor(timestamp); // inclusive
+    if (d2 == null)
       return null;
+    
+    if (d2.mMillis == timestamp)
+      return new Float(d2.mValue.y);
+    
+    Datapoint d1 = findPreNeighbor(timestamp); // inclusive
+    if (d1 == null)
+      return null;
+      
     return mInterpolator.interpolateY(d1.mValue, d2.mValue, timestamp);
   }
 
@@ -655,57 +675,92 @@ public final class TimeSeries {
     }
   }
 
-  public void timeseriesOp(TimeSeries ts, AST.Opcode op, boolean strict) {
+  // We need to gather a list of all timestamps so we can interpolate from
+  // ones series to the other, and vice versa, in order to make the operations
+  // commutative
+  public void timeseriesOp(TimeSeries ts, AST.Opcode op) {
+    Float f1, f2;
     Datapoint d1, d2;
-    Float f;
+    ArrayList<Datapoint> pre   = new ArrayList<Datapoint>();
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    ArrayList<Datapoint> post  = new ArrayList<Datapoint>();
+    TreeMap<Long, Boolean> timestamps = new TreeMap<Long, Boolean>();
+
     for (int i = 0; i < mDatapoints.size(); i++) {
-      d1 = mDatapoints.get(i);
-      if (strict) {
-        d2 = ts.getDatapoints().get(i);
-        if (d2 != null) {
-          if (op == AST.Opcode.PLUS)
-            d1.mValue.y += d2.mValue.y;				
-          else if (op == AST.Opcode.MINUS)
-            d1.mValue.y -= d2.mValue.y;				
-          else if (op == AST.Opcode.MULTIPLY)
-            d1.mValue.y *= d2.mValue.y;				
-          else if (op == AST.Opcode.DIVIDE) {
-            if (d2.mValue.y != 0)
-              d1.mValue.y /= d2.mValue.y;				
-          }
-        }
-      } else {
-        f = ts.interpolateValue(d1.mMillis);
-        if (!(f == null || f.isNaN() || f.isInfinite())) {
-          if (op == AST.Opcode.PLUS)
-            d1.mValue.y += f;				
-          else if (op == AST.Opcode.MINUS)
-            d1.mValue.y -= f;				
-          else if (op == AST.Opcode.MULTIPLY)
-            d1.mValue.y *= f;				
-          else if (op == AST.Opcode.DIVIDE) {
-            if (f != 0)
-              d1.mValue.y /= f;				
-          }
-        }
+      timestamps.put(new Long(mDatapoints.get(i).mMillis), true);
+    }    
+    for (int i = 0; i < ts.mDatapoints.size(); i++) {
+      timestamps.put(new Long(ts.mDatapoints.get(i).mMillis), true);
+    }    
+    
+    Iterator<Long> iterator = timestamps.keySet().iterator();
+    while (iterator.hasNext()) {
+      Long ms = iterator.next();
+
+      f1 = interpolateValue(ms);
+      f2 = ts.interpolateValue(ms);
+      
+      // We handle invalid interpolations slightly differing depending on
+      // opcode.  For example, for + and -, it could be justified that adding
+      // or subtracting to/from a datapoint that doesn't exist means that the
+      // missing value should be 0 (this assumption can certainly be challenged,
+      // but for most of the use cases for the application, I believe this is 
+      // correct.)  However, for * and /, should we attempt to return the 
+      // identity, or 0? It's unclear, so we bail on the calculation.
+      if (op == AST.Opcode.PLUS || op == AST.Opcode.MINUS) {
+        if (f1 == null)        
+          f1 = new Float(0.0f);
+        if (f2 == null)
+          f2 = new Float(0.0f);
       }
-    }
+      if (f1 == null || f1.isNaN() || f1.isInfinite())        
+        continue;
+      if (f2 == null || f2.isNaN() || f2.isInfinite())
+        continue;      
+      
+      d1 = new Datapoint(ms, f1, getDbRow().getId(), -1, 1);
+
+      if (op == AST.Opcode.PLUS)
+        d1.mValue.y += f2;             
+      else if (op == AST.Opcode.MINUS)
+        d1.mValue.y -= f2;             
+      else if (op == AST.Opcode.MULTIPLY)
+        d1.mValue.y *= f2;             
+      else if (op == AST.Opcode.DIVIDE) {
+        if (f2 == 0)
+          continue;
+        else
+          d1.mValue.y /= f2;               
+      }
+
+      if (ms < getVisibleTimestampMin() && ms < ts.getVisibleTimestampMin()) {
+        pre.add(d1);
+      }
+      else if (ms > getVisibleTimestampMax() && ms > ts.getVisibleTimestampMax()) {
+        post.add(d1);
+      }
+      else {
+        range.add(d1);
+      }
+    }       
+
+    setDatapoints(pre, range, post);
   }
 
-  public void timeserisPlus(TimeSeries ts, boolean strict) { 
-    timeseriesOp(ts, AST.Opcode.PLUS, strict); 
+  public void timeseriesPlus(TimeSeries ts) { 
+    timeseriesOp(ts, AST.Opcode.PLUS); 
   }
 
-  public void timeserisMinus(TimeSeries ts, boolean strict) { 
-    timeseriesOp(ts, AST.Opcode.MINUS, strict); 
+  public void timeseriesMinus(TimeSeries ts) { 
+    timeseriesOp(ts, AST.Opcode.MINUS); 
   }
 
-  public void timeserisMultiply(TimeSeries ts, boolean strict) { 
-    timeseriesOp(ts, AST.Opcode.MULTIPLY, strict); 
+  public void timeseriesMultiply(TimeSeries ts) { 
+    timeseriesOp(ts, AST.Opcode.MULTIPLY); 
   }
 
-  public void timeserisDivide(TimeSeries ts, boolean strict) { 
-    timeseriesOp(ts, AST.Opcode.DIVIDE, strict); 
+  public void timeseriesDivide(TimeSeries ts) { 
+    timeseriesOp(ts, AST.Opcode.DIVIDE); 
   }
 
   public void drawPath(Canvas canvas) {
@@ -817,5 +872,12 @@ public final class TimeSeries {
     mVisibleLastIdx      = Integer.MIN_VALUE;
     mVisiblePostFirstIdx = Integer.MIN_VALUE;
     mVisiblePostLastIdx  = Integer.MIN_VALUE;
+  }  
+  
+  private void resetMinMax() {
+    mVisibleMinY = Float.MAX_VALUE;
+    mVisibleMaxY = Float.MIN_VALUE;
+    mVisibleMinX = Long.MAX_VALUE;
+    mVisibleMaxX = Long.MIN_VALUE;
   }
 }

@@ -137,7 +137,7 @@ public class Formula {
 	private OperandInstance executeTimeseriesOp(OperandInstance left, AST.Opcode opcode, 
 			OperandInstance right) {
 		if (left.mType == Tokenizer.TokenID.SERIES && right.mType == Tokenizer.TokenID.SERIES) {
-			left.mTimeSeries.timeseriesOp(right.mTimeSeries, opcode, false);
+			left.mTimeSeries.timeseriesOp(right.mTimeSeries, opcode);
 			return left;
 		}
 		
