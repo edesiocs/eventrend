@@ -222,24 +222,12 @@ public class Graph {
 	}
 		
 	public void setupRange(TimeSeries ts, boolean showGoals) {
-		Tuple mins;
-		Tuple maxs;
-		
-		mins = ts.getVisibleMins();
-		if (mins != null)
-			mBoundsMins.y = mins.y;
-		maxs = ts.getVisibleMaxs();
-		if (maxs != null)
-			mBoundsMaxs.y = maxs.y;
+		mBoundsMins.y = ts.getVisibleValueMin();
+		mBoundsMaxs.y = ts.getVisibleValueMax();
 
-		if (mins == null || maxs == null) {
-			mBoundsMins.y = 0;
-			mBoundsMaxs.y = mPlotSize.y;
-		}
-
-		if (mins.y >= maxs.y) {
-			mBoundsMins.y = mBoundsMaxs.y - 1;
-			mBoundsMaxs.y++;
+		if (mBoundsMins.y >= mBoundsMaxs.y) {
+      mBoundsMins.y = 0;
+      mBoundsMaxs.y = mPlotSize.y;
 		}
 
 		if (showGoals) {
@@ -580,7 +568,7 @@ public class Graph {
     		info += "Values:\n"
     			 + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
     			 + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
-    			 + "  Range:       " + ts.getDatapointValueMin() + " - " + ts.getDatapointValueMax() + "\n"
+    			 + "  Range:       " + ts.getVisibleValueMin() + " - " + ts.getVisibleValueMax() + "\n"
     		     + "  Average:   " + Number.Round(valueStats.mMean, decimals) + "\n"
     		   	 + "  Std Dev.:    " + Number.Round(valueStats.mStdDev, decimals) + "\n"
     		   	 + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"

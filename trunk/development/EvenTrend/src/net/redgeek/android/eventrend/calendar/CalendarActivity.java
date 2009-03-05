@@ -413,7 +413,7 @@ public class CalendarActivity extends EvenTrendActivity {
     		info += "Values:\n"
     		     + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
                  + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
-    			 + "  Range:       " + ts.getDatapointValueMin() + " - " + ts.getDatapointValueMax() + "\n"
+    			 + "  Range:       " + ts.getVisibleValueMin() + " - " + ts.getVisibleValueMax() + "\n"
                  + "  Average:   " + Number.Round(valueStats.mMean, decimals) + "\n"
                  + "  Std Dev.:    " + Number.Round(valueStats.mStdDev, decimals) + "\n"
                  + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"
