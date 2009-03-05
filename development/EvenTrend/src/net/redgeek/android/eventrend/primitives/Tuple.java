@@ -28,8 +28,8 @@ public class Tuple implements Comparable<Tuple> {
 	/** Creates a Tuple initialized to (0.0f, 0.0f).
 	 */
 	public Tuple() {
-		this.x = 0.0f;
-		this.y = 0.0f;
+		x = 0.0f;
+		y = 0.0f;
 	}
 
 	/** Creates a new Tuple initialized with the values specified.
@@ -58,8 +58,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return The original Tuple.
 	 */
 	public Tuple set(Tuple t) {
-		this.x = t.x;
-		this.y = t.y;
+		x = t.x;
+		y = t.y;
 		return this;
 	}
 
@@ -122,8 +122,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple plus(Tuple other) {
-		this.x += other.x;
-		this.y += other.y;
+		x += other.x;
+		y += other.y;
 		return this;
 	}
 
@@ -133,8 +133,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple plus(float other) {
-		this.x += other;
-		this.y += other;
+		x += other;
+		y += other;
 		return this;
 	}
 
@@ -154,8 +154,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple minus(Tuple other) {
-		this.x -= other.x;
-		this.y -= other.y;
+		x -= other.x;
+		y -= other.y;
 		return this;
 	}
 
@@ -165,8 +165,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple minus(float other) {
-		this.x -= other;
-		this.y -= other;
+		x -= other;
+		y -= other;
 		return this;
 	}
 
@@ -186,8 +186,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple multiply(Tuple other) {
-		this.x *= other.x;
-		this.y *= other.y;
+		x *= other.x;
+		y *= other.y;
 		return this;
 	}
 
@@ -197,8 +197,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple multiply(float other) {
-		this.x *= other;
-		this.y *= other;
+		x *= other;
+		y *= other;
 		return this;
 	}
 
@@ -218,8 +218,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple divide(Tuple other) {
-		this.x /= other.x;
-		this.y /= other.y;
+		x /= other.x;
+		y /= other.y;
 		return this;
 	}
 
@@ -229,8 +229,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple divide(float other) {
-		this.x /= other;
-		this.y /= other;
+		x /= other;
+		y /= other;
 		return this;
 	}
 
@@ -252,8 +252,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple min(Tuple other) {
-		this.x = other.x < this.x ? other.x : this.x;
-		this.y = other.y < this.y ? other.y : this.y;
+		x = other.x < x ? other.x : x;
+		y = other.y < y ? other.y : y;
 		return this;
 	}
 	
@@ -275,8 +275,8 @@ public class Tuple implements Comparable<Tuple> {
 	 * @return <code>this</code>
 	 */
 	public Tuple max(Tuple other) {
-		this.x = other.x > this.x ? other.x : this.x;
-		this.y = other.y > this.y ? other.y : this.y;
+		x = other.x > x ? other.x : x;
+		y = other.y > y ? other.y : y;
 		return this;
 	}
 	

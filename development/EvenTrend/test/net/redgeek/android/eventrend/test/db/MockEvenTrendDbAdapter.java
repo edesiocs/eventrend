@@ -23,19 +23,19 @@ import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import android.content.Context;
 
 public class MockEvenTrendDbAdapter extends EvenTrendDbAdapter {
-	private MockCursor mCursor;
-	
-	public MockEvenTrendDbAdapter(Context context) {
-		super(context);		
-		mCursor = new MockCursor();
-	}
-	
-	public void setColumnMap(HashMap<Integer, String> columnMap) {
-		mCursor.setColumnMap(columnMap);
-	}
-	
-	public void setDbContents(ArrayList<HashMap<String, String>> contents) {
-		mCursor.setQueryResults(contents);
-	}
+  private MockCursor mCursor;
+
+  public MockEvenTrendDbAdapter(Context context) {
+    super(context);		
+    mCursor = new MockCursor();
+  }
+
+  public void setColumnMap(HashMap<Integer, String> columnMap) {
+    mCursor.setColumnMap(columnMap);
+  }
+
+  public void setDbContents(ArrayList<HashMap<String, String>> contents) {
+    mCursor.setQueryResults(contents);
+  }
 }
 

@@ -19,9 +19,9 @@ package net.redgeek.android.eventrend.test.synthetic;
 import junit.framework.TestCase;
 
 public class FormulaTest extends TestCase {
-	public void test() {
-		
-		
-	}
+  public void test() {
+
+
+  }
 }
 

@@ -370,6 +370,10 @@ public class TimeSeriesCollector  {
 	}
 
 	public Tuple getVisibleRange() {
+    float minY = Float.MAX_VALUE;
+    float maxY = Float.MIN_VALUE;
+    long  minX = Long.MAX_VALUE;
+    long  maxX = Long.MIN_VALUE;
 		Tuple mins = new Tuple(Float.MAX_VALUE, Float.MAX_VALUE);
 		Tuple maxs = new Tuple(Float.MIN_VALUE, Float.MIN_VALUE);
 		
@@ -377,8 +381,8 @@ public class TimeSeriesCollector  {
 		for (int i = 0; i < mSeries.size(); i++) {
 			TimeSeries ts = mSeries.get(i);
 			if (ts != null && ts.isEnabled() == true) {
-				mins.min(ts.getVisibleMins());
-				maxs.max(ts.getVisibleMaxs());
+        minY = Math.min(minY, ts.getVisibleValueMin());
+        maxY = Math.max(maxY, ts.getVisibleValueMax());
 			}
 		}
 		unlock();

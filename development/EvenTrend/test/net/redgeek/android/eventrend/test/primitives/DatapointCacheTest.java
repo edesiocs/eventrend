@@ -21,7 +21,7 @@ import junit.framework.TestCase;
 // Note that several tests use equality comparison on float, which could be 
 // dangerous in general, but should be safe for such small predefined values.
 public class DatapointCacheTest extends TestCase {
-	public void testConstructors() {
-	}
+  public void testConstructors() {
+  }
 }
 
