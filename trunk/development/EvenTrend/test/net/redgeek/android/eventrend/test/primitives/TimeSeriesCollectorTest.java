@@ -16,22 +16,39 @@
 
 package net.redgeek.android.eventrend.test.primitives;
 
-import android.content.Context;
-import android.test.mock.MockContext;
-
 import junit.framework.TestCase;
 
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.test.db.MockEvenTrendDbAdapter;
+import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendContext;
+import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendDbAdapter;
 
-// Note that several tests use equality comparison on float, which could be 
-// dangerous in general, but should be safe for such small predefined values.
+// TODO: implement
 public class TimeSeriesCollectorTest extends TestCase {
+  private TimeSeriesCollector newTSC() {
+    MockEvenTrendContext   ctx = new MockEvenTrendContext();
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter(ctx);
+    return new TimeSeriesCollector(ctx, dbh, 20);
+  }
+  
   public void testConstructor() {
-    MockContext            ctx;
-    MockEvenTrendDbAdapter dbh;
+    TimeSeriesCollector tsc = newTSC();
     
-//    TimeSeriesCollector ts = TimeSeriesCollector(ctx, dbh, 20);
+    assertNotNull(tsc);
+    assertNotNull(tsc.getDbh());
+    assertNotNull(tsc.getAllSeries());
+    assertEquals(0, tsc.getAllSeries().size());
+    assertNotNull(tsc.getAllEnabledSeries());
+    assertEquals(0, tsc.getAllEnabledSeries().size());
+    assertNull(tsc.getLastDatapoint(0));
+    assertNull(tsc.getLastDatapoint(1));
+    assertNull(tsc.getSeries(0));
+    assertNull(tsc.getSeriesById(1));
+    assertNull(tsc.getSeriesByName("foo"));
+    assertNull(tsc.getVisibleFirstDatapoint());
+    assertNull(tsc.getVisibleLastDatapoint());
+    assertNull(tsc.getVisibleRange());
+    assertFalse(tsc.getAutoAggregation());
+    assertFalse(tsc.isSeriesEnabled(1));
   }
 }
 
