@@ -469,16 +469,16 @@ public final class TimeSeries {
   }
 
   public Float interpolateScreenCoord(long timestamp) {
-    Datapoint d1 = this.findPreNeighbor(timestamp - 1);
-    Datapoint d2 = this.findPostNeighbor(timestamp);
+    Datapoint d1 = findPreNeighbor(timestamp - 1);
+    Datapoint d2 = findPostNeighbor(timestamp);
     if (d1 == null || d2 == null)
       return null;
     return mInterpolator.interpolateY(d1.mValueScreen, d2.mValueScreen, timestamp);
   }
 
   public Float interpolateValue(long timestamp) {
-    Datapoint d1 = this.findPreNeighbor(timestamp - 1);
-    Datapoint d2 = this.findPostNeighbor(timestamp);
+    Datapoint d1 = findPreNeighbor(timestamp - 1);
+    Datapoint d2 = findPostNeighbor(timestamp);
     if (d1 == null || d2 == null)
       return null;
     return mInterpolator.interpolateY(d1.mValue, d2.mValue, timestamp);

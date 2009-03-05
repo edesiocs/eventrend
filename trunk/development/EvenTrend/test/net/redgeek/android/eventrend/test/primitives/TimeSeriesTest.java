@@ -18,16 +18,14 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import java.util.ArrayList;
 
-import android.graphics.Canvas;
-
 import junit.framework.TestCase;
-
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.Tuple;
-import net.redgeek.android.eventrend.util.Number;
+import net.redgeek.android.eventrend.util.DateUtil;
+import android.graphics.Canvas;
 
 // Note that several tests use equality comparison on float, which could be 
 // dangerous in general, but should be safe for such small predefined values.
@@ -409,6 +407,295 @@ public class TimeSeriesTest extends TestCase {
     assertNull(result);    
   }
   
+  private TimeSeries arithOpTimeSeriesSource1() {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    Datapoint d1 = new Datapoint(100L, 1.0f, 1, 10, 1);
+    Datapoint d2 = new Datapoint(150L, 2.0f, 1, 11, 1);
+    Datapoint d3 = new Datapoint(250L, 4.0f, 1, 11, 1);
+    range.add(d1);
+    range.add(d2);
+    range.add(d3);
+
+    TimeSeries ts = newDefaultTimeSeries();
+    ts.setDatapoints(null, range, null);    
+    return ts;
+  }
+
+  private TimeSeries arithOpTimeSeriesSource2Strict() {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    Datapoint d1 = new Datapoint(100L, 2.0f, 1, 10, 1);
+    Datapoint d2 = new Datapoint(150L, 4.0f, 1, 11, 1);
+    Datapoint d3 = new Datapoint(250L, 8.0f, 1, 11, 1);
+    range.add(d1);
+    range.add(d2);
+    range.add(d3);
+
+    TimeSeries ts = newDefaultTimeSeries();
+    ts.setDatapoints(null, range, null);    
+    return ts;
+  }
+
+  private TimeSeries arithOpTimeSeriesSource2Loose() {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    Datapoint d1 = new Datapoint( 99L, 2.0f, 1, 10, 1);
+    Datapoint d2 = new Datapoint(151L, 4.0f, 1, 11, 1);
+    Datapoint d3 = new Datapoint(249L, 8.0f, 1, 11, 1);
+    range.add(d1);
+    range.add(d2);
+    range.add(d3);
+
+    TimeSeries ts = newDefaultTimeSeries();
+    ts.setDatapoints(null, range, null);    
+    return ts;
+  }
+
+  public void testFloatOp() {
+    TimeSeries ts;
+    
+    ts = arithOpTimeSeriesSource1();
+    ts.plusPre(2.0f);
+    assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(6.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.minusPre(2.0f);
+    assertEquals( 1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(-2.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.multiplyPre(2.0f);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(8.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.dividePre(2.0f);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(0.5f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.plusPost(2.0f);
+    assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(6.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.minusPost(2.0f);
+    assertEquals(-1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals( 2.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.multiplyPost(2.0f);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(8.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.dividePost(2.0f);
+    assertEquals(0.5f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
+  }
+
+  public void testLongOp() {
+    TimeSeries ts;
+    
+    ts = arithOpTimeSeriesSource1();
+    ts.plusPre(2L);
+    assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(6.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.minusPre(2L);
+    assertEquals( 1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(-2.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.multiplyPre(2L);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(8.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.dividePre(2L);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(0.5f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.plusPost(2L);
+    assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(6.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.minusPost(2L);
+    assertEquals(-1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals( 2.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.multiplyPost(2L);
+    assertEquals(2.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(8.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.dividePost(2L);
+    assertEquals(0.5f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
+  }
+  
+  public void testPreviousOp() {
+    TimeSeries ts;
+    
+    ts = arithOpTimeSeriesSource1();
+    ts.previousValue();
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = arithOpTimeSeriesSource1();
+    ts.previousTimestamp();
+    assertEquals(0.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(50.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(100.0f, ts.getDatapoints().get(2).mValue.y);    
+  }
+
+  private TimeSeries newPeriodOpTimeSeries(DateUtil.Period p, boolean divide) {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    Datapoint d1, d2, d3;
+
+    long modifier = DateUtil.mapPeriodToLong(p);
+    if (divide == true) {
+      d1 = new Datapoint(100L, 100000.0f / modifier, 1, 10, 1);
+      d2 = new Datapoint(150L, 200000.0f / modifier, 1, 11, 1);
+      d3 = new Datapoint(250L, 400000.0f / modifier, 1, 11, 1);
+    } else {
+      d1 = new Datapoint(100L, 1.0f * modifier, 1, 10, 1);
+      d2 = new Datapoint(150L, 2.0f * modifier, 1, 11, 1);
+      d3 = new Datapoint(250L, 4.0f * modifier, 1, 11, 1);
+    }
+    range.add(d1);
+    range.add(d2);
+    range.add(d3);
+
+    TimeSeries ts = newDefaultTimeSeries();
+    ts.setDatapoints(null, range, null);    
+    return ts;
+  }
+  
+  public void testPeriodOp() {
+    TimeSeries ts;
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.MINUTE, false);
+    ts.inPeriod(DateUtil.Period.MINUTE);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.HOUR, false);
+    ts.inPeriod(DateUtil.Period.HOUR);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.AMPM, false);
+    ts.inPeriod(DateUtil.Period.AMPM);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.DAY, false);
+    ts.inPeriod(DateUtil.Period.DAY);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.WEEK, false);
+    ts.inPeriod(DateUtil.Period.WEEK);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.MONTH, false);
+    ts.inPeriod(DateUtil.Period.MONTH);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.QUARTER, false);
+    ts.inPeriod(DateUtil.Period.QUARTER);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.YEAR, false);
+    ts.inPeriod(DateUtil.Period.YEAR);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
+
+    
+    ts = newPeriodOpTimeSeries(DateUtil.Period.MINUTE, true);
+    ts.asPeriod(DateUtil.Period.MINUTE);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.HOUR, true);
+    ts.asPeriod(DateUtil.Period.HOUR);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.AMPM, true);
+    ts.asPeriod(DateUtil.Period.AMPM);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.DAY, true);
+    ts.asPeriod(DateUtil.Period.DAY);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.WEEK, true);
+    ts.asPeriod(DateUtil.Period.WEEK);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.MONTH, true);
+    ts.asPeriod(DateUtil.Period.MONTH);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.QUARTER, true);
+    ts.asPeriod(DateUtil.Period.QUARTER);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+
+    ts = newPeriodOpTimeSeries(DateUtil.Period.YEAR, true);
+    ts.asPeriod(DateUtil.Period.YEAR);
+    assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
+  }
+
+  public void testTimeSeriesOp() {
+  }
+
   // These will be tested in Number.* unittests:
   //   testCalcStatsAndBounds()
   //   testRecalcStatsAndBounds()
