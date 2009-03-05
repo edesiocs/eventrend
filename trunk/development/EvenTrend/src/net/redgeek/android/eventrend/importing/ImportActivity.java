@@ -72,18 +72,18 @@ public class ImportActivity extends EvenTrendActivity {
     }
     
     private void getPrefs() {
-        mHistory = Preferences.getHistory(mCtx);
+        mHistory = Preferences.getHistory(getCtx());
     }
     
     private void setupTasks() {	
-    	mImporter = new ImportTask(mDbh);
+    	mImporter = new ImportTask(getDbh());
     }
     
     private void setupUI() {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.import_list);
                 
-        mProgress = new ProgressIndicator.DialogSoft(mCtx, DIALOG_PROGRESS);
+        mProgress = new ProgressIndicator.DialogSoft(getCtx(), DIALOG_PROGRESS);
         mImportDir = getResources().getString(R.string.import_dir);
         mEmptyList = (TextView) findViewById(android.R.id.empty);
         mEmptyList.setText("No importable files found in " + mImportDir);    	
@@ -141,11 +141,11 @@ public class ImportActivity extends EvenTrendActivity {
     protected Dialog onCreateDialog(int id) {
         switch (id) {
         case DIALOG_IMPORT_SUCCESS:
-        	return mDialogUtil.newOkDialog("Import Success", "Imported from " + mFilename);
+        	return getDialogUtil().newOkDialog("Import Success", "Imported from " + mFilename);
         case DIALOG_ERR_FILEREAD:
-        	return mDialogUtil.newOkDialog("Import Failure", "Error reading from " + mFilename + ": " + mErrMsg);
+        	return getDialogUtil().newOkDialog("Import Failure", "Error reading from " + mFilename + ": " + mErrMsg);
         case DIALOG_PROGRESS:
-        	return mDialogUtil.newProgressDialog("Importing data from " + mFilename + " ...");
+        	return getDialogUtil().newProgressDialog("Importing data from " + mFilename + " ...");
         default:
         }
         return null;

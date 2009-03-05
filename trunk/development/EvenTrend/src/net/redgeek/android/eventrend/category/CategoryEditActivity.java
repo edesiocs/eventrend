@@ -145,11 +145,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
 			}
 		}
 		
-        mMaxRank = mDbh.fetchCategoryMaxRank() + 1;
+        mMaxRank = getDbh().fetchCategoryMaxRank() + 1;
         if (mRowId == null)
         	mRow = new CategoryDbTable.Row();
         else
-        	mRow = mDbh.fetchCategory(mRowId);
+        	mRow = getDbh().fetchCategory(mRowId);
     }
     
     private void setupUI() {
@@ -157,11 +157,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     	setupListeners();    	
         
-        mGroupCombo = new ComboBox(mCtx);
+        mGroupCombo = new ComboBox(getCtx());
         mGroupComboLayout = (LinearLayout) findViewById(R.id.category_edit_group);
         mGroupComboLayout.addView(mGroupCombo, new LinearLayout.LayoutParams(
                 LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-    	Cursor c = mDbh.fetchAllGroups();
+    	Cursor c = getDbh().fetchAllGroups();
         c.moveToFirst();
         for(int i=0; i < c.getCount(); i++) {
         	String group = CategoryDbTable.getGroupName(c);
@@ -183,11 +183,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
         mColorButton.setOnClickListener(mColorButtonListener);
         setHelpDialog(R.id.category_edit_color_view, DIALOG_HELP_COLOR);       
 
-        mInterpSpinner = new DynamicSpinner(mCtx);
+        mInterpSpinner = new DynamicSpinner(getCtx());
         mInterpRow = (LinearLayout) findViewById(R.id.category_edit_interp_menu);
         mInterpRow.addView(mInterpSpinner, new LinearLayout.LayoutParams(
                 LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-        ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) mCtx).getInterpolators();
+        ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) getCtx()).getInterpolators();
         for (int i = 0; i < interpolators.size(); i++) {
         	String name = interpolators.get(i).getName();
         	mInterpSpinner.addSpinnerItem(name, new Long(i));
@@ -195,7 +195,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         mInterpSpinner.setOnItemSelectedListener(mInterpolationListener);       
         setHelpDialog(R.id.category_edit_interp_view, DIALOG_HELP_INTERP);       
         
-        mPeriodSpinner = new DynamicSpinner(mCtx);
+        mPeriodSpinner = new DynamicSpinner(getCtx());
         mPeriodRow = (LinearLayout) findViewById(R.id.category_edit_agg_menu);
         mPeriodRow.addView(mPeriodSpinner, new LinearLayout.LayoutParams(
                 LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
@@ -288,7 +288,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
         mColorButtonListener = new View.OnClickListener() {
         	public void onClick(View view) {
-                ColorPickerDialog d = new ColorPickerDialog(mCtx, 
+                ColorPickerDialog d = new ColorPickerDialog(getCtx(), 
                 		mColorChangeListener, mPickerPaint.getColor());
                 d.show();
         	}
@@ -336,7 +336,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         		mSave = true;
         		saveState();
         		mSave = false;
-        		Intent i = new Intent(mCtx, FormulaEditorActivity.class);
+        		Intent i = new Intent(getCtx(), FormulaEditorActivity.class);
         		i.putExtra(CATEGORY_ID, mRowId);
                 startActivityForResult(i, FORMULA_EDIT);
         	}
@@ -370,7 +370,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     private void populateFields() {
         if (mRowId != null) {
         	if (mRow == null)
-        		mRow = mDbh.fetchCategory(mRowId);
+        		mRow = getDbh().fetchCategory(mRowId);
 
             mGroupCombo.setText(mRow.getGroupName());
             mCategoryText.setText(mRow.getCategoryName());
@@ -390,7 +390,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
             mPeriod = CategoryDbTable.mapMsToPeriod(mPeriodMs);
             mPeriodSpinner.setSelection(CategoryDbTable.mapMsToIndex(mPeriodMs));
             
-            ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) mCtx).getInterpolators();
+            ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) getCtx()).getInterpolators();
             for (int i = 0; i < interpolators.size(); i++) {
             	String name = interpolators.get(i).getName();
             	if ( mInterp != null && mInterp.equals(name)) {
@@ -462,14 +462,14 @@ public class CategoryEditActivity extends EvenTrendActivity {
     		
     		if (mRowId == null) {
     			mRow.setRank(mMaxRank);
-    			long catId = mDbh.createCategory(mRow);
+    			long catId = getDbh().createCategory(mRow);
     			if (catId > 0) {
     				mRowId = catId;
     			}
     		} else {
     			mRow.setId(mRowId);
     			mRow.setRank(mRank);
-    			mDbh.updateCategory(mRow);
+    			getDbh().updateCategory(mRow);
     		}
     	}
     }
@@ -485,7 +485,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         	mFormula.setFormula(formula);
         
         if (mRowId > 0)
-        	mRow = mDbh.fetchCategory(mRowId);
+        	mRow = getDbh().fetchCategory(mRowId);
         populateFields();
     }
     
@@ -501,70 +501,70 @@ public class CategoryEditActivity extends EvenTrendActivity {
             case DIALOG_HELP_GROUP:
             	title = getResources().getString(R.string.cat_group_title); 
             	msg = getResources().getString(R.string.cat_group_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_CATEGORY:
             	title = getResources().getString(R.string.cat_category_title); 
             	msg = getResources().getString(R.string.cat_category_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_DEFAULT_VALUE:
             	title = getResources().getString(R.string.cat_default_value_title); 
             	msg = getResources().getString(R.string.cat_default_value_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_INCREMENT:
             	title = getResources().getString(R.string.cat_increment_title); 
             	msg = getResources().getString(R.string.cat_increment_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_GOAL:
             	title = getResources().getString(R.string.cat_goal_title); 
             	msg = getResources().getString(R.string.cat_goal_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_COLOR:
             	title = getResources().getString(R.string.cat_color_title); 
             	msg = getResources().getString(R.string.cat_color_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_TYPE:
             	title = getResources().getString(R.string.cat_type_title); 
             	msg = getResources().getString(R.string.cat_type_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_AGGREGATE:
             	title = getResources().getString(R.string.cat_aggregate_title); 
             	msg = getResources().getString(R.string.cat_aggregate_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_INTERP:
             	title = getResources().getString(R.string.cat_interp_title); 
             	msg = getResources().getString(R.string.cat_interp_desc);
 
-            	ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) mCtx).getInterpolators();
+            	ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) getCtx()).getInterpolators();
                 for (int i = 0; i < interpolators.size(); i++) {
                 	int helpId = interpolators.get(i).getHelpResId();
                     msg += "\n---\n" + getResources().getString(helpId);
                 }
 
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_ZEROFILL:
             	title = getResources().getString(R.string.cat_zerofill_title); 
             	msg = getResources().getString(R.string.cat_zerofill_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_SYNTHETIC:
             	title = getResources().getString(R.string.cat_synthetic_title); 
             	msg = getResources().getString(R.string.cat_synthetic_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
             case DIALOG_HELP_FORMULA:
             	title = getResources().getString(R.string.cat_formula_title); 
             	msg = getResources().getString(R.string.cat_formula_desc);
-            	return mDialogUtil.newOkDialog(title, msg + "\n");
+            	return getDialogUtil().newOkDialog(title, msg + "\n");
         }
         return null;
     }
 
     private Dialog dialog(String title, String msg) {
-    	Builder b = new AlertDialog.Builder(mCtx);
+    	Builder b = new AlertDialog.Builder(getCtx());
     	b.setTitle(title);
     	b.setMessage(msg);
     	b.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
     		public void onClick(DialogInterface dialog, int whichButton) {
-    			mDbh.deleteCategory(mRowId);
-        		mDbh.deleteCategoryEntries(mRowId);
+    			getDbh().deleteCategory(mRowId);
+        		getDbh().deleteCategoryEntries(mRowId);
         		setResult(RESULT_OK);
         	    finish();
     		}

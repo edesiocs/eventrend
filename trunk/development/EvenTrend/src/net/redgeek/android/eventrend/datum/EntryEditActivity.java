@@ -127,14 +127,14 @@ public class EntryEditActivity extends EvenTrendActivity {
 		}
 
 		if (mRowId != null) {
-			mEntry = mDbh.fetchEntry(mRowId);
+			mEntry = getDbh().fetchEntry(mRowId);
 			mCategoryId = mEntry.getCategoryId();
 		}
 
 		mCal = Calendar.getInstance();
 		mOriginalTimestamp = new DateUtil.DateItem();
 		mPickerTimestamp = new DateUtil.DateItem();
-		mHistory = Preferences.getHistory(mCtx);
+		mHistory = Preferences.getHistory(getCtx());
     }
     
     private void setupUI() {
@@ -237,20 +237,20 @@ public class EntryEditActivity extends EvenTrendActivity {
 
         mDeleteListener = new View.OnClickListener() {
         	public void onClick(View view) {
-        		mDbh.deleteEntry(mRowId);
-    		    CategoryDbTable.Row row = mDbh.fetchCategory(mCategoryId);
-    		    TimeSeriesCollector tsc = new TimeSeriesCollector(mCtx, mDbh, mHistory);
+        		getDbh().deleteEntry(mRowId);
+    		    CategoryDbTable.Row row = getDbh().fetchCategory(mCategoryId);
+    		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
     		    tsc.initialize();
     		    tsc.updateCategoryTrend(mCategoryId);
         	    setResult(RESULT_OK);
-        	    mDbh.close();
+        	    getDbh().close();
         	    finish();
         	}
         };
     }
     
     public void setupMenu() {
-    	Cursor c = mDbh.fetchAllCategories();
+    	Cursor c = getDbh().fetchAllCategories();
         c.moveToFirst();
 
         for(int i=0; i < c.getCount(); i++) {
@@ -372,7 +372,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     private void populateFields(EntryDbTable.Row entry) {
         if (mRowId != null) {
         	if (entry == null)
-        		mEntry = mDbh.fetchEntry(mRowId);
+        		mEntry = getDbh().fetchEntry(mRowId);
         	else
         		mEntry = entry;
 
@@ -405,7 +405,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     @Override
     protected void onResume() {
         super.onResume();
-		mHistory = Preferences.getHistory(mCtx);
+		mHistory = Preferences.getHistory(getCtx());
         populateFields(null);
     }
     
@@ -419,18 +419,18 @@ public class EntryEditActivity extends EvenTrendActivity {
     		entry.setTimestamp(mPickerTimestamp.mMillis);
 
     		if (mRowId != null) {
-				CategoryDbTable.Row cat = mDbh.fetchCategory(mCategoryId);
+				CategoryDbTable.Row cat = getDbh().fetchCategory(mCategoryId);
 				
     			if (mTimestampChanged == true && cat != null) {
-    				EntryDbTable.Row other = mDbh.fetchCategoryEntryInPeriod(cat.getId(), 
+    				EntryDbTable.Row other = getDbh().fetchCategoryEntryInPeriod(cat.getId(), 
     						cat.getPeriodMs(), entry.getTimestamp());	
     				if (other != null) {
     					other.setValue(other.getValue() + entry.getValue());
     					other.setNEntries(other.getNEntries() + entry.getNEntries());
-    					mDbh.updateEntry(other);
-    					mDbh.deleteEntry(entry.getId());
+    					getDbh().updateEntry(other);
+    					getDbh().deleteEntry(entry.getId());
     	    		    if (cat != null) {
-    	        		    TimeSeriesCollector tsc = new TimeSeriesCollector(mCtx, mDbh, mHistory);
+    	        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
     	        		    tsc.initialize();
     	        		    tsc.updateCategoryTrend(mCategoryId);
     	    		    }
@@ -438,9 +438,9 @@ public class EntryEditActivity extends EvenTrendActivity {
     				}
     			}    			
     			
-    		    mDbh.updateEntry(entry);
+    		    getDbh().updateEntry(entry);
     		    if (cat != null) {
-        		    TimeSeriesCollector tsc = new TimeSeriesCollector(mCtx, mDbh, mHistory);
+        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
         		    tsc.initialize();
         		    tsc.updateCategoryTrend(mCategoryId);
     		    }

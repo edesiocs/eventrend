@@ -103,12 +103,12 @@ public class CalendarActivity extends EvenTrendActivity {
     }
 
     private void getPrefs() {
-    	mHistory = Preferences.getHistory(mCtx);
-    	mDecimals = Preferences.getDecimalPlaces(mCtx);
+    	mHistory = Preferences.getHistory(getCtx());
+    	mDecimals = Preferences.getDecimalPlaces(getCtx());
     }
     
     private void setupData(Bundle icicle) {
-        mTSC = new TimeSeriesCollector(this, mDbh, mHistory);
+        mTSC = new TimeSeriesCollector(this, getDbh(), mHistory);
         mTSC.initialize();
         
 		mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
@@ -146,11 +146,11 @@ public class CalendarActivity extends EvenTrendActivity {
         
         mCalendarControls = (LinearLayout) findViewById(R.id.calendar_controls);
 
-        mCategorySpinner = new DynamicSpinner(mCtx);
+        mCategorySpinner = new DynamicSpinner(getCtx());
         mCategorySpinner.setPrompt("Category");
         mCalendarControls.addView(mCategorySpinner, new LinearLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-    	Cursor c = mDbh.fetchAllCategories();
+    	Cursor c = getDbh().fetchAllCategories();
     	c.moveToFirst();
         for(int i=0; i < c.getCount(); i++) {
     		long id = CategoryDbTable.getId(c);
@@ -164,7 +164,7 @@ public class CalendarActivity extends EvenTrendActivity {
         c.close();
         mCategorySpinner.setOnItemSelectedListener(mCategorySpinnerListener);
 
-        mPeriodSpinner = new DynamicSpinner(mCtx);
+        mPeriodSpinner = new DynamicSpinner(getCtx());
         mPeriodSpinner.setPrompt("View");
         mCalendarControls.addView(mPeriodSpinner, new LinearLayout.LayoutParams(
                 LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
@@ -173,7 +173,7 @@ public class CalendarActivity extends EvenTrendActivity {
 //        mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new Long(2));
         mPeriodSpinner.setSelection(0);
 
-        mProgress = new ProgressIndicator.Titlebar(mCtx);
+        mProgress = new ProgressIndicator.Titlebar(getCtx());
         
 		setupGestures();
     }
@@ -305,7 +305,7 @@ public class CalendarActivity extends EvenTrendActivity {
         		return rangeInfoDialog(mCalendarView.getCategoryId());
             case HELP_DIALOG_ID:
             	String str = getResources().getString(R.string.calendar_overview); 
-            	return mDialogUtil.newOkDialog("Help", str);
+            	return getDialogUtil().newOkDialog("Help", str);
         }
         return null;
     }
@@ -333,7 +333,7 @@ public class CalendarActivity extends EvenTrendActivity {
     }
 
     public EvenTrendDbAdapter getDbh() {
-    	return mDbh;
+    	return getDbh();
     }
     
     public ArrayList<Integer> getSeriesEnabledState() {
@@ -390,12 +390,12 @@ public class CalendarActivity extends EvenTrendActivity {
     }
     
     private Dialog rangeInfoDialog(long catId) {
-    	Builder b = new AlertDialog.Builder(mCtx);
-        EvenTrendDbAdapter dbh = ((CalendarActivity) mCtx).getDbh();
+    	Builder b = new AlertDialog.Builder(getCtx());
+        EvenTrendDbAdapter dbh = ((CalendarActivity) getCtx()).getDbh();
         CategoryDbTable.Row cat = dbh.fetchCategory(catId);
         TimeSeries ts = mTSC.getSeriesById(catId);
         
-        int decimals = Preferences.getDecimalPlaces(mCtx);
+        int decimals = Preferences.getDecimalPlaces(getCtx());
 
     	String info = "Category: " + cat.getCategoryName() + "\n";
     	if (ts != null) {

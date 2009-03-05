@@ -112,7 +112,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
 	}
     
     private void populateFields() {
-    	CategoryDbTable.Row row = mDbh.fetchCategory(mCatId);
+    	CategoryDbTable.Row row = getDbh().fetchCategory(mCatId);
     	mPage.setText(row.getFormula());
     }
     
@@ -139,10 +139,10 @@ public class FormulaEditorActivity extends EvenTrendActivity {
         switch (id) {
         case HELP_DIALOG:
         	str = getResources().getString(R.string.formula_help); 
-        	return mDialogUtil.newOkDialog("Help", str);
+        	return getDialogUtil().newOkDialog("Help", str);
         case PARSE_ERROR_DIALOG:
         	str = mFormula.getErrorString();
-        	return mDialogUtil.newOkDialog("Parse Eror", str);
+        	return getDialogUtil().newOkDialog("Parse Eror", str);
         default:
         }
         return null;
@@ -168,9 +168,9 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     
     private void saveState() {
     	if (mSave == true) {    		
-    		CategoryDbTable.Row cat = mDbh.fetchCategory(mCatId);
+    		CategoryDbTable.Row cat = getDbh().fetchCategory(mCatId);
     		cat.setFormula(mFormula.toString());
-    		mDbh.updateCategory(cat);
+    		getDbh().updateCategory(cat);
 //    		mFormula.parseString(mPage.getText().toString());
 //    		String s = mFormula.toString();
 //    		getIntent().putExtra(FORMULA, s);
