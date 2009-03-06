@@ -21,182 +21,183 @@ import java.util.ArrayList;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.Tuple;
 
-/** Transform absolute value into the viewable size.
+/**
+ * Transform absolute value into the viewable size.
  * 
  * @author barclay
- *
+ * 
  */
 public class Transformation {
-	private Tuple mPlotSize;    // dimension of on-screen plottable area
-	private Tuple mVirtualSize; // logical dimension of plot
-	private Tuple mScale;
-	private Tuple mShift;       // so we can calculate and plot closer to 0,0
-	
-	boolean hasData = false;
+  private Tuple mPlotSize; // dimension of on-screen plottable area
+  private Tuple mVirtualSize; // logical dimension of plot
+  private Tuple mScale;
+  private Tuple mShift; // so we can calculate and plot closer to 0,0
 
-	public Transformation() {
-		setup(new Tuple(0.0f, 0.0f));
-	}
+  boolean hasData = false;
 
-	public Transformation(float width, float height) {
-		setup(new Tuple(width, height));
-	}
+  public Transformation() {
+    setup(new Tuple(0.0f, 0.0f));
+  }
 
-	public Transformation(Tuple plotSize) {
-		setup(plotSize);
-	}
+  public Transformation(float width, float height) {
+    setup(new Tuple(width, height));
+  }
 
-	private void setup(Tuple plotSize) {
-		mPlotSize = new Tuple(plotSize);
-		mVirtualSize = new Tuple(plotSize);
-		mScale = new Tuple(1.0f, 1.0f);
-		mShift = new Tuple(0.0f, 0.0f);
-	}
-	
-	public void setPlotSize(Tuple plotSize) {
-		mPlotSize = plotSize;
-		mVirtualSize.set(mPlotSize);
-		updateScale();
-	}
+  public Transformation(Tuple plotSize) {
+    setup(plotSize);
+  }
 
-	public void setVirtualSize(Tuple mins, Tuple maxs) {
-		mVirtualSize.set(maxs.x - mins.x, maxs.y - mins.y);
-		mShift.set(mins);
-		updateScale();
-	}
-		
-	public Tuple getPlotSize() {
-		return new Tuple(mPlotSize);
-	}
+  private void setup(Tuple plotSize) {
+    mPlotSize = new Tuple(plotSize);
+    mVirtualSize = new Tuple(plotSize);
+    mScale = new Tuple(1.0f, 1.0f);
+    mShift = new Tuple(0.0f, 0.0f);
+  }
 
-	public Tuple getVirtualSize() {
-		return new Tuple(mVirtualSize);
-	}
+  public void setPlotSize(Tuple plotSize) {
+    mPlotSize = plotSize;
+    mVirtualSize.set(mPlotSize);
+    updateScale();
+  }
 
-	private void updateScale() {
-		mScale.set(mPlotSize);
-		if (mVirtualSize.x == 0 || mVirtualSize.y == 0)
-			mScale.set(0.0f, 0.0f);
-		else
-			mScale.divide(mVirtualSize);
-	}
-	
-	public void clear() {
-		setup(mPlotSize);
-	}
+  public void setVirtualSize(Tuple mins, Tuple maxs) {
+    mVirtualSize.set(maxs.x - mins.x, maxs.y - mins.y);
+    mShift.set(mins);
+    updateScale();
+  }
 
-	// Virtual to Plot
-	private void transformV2Pinplace(Tuple t) {
-		t.minus(mShift).multiply(mScale);
-		t.y = mPlotSize.y - t.y;
-	}
-	
-	// Plot to Virtual
-	private void transformP2Vinplace(Tuple t) {
-		t.y = mPlotSize.y + t.y;
-		t.divide(mScale).plus(mShift);
-	}
-	
-	// Virtual to Plot
-	private Tuple transformV2P(Tuple in) {
-		if (hasData == false)
-			return null;	
-		Tuple out = new Tuple(in);
-		transformV2Pinplace(out);
-		return out;
-	}
+  public Tuple getPlotSize() {
+    return new Tuple(mPlotSize);
+  }
 
-	// Virtual to Plot
-	private void transformV2P(Tuple in, Tuple out) {
-		if (hasData == false)
-			return;	
-		out.set(in);
-		transformV2Pinplace(out);
-	}
+  public Tuple getVirtualSize() {
+    return new Tuple(mVirtualSize);
+  }
 
-	// Plot to Virtual
-	private Tuple transformP2V(Tuple in) {
-		if (hasData == false)
-			return null;
-		
-		Tuple out = new Tuple(in);
-		transformP2Vinplace(out);
-		return out;
-	}
+  private void updateScale() {
+    mScale.set(mPlotSize);
+    if (mVirtualSize.x == 0 || mVirtualSize.y == 0)
+      mScale.set(0.0f, 0.0f);
+    else
+      mScale.divide(mVirtualSize);
+  }
 
-	// Plot to Virtual
-	private void transformP2V(Tuple in, Tuple out) {
-		if (hasData == false)
-			return;
-		out.set(in);
-		transformP2Vinplace(out);
-	}
+  public void clear() {
+    setup(mPlotSize);
+  }
 
-	public void transformPath(ArrayList<Datapoint> path) {
-		if (path == null)
-			return;
-		
-		for (int i = 0; i< path.size(); i++) {
-			transformDatapoint(path.get(i));
-		}
-		return;
-	}
+  // Virtual to Plot
+  private void transformV2Pinplace(Tuple t) {
+    t.minus(mShift).multiply(mScale);
+    t.y = mPlotSize.y - t.y;
+  }
 
-	public void transformDatapoint(Datapoint point) {
-		hasData = true;
-		transformV2P(point.mTrend, point.mTrendScreen);
-		transformV2P(point.mValue, point.mValueScreen);
-	}
+  // Plot to Virtual
+  private void transformP2Vinplace(Tuple t) {
+    t.y = mPlotSize.y + t.y;
+    t.divide(mScale).plus(mShift);
+  }
 
-	// Virtual to Plot
-	public ArrayList<Tuple> pathV2P(ArrayList<Tuple> in) {
-		if (in == null)
-			return null;
-		
-		ArrayList<Tuple> out = new ArrayList<Tuple>(in.size());
-		for (int i = 0; i< in.size(); i++) {
-			out.add(transformV2P(in.get(i)));
-		}
-		
-		return out;
-	}
+  // Virtual to Plot
+  private Tuple transformV2P(Tuple in) {
+    if (hasData == false)
+      return null;
+    Tuple out = new Tuple(in);
+    transformV2Pinplace(out);
+    return out;
+  }
 
-	// Plot to Virtual
-	public ArrayList<Tuple> pathP2V(ArrayList<Tuple> in) {
-		if (in == null)
-			return null;
-		
-		ArrayList<Tuple> out = new ArrayList<Tuple>(in.size());
-		for (int i = 0; i< in.size(); i++) {
-			out.add(transformP2V(in.get(i)));
-		}
+  // Virtual to Plot
+  private void transformV2P(Tuple in, Tuple out) {
+    if (hasData == false)
+      return;
+    out.set(in);
+    transformV2Pinplace(out);
+  }
 
-		return out;
-	}
+  // Plot to Virtual
+  private Tuple transformP2V(Tuple in) {
+    if (hasData == false)
+      return null;
 
-	// Virtual to Plot
-	public Tuple tupleV2P(Tuple in) {
-		return transformP2V(in);
-	}
+    Tuple out = new Tuple(in);
+    transformP2Vinplace(out);
+    return out;
+  }
 
-	// Plot to Virtual
-	public Tuple tupleP2V(Tuple in) {
-		return transformV2P(in);		
-	}
-	
-	public float scaleXDimension(float in) {
-		return in * mScale.x;
-	}
+  // Plot to Virtual
+  private void transformP2V(Tuple in, Tuple out) {
+    if (hasData == false)
+      return;
+    out.set(in);
+    transformP2Vinplace(out);
+  }
 
-	public float scaleYDimension(float in) {
-		return in * mScale.y;		
-	}
+  public void transformPath(ArrayList<Datapoint> path) {
+    if (path == null)
+      return;
 
-	public float shiftXDimension(float in) {
-		return in - mShift.x;
-	}
+    for (int i = 0; i < path.size(); i++) {
+      transformDatapoint(path.get(i));
+    }
+    return;
+  }
 
-	public float shiftYDimension(float in) {
-		return in - mShift.y;
-	}
+  public void transformDatapoint(Datapoint point) {
+    hasData = true;
+    transformV2P(point.mTrend, point.mTrendScreen);
+    transformV2P(point.mValue, point.mValueScreen);
+  }
+
+  // Virtual to Plot
+  public ArrayList<Tuple> pathV2P(ArrayList<Tuple> in) {
+    if (in == null)
+      return null;
+
+    ArrayList<Tuple> out = new ArrayList<Tuple>(in.size());
+    for (int i = 0; i < in.size(); i++) {
+      out.add(transformV2P(in.get(i)));
+    }
+
+    return out;
+  }
+
+  // Plot to Virtual
+  public ArrayList<Tuple> pathP2V(ArrayList<Tuple> in) {
+    if (in == null)
+      return null;
+
+    ArrayList<Tuple> out = new ArrayList<Tuple>(in.size());
+    for (int i = 0; i < in.size(); i++) {
+      out.add(transformP2V(in.get(i)));
+    }
+
+    return out;
+  }
+
+  // Virtual to Plot
+  public Tuple tupleV2P(Tuple in) {
+    return transformP2V(in);
+  }
+
+  // Plot to Virtual
+  public Tuple tupleP2V(Tuple in) {
+    return transformV2P(in);
+  }
+
+  public float scaleXDimension(float in) {
+    return in * mScale.x;
+  }
+
+  public float scaleYDimension(float in) {
+    return in * mScale.y;
+  }
+
+  public float shiftXDimension(float in) {
+    return in - mShift.x;
+  }
+
+  public float shiftYDimension(float in) {
+    return in - mShift.y;
+  }
 }

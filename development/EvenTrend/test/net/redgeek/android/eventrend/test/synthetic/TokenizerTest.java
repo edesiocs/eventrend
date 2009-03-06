@@ -114,7 +114,7 @@ public class TokenizerTest extends TestCase {
     token = tz.getNextToken();
     assertEquals(Tokenizer.TokenID.STRING_VALUE, token.mTokenID);
     assertEquals("series\"name", token.mValue);
-    assertEquals(2, token.mStart);		
+    assertEquals(2, token.mStart);
   }
 
   public void testLongs() {
@@ -279,7 +279,7 @@ public class TokenizerTest extends TestCase {
     Tokenizer tz = new Tokenizer();
     Tokenizer.Token token;
 
-    // radix:     12345678 9 12 3456789 123 4567 89 
+    // radix: 12345678 9 12 3456789 123 4567 89
     tz.setInput("( series \"one\" + series \"two\" ) ");
 
     token = tz.getNextToken();
@@ -323,4 +323,3 @@ public class TokenizerTest extends TestCase {
     assertEquals(31, token.mStart);
   }
 }
-

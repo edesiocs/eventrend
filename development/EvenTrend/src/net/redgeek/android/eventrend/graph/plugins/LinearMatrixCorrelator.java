@@ -24,40 +24,40 @@ import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.util.Number;
 
 public class LinearMatrixCorrelator implements TimeSeriesCorrelator {
-	public LinearMatrixCorrelator() {}
+  public LinearMatrixCorrelator() {
+  }
 
-	public Float[][] correlate(ArrayList<TimeSeries> timeseries) {
-		TimeSeries ts1, ts2;
-		Datapoint  d;
+  public Float[][] correlate(ArrayList<TimeSeries> timeseries) {
+    TimeSeries ts1, ts2;
+    Datapoint d;
 
-		if (timeseries == null)
-			return null;
+    if (timeseries == null)
+      return null;
 
-		int nSeries = timeseries.size();
-		Float[] values = new Float[nSeries];
+    int nSeries = timeseries.size();
+    Float[] values = new Float[nSeries];
 
-		Number.LinearMatrixCorrelation lcm;
-		List<Datapoint> datapoints;
+    Number.LinearMatrixCorrelation lcm;
+    List<Datapoint> datapoints;
 
-		lcm = new Number.LinearMatrixCorrelation(nSeries);
-		for (int i = 0; i < nSeries; i++) {
-			ts1 = timeseries.get(i);
-			datapoints = ts1.getVisible();
+    lcm = new Number.LinearMatrixCorrelation(nSeries);
+    for (int i = 0; i < nSeries; i++) {
+      ts1 = timeseries.get(i);
+      datapoints = ts1.getVisible();
 
-			for (int j = 0; j < datapoints.size(); j++) {
-				d = datapoints.get(j);
-				values[i] = new Float(d.mValue.y);
+      for (int j = 0; j < datapoints.size(); j++) {
+        d = datapoints.get(j);
+        values[i] = new Float(d.mValue.y);
 
-				for (int k = i + 1; k < nSeries; k++) {
-					ts2 = timeseries.get(k);
-					values[k] = ts2.interpolateScreenCoord((long)d.mValue.x);
-				}
+        for (int k = i + 1; k < nSeries; k++) {
+          ts2 = timeseries.get(k);
+          values[k] = ts2.interpolateScreenCoord((long) d.mValue.x);
+        }
 
-				lcm.update(values);
-			}
-		}
+        lcm.update(values);
+      }
+    }
 
-		return lcm.getCorrelations();
-	}
+    return lcm.getCorrelations();
+  }
 }
-

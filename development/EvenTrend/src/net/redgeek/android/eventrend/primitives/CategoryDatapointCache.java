@@ -23,148 +23,151 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class CategoryDatapointCache {
-	private long                    mCatId;
-	private boolean                 mValid;
-	private TreeMap<Long,Datapoint> mCache;
-	private long					mStart;
-	private long					mEnd;
-	private int  					mHistory;
-	
-	public CategoryDatapointCache(long catId, int history) {
-		mCatId = catId;
-		mValid = false;
-		mCache = new TreeMap<Long,Datapoint>();
-		resetRangeMarkers();
-		mHistory = history;
-	}
-	
-	public void clear() {
-		mCache.clear();
-		resetRangeMarkers();
-	}
+  private long mCatId;
+  private boolean mValid;
+  private TreeMap<Long, Datapoint> mCache;
+  private long mStart;
+  private long mEnd;
+  private int mHistory;
 
-	public boolean isValid() {
-		return mValid;
-	}
+  public CategoryDatapointCache(long catId, int history) {
+    mCatId = catId;
+    mValid = false;
+    mCache = new TreeMap<Long, Datapoint>();
+    resetRangeMarkers();
+    mHistory = history;
+  }
 
-	public long getCategoryId() {
-		return mCatId;
-	}
+  public void clear() {
+    mCache.clear();
+    resetRangeMarkers();
+  }
 
-	public long getStart() {
-		return mStart;
-	}
+  public boolean isValid() {
+    return mValid;
+  }
 
-	public void updateStart(long start) {
-		if (start < mStart)
-			mStart = start;
-	}
+  public long getCategoryId() {
+    return mCatId;
+  }
 
-	public long getEnd() {
-		return mEnd;
-	}
+  public long getStart() {
+    return mStart;
+  }
 
-	public void updateEnd(long end) {
-		if (end > mEnd)
-			mEnd = end;
-	}
+  public void updateStart(long start) {
+    if (start < mStart)
+      mStart = start;
+  }
 
-	public void setHistory(int history) {
-		mHistory = history;
-	}
+  public long getEnd() {
+    return mEnd;
+  }
 
-	public int getHistory() {
-		return mHistory;
-	}
+  public void updateEnd(long end) {
+    if (end > mEnd)
+      mEnd = end;
+  }
 
-	public Datapoint addDatapoint(Datapoint d) {
-		if (d.mMillis < mStart)
-			mStart = d.mMillis;
-		if (d.mMillis > mEnd)
-			mEnd = d.mMillis;
-		mValid = true;
-		return mCache.put(d.mMillis, d);
-	}
-	
-	public Datapoint updateDatapoint(Datapoint d) {
-		if (mCache.get(d.mMillis) == null)
-			return null;
-		return mCache.put(d.mMillis, d);
-	}
-	
-	public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {
-		ArrayList<Datapoint> range = new ArrayList<Datapoint>();
-		SortedMap<Long, Datapoint> map = mCache.subMap(Long.valueOf(msStart), Long.valueOf(msEnd+1));
+  public void setHistory(int history) {
+    mHistory = history;
+  }
 
-        Iterator iterator = map.entrySet().iterator();        
-		while (iterator.hasNext()) {
-			Map.Entry entry = (Map.Entry) iterator.next();
-            Datapoint d = (Datapoint) entry.getValue();
-            if (d != null) {
-            	range.add(d);
-            }
-		}
-		
-		return range;
-	}
+  public int getHistory() {
+    return mHistory;
+  }
 
-	public ArrayList<Datapoint> getDataBefore(int number, long ms) {
-		ArrayList<Datapoint> pre = new ArrayList<Datapoint>();
-		SortedMap<Long, Datapoint> range = mCache.headMap(Long.valueOf(ms));
-		SortedMap<Long, Datapoint> reverse = new TreeMap<Long, Datapoint>(java.util.Collections.reverseOrder());
-		reverse.putAll(range);
-		
-        Iterator iterator = reverse.entrySet().iterator();        
-		for (int i = 0; i < number && iterator.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            Datapoint d = (Datapoint) entry.getValue();
-            if (d != null) {
-            	i++;
-            	pre.add(0, d);
-            }
-		}
-		
-		return pre;
-	}
+  public Datapoint addDatapoint(Datapoint d) {
+    if (d.mMillis < mStart)
+      mStart = d.mMillis;
+    if (d.mMillis > mEnd)
+      mEnd = d.mMillis;
+    mValid = true;
+    return mCache.put(d.mMillis, d);
+  }
 
-	public ArrayList<Datapoint> getDataAfter(int number, long ms) {
-		ArrayList<Datapoint> post = new ArrayList<Datapoint>();
-		SortedMap<Long, Datapoint> range = mCache.tailMap(Long.valueOf(ms) + 1);		
-        Iterator iterator = range.entrySet().iterator();      
-        
-		for (int i = 0; i < number && iterator.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            Datapoint d = (Datapoint) entry.getValue();
-            if (d != null) {
-            	i++;
-            	post.add(d);
-            }
-		}
-		
-		return post;
-	}	
+  public Datapoint updateDatapoint(Datapoint d) {
+    if (mCache.get(d.mMillis) == null)
+      return null;
+    return mCache.put(d.mMillis, d);
+  }
 
-	public ArrayList<Datapoint> getLast(int number) {
-		ArrayList<Datapoint> last = new ArrayList<Datapoint>();
-		SortedMap<Long, Datapoint> reverse = new TreeMap<Long, Datapoint>(java.util.Collections.reverseOrder());
-		reverse.putAll(mCache);
-		
-        Iterator iterator = reverse.entrySet().iterator();        
-		for (int i = 0; i < number && iterator.hasNext(); ) {
-            Map.Entry entry = (Map.Entry) iterator.next();
-            Datapoint d = (Datapoint) entry.getValue();
-            if (d != null) {
-            	i++;
-            	last.add(0, d);
-            }
-		}
-		
-		return last;
-	}	
+  public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {
+    ArrayList<Datapoint> range = new ArrayList<Datapoint>();
+    SortedMap<Long, Datapoint> map = mCache.subMap(Long.valueOf(msStart), Long
+        .valueOf(msEnd + 1));
 
-	private void resetRangeMarkers() {
-		mValid = false;
-		mStart = Long.MAX_VALUE;
-		mEnd   = Long.MIN_VALUE;		
-	}
+    Iterator iterator = map.entrySet().iterator();
+    while (iterator.hasNext()) {
+      Map.Entry entry = (Map.Entry) iterator.next();
+      Datapoint d = (Datapoint) entry.getValue();
+      if (d != null) {
+        range.add(d);
+      }
+    }
+
+    return range;
+  }
+
+  public ArrayList<Datapoint> getDataBefore(int number, long ms) {
+    ArrayList<Datapoint> pre = new ArrayList<Datapoint>();
+    SortedMap<Long, Datapoint> range = mCache.headMap(Long.valueOf(ms));
+    SortedMap<Long, Datapoint> reverse = new TreeMap<Long, Datapoint>(
+        java.util.Collections.reverseOrder());
+    reverse.putAll(range);
+
+    Iterator iterator = reverse.entrySet().iterator();
+    for (int i = 0; i < number && iterator.hasNext();) {
+      Map.Entry entry = (Map.Entry) iterator.next();
+      Datapoint d = (Datapoint) entry.getValue();
+      if (d != null) {
+        i++;
+        pre.add(0, d);
+      }
+    }
+
+    return pre;
+  }
+
+  public ArrayList<Datapoint> getDataAfter(int number, long ms) {
+    ArrayList<Datapoint> post = new ArrayList<Datapoint>();
+    SortedMap<Long, Datapoint> range = mCache.tailMap(Long.valueOf(ms) + 1);
+    Iterator iterator = range.entrySet().iterator();
+
+    for (int i = 0; i < number && iterator.hasNext();) {
+      Map.Entry entry = (Map.Entry) iterator.next();
+      Datapoint d = (Datapoint) entry.getValue();
+      if (d != null) {
+        i++;
+        post.add(d);
+      }
+    }
+
+    return post;
+  }
+
+  public ArrayList<Datapoint> getLast(int number) {
+    ArrayList<Datapoint> last = new ArrayList<Datapoint>();
+    SortedMap<Long, Datapoint> reverse = new TreeMap<Long, Datapoint>(
+        java.util.Collections.reverseOrder());
+    reverse.putAll(mCache);
+
+    Iterator iterator = reverse.entrySet().iterator();
+    for (int i = 0; i < number && iterator.hasNext();) {
+      Map.Entry entry = (Map.Entry) iterator.next();
+      Datapoint d = (Datapoint) entry.getValue();
+      if (d != null) {
+        i++;
+        last.add(0, d);
+      }
+    }
+
+    return last;
+  }
+
+  private void resetRangeMarkers() {
+    mValid = false;
+    mStart = Long.MAX_VALUE;
+    mEnd = Long.MIN_VALUE;
+  }
 }

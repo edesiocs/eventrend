@@ -5,8 +5,9 @@
 package net.redgeek.android.eventrend.util;
 
 public interface GUITask {
-	void executeNonGuiTask() throws Exception;
-	void afterExecute();
-	void onFailure(Throwable t);
-}
+  void executeNonGuiTask() throws Exception;
 
+  void afterExecute();
+
+  void onFailure(Throwable t);
+}

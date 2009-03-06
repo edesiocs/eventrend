@@ -51,7 +51,8 @@ public class MockCursor implements Cursor {
     Iterator<Entry<Integer, String>> iterator = mColumnMap.entrySet()
         .iterator();
     while (iterator.hasNext()) {
-      HashMap.Entry<Integer, String> entry = (HashMap.Entry<Integer, String>) iterator.next();
+      HashMap.Entry<Integer, String> entry = (HashMap.Entry<Integer, String>) iterator
+          .next();
       Integer i = (Integer) entry.getKey();
       String s = (String) entry.getValue();
       mReverseColumnMap.put(s, i);

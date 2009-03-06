@@ -19,39 +19,44 @@ package net.redgeek.android.eventrend.backgroundtasks;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import android.util.Log;
 
-/** This is the potentially the most frequently executed task, with the possible
- * exception of UpdateRecentDataTask.  It is called every time a parameter of the
- * graph changes.  It only responsibility to to query the database to collect the
+/**
+ * This is the potentially the most frequently executed task, with the possible
+ * exception of UpdateRecentDataTask. It is called every time a parameter of the
+ * graph changes. It only responsibility to to query the database to collect the
  * datapoints required for displaying the graph lines, trends, labels, etc, and
- * shoving them in a cache.  Since SQL operation are expensive, including
- * getColumnIndexOrThrow, they should be minimized, hence the cache.  
+ * shoving them in a cache. Since SQL operation are expensive, including
+ * getColumnIndexOrThrow, they should be minimized, hence the cache.
  * 
- * <p>Note that since this is "backgroundtask", no UI operations may be performed.
+ * <p>
+ * Note that since this is "backgroundtask", no UI operations may be performed.
  * 
  * @author barclay
- *
+ * 
  */
-public class DataCollectionTask {	
-	private TimeSeriesCollector  mTSC      = null;
-	private long				 mStartMS  = 0;
-	private long				 mEndMS    = 0;
-	
-	public DataCollectionTask() {}
-	public DataCollectionTask(TimeSeriesCollector tsc) {
-		mTSC = tsc;
-	}
-	
-	public void setTimeSeriesCollector(TimeSeriesCollector tsc) {
-		mTSC = tsc;
-	}
+public class DataCollectionTask {
+  private TimeSeriesCollector mTSC = null;
+  private long mStartMS = 0;
+  private long mEndMS = 0;
 
-	public void setSpan(long startMs, long endMs) {
-		mStartMS = startMs;
-		mEndMS = endMs;
-	}
+  public DataCollectionTask() {
+  }
 
-	public void doCollection() {
-		Log.v("DataCollectionTask", "doCollection(" + mStartMS + ", " + mEndMS + ")");
-		mTSC.gatherSeries(mStartMS, mEndMS);
-	}
+  public DataCollectionTask(TimeSeriesCollector tsc) {
+    mTSC = tsc;
+  }
+
+  public void setTimeSeriesCollector(TimeSeriesCollector tsc) {
+    mTSC = tsc;
+  }
+
+  public void setSpan(long startMs, long endMs) {
+    mStartMS = startMs;
+    mEndMS = endMs;
+  }
+
+  public void doCollection() {
+    Log.v("DataCollectionTask", "doCollection(" + mStartMS + ", " + mEndMS
+        + ")");
+    mTSC.gatherSeries(mStartMS, mEndMS);
+  }
 }

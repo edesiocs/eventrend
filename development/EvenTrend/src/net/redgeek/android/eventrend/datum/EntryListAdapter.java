@@ -26,49 +26,57 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class EntryListAdapter extends BaseAdapter {
-	private Context         mCtx;
-    private List<EntryRow>  mItems = new ArrayList<EntryRow>();
+  private Context mCtx;
+  private List<EntryRow> mItems = new ArrayList<EntryRow>();
 
-    public EntryListAdapter(Context context) {
-    	mCtx = context;
+  public EntryListAdapter(Context context) {
+    mCtx = context;
+  }
+
+  public void addItem(EntryRow it) {
+    mItems.add(it);
+  }
+
+  public void setListItems(List<EntryRow> lit) {
+    mItems = lit;
+  }
+
+  public int getCount() {
+    return mItems.size();
+  }
+
+  public Object getItem(int position) {
+    return mItems.get(position);
+  }
+
+  public boolean areAllItemsSelectable() {
+    return false;
+  }
+
+  public boolean isSelectable(int position) {
+    try {
+      return mItems.get(position).isSelectable();
+    } catch (IndexOutOfBoundsException aioobe) {
+      return false;
     }
+  }
 
-	public void addItem(EntryRow it) { mItems.add(it); }
+  public long getItemId(int position) {
+    return position;
+  }
 
-    public void setListItems(List<EntryRow> lit) { mItems = lit; }
-    
-    public int getCount() { return mItems.size(); }
-    
-    public Object getItem(int position) { return mItems.get(position); }
+  public View getView(int position, View convertView, ViewGroup parent) {
+    EntryRowView row;
+    if (convertView == null) {
+      row = new EntryRowView(mCtx, mItems.get(position));
+      row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    } else {
+      row = (EntryRowView) convertView;
 
-    public boolean areAllItemsSelectable() { return false; }
-
-    public boolean isSelectable(int position) {
-    	try{
-        	return mItems.get(position).isSelectable();
-        } catch (IndexOutOfBoundsException aioobe){
-        	return false;
-        }
+      row.setCategoryName(mItems.get(position).getCategoryName());
+      row.setTimestamp(mItems.get(position).getDbRow().getTimestamp());
+      row.setValue(mItems.get(position).getDbRow().getValue());
     }
-
-    public long getItemId(int position) {
-    	return position;
-    }
-    
-    public View getView(int position, View convertView, ViewGroup parent) {
-    	EntryRowView row;
-        if (convertView == null) {
-        	row = new EntryRowView(mCtx, mItems.get(position));
-        	row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-        } else {
-        	row = (EntryRowView) convertView;
-
-        	row.setCategoryName(mItems.get(position).getCategoryName());
-         	row.setTimestamp(mItems.get(position).getDbRow().getTimestamp());
-         	row.setValue(mItems.get(position).getDbRow().getValue());
-        }
-        return row;
-    }
+    return row;
+  }
 }
-
-

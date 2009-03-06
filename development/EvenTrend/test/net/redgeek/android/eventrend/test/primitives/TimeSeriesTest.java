@@ -35,7 +35,7 @@ public class TimeSeriesTest extends TestCase {
     CategoryDbTable.Row row = new CategoryDbTable.Row();
     return new TimeSeries(row, 2, 0.5f, painter);
   }
-  
+
   public void testConstructor() {
     TimeSeries ts = newDefaultTimeSeries();
 
@@ -57,7 +57,7 @@ public class TimeSeriesTest extends TestCase {
     assertEquals(0, ts.getVisibleNumEntries());
     assertNotNull(ts.getValueStats());
     assertNotNull(ts.getTrendStats());
-    assertNotNull(ts.getTimestampStats());      
+    assertNotNull(ts.getTimestampStats());
 
     TimeSeries copy = new TimeSeries(ts);
     assertNotSame(ts.getDatapoints(), copy.getDatapoints());
@@ -69,19 +69,19 @@ public class TimeSeriesTest extends TestCase {
     assertNotSame(ts.getTimestampStats(), copy.getTimestampStats());
     assertSame(ts.getInterpolator(), copy.getInterpolator());
   }
-  
+
   public void testSetDatapoints() {
-    ArrayList<Datapoint> lpre   = new ArrayList<Datapoint>();
+    ArrayList<Datapoint> lpre = new ArrayList<Datapoint>();
     ArrayList<Datapoint> lrange = new ArrayList<Datapoint>();
-    ArrayList<Datapoint> lpost  = new ArrayList<Datapoint>();
+    ArrayList<Datapoint> lpost = new ArrayList<Datapoint>();
     Datapoint d1 = new Datapoint(100L, 1.0f, 1, 10, 1);
     Datapoint d2 = new Datapoint(150L, 2.0f, 1, 11, 1);
     Datapoint d3 = new Datapoint(250L, 3.0f, 1, 11, 1);
-   
+
     TimeSeries ts = newDefaultTimeSeries();
-    
+
     // (null) (null) (null)
-    ts.setDatapoints(null, null, null);    
+    ts.setDatapoints(null, null, null);
     assertEquals(0, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
     assertEquals(Float.MIN_VALUE, ts.getVisibleValueMax());
@@ -95,7 +95,7 @@ public class TimeSeriesTest extends TestCase {
     // (d1) (null) (null)
     lpre.clear();
     lpre.add(d1);
-    ts.setDatapoints(lpre, null, null);    
+    ts.setDatapoints(lpre, null, null);
 
     assertEquals(1, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -113,7 +113,7 @@ public class TimeSeriesTest extends TestCase {
     lpre.clear();
     lpre.add(d1);
     lpre.add(d2);
-    ts.setDatapoints(lpre, null, null);    
+    ts.setDatapoints(lpre, null, null);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -133,10 +133,11 @@ public class TimeSeriesTest extends TestCase {
     lrange.clear();
     lpre.add(d1);
     lrange.add(d2);
-    ts.setDatapoints(lpre, lrange, null);    
+    ts.setDatapoints(lpre, lrange, null);
 
     assertEquals(2, ts.getDatapoints().size());
-    assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen interpolation
+    assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen
+                                                 // interpolation
     assertEquals(2.0f, ts.getVisibleValueMax());
     assertEquals(150L, ts.getVisibleTimestampMin());
     assertEquals(150L, ts.getVisibleTimestampMax());
@@ -153,7 +154,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.clear();
     lrange.add(d1);
     lrange.add(d2);
-    ts.setDatapoints(null, lrange, null);    
+    ts.setDatapoints(null, lrange, null);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -174,7 +175,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lrange.add(d2);
     lrange.add(d3);
-    ts.setDatapoints(null, lrange, null);    
+    ts.setDatapoints(null, lrange, null);
 
     assertEquals(3, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -196,11 +197,12 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lpost.clear();
     lpost.add(d2);
-    ts.setDatapoints(null, lrange, lpost);    
+    ts.setDatapoints(null, lrange, lpost);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
-    assertEquals(2.0f, ts.getVisibleValueMax()); // due to offscreen interpolation
+    assertEquals(2.0f, ts.getVisibleValueMax()); // due to offscreen
+                                                 // interpolation
     assertEquals(100L, ts.getVisibleTimestampMin());
     assertEquals(100L, ts.getVisibleTimestampMax());
     assertNull(ts.getLastPreVisible());
@@ -217,7 +219,7 @@ public class TimeSeriesTest extends TestCase {
     lpost.clear();
     lpost.add(d1);
     lpost.add(d2);
-    ts.setDatapoints(null, null, lpost);    
+    ts.setDatapoints(null, null, lpost);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -239,11 +241,13 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d2);
     lpost.clear();
     lpost.add(d3);
-    ts.setDatapoints(lpre, lrange, lpost);    
+    ts.setDatapoints(lpre, lrange, lpost);
 
     assertEquals(3, ts.getDatapoints().size());
-    assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen interpolation
-    assertEquals(3.0f, ts.getVisibleValueMax()); // due to offscreen interpolation
+    assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen
+                                                 // interpolation
+    assertEquals(3.0f, ts.getVisibleValueMax()); // due to offscreen
+                                                 // interpolation
     assertEquals(150L, ts.getVisibleTimestampMin());
     assertEquals(150L, ts.getVisibleTimestampMax());
     assertNotNull(ts.getLastPreVisible());
@@ -264,7 +268,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lrange.add(d3);
     lrange.add(d2);
-    ts.setDatapoints(null, lrange, null);    
+    ts.setDatapoints(null, lrange, null);
 
     assertEquals(3, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -281,20 +285,19 @@ public class TimeSeriesTest extends TestCase {
     assertSame(d1, ts.getFirstVisible());
     assertSame(d2, ts.getLastVisible());
   }
-  
-  
+
   public void testFindNeighbor() {
     ArrayList<Datapoint> range = new ArrayList<Datapoint>();
     Datapoint d1 = new Datapoint(100L, 1.0f, 1, 10, 1);
     Datapoint d2 = new Datapoint(150L, 2.0f, 1, 11, 1);
     Datapoint d3 = new Datapoint(250L, 3.0f, 1, 11, 1);
     Datapoint result;
-   
+
     TimeSeries ts = newDefaultTimeSeries();
 
     // 1-item list
     range.add(d1);
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -314,10 +317,10 @@ public class TimeSeriesTest extends TestCase {
     assertSame(d1, result);
     result = ts.findPostNeighbor(110);
     assertNull(result);
-    
+
     // 2-item list
     range.add(d2);
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -351,10 +354,10 @@ public class TimeSeriesTest extends TestCase {
     assertSame(d2, result);
     result = ts.findPostNeighbor(200);
     assertNull(result);
-    
+
     // 3-item list
     range.add(d3);
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -365,7 +368,7 @@ public class TimeSeriesTest extends TestCase {
     assertSame(d1, result);
     result = ts.findPreNeighbor(101);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
     result = ts.findPreNeighbor(149);
     assertNotNull(result);
     assertSame(d1, result);
@@ -384,20 +387,19 @@ public class TimeSeriesTest extends TestCase {
     result = ts.findPreNeighbor(251);
     assertNotNull(result);
     assertSame(d3, result);
-    
 
     result = ts.findPostNeighbor(0);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
     result = ts.findPostNeighbor(99);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
     result = ts.findPostNeighbor(100);
     assertNotNull(result);
     assertSame(d1, result);
     result = ts.findPostNeighbor(101);
     assertNotNull(result);
-    assertSame(d2, result);    
+    assertSame(d2, result);
     result = ts.findPostNeighbor(149);
     assertNotNull(result);
     assertSame(d2, result);
@@ -414,8 +416,8 @@ public class TimeSeriesTest extends TestCase {
     assertNotNull(result);
     assertSame(d3, result);
     result = ts.findPostNeighbor(251);
-    assertNull(result);    
-        
+    assertNull(result);
+
     // closely packed
     d1 = new Datapoint(100L, 1.0f, 1, 10, 1);
     d2 = new Datapoint(101L, 2.0f, 1, 11, 1);
@@ -424,45 +426,45 @@ public class TimeSeriesTest extends TestCase {
     range.add(d1);
     range.add(d2);
     range.add(d3);
-    
-    ts.setDatapoints(null, range, null);    
+
+    ts.setDatapoints(null, range, null);
     result = ts.findPreNeighbor(99);
     assertNull(result);
     result = ts.findPostNeighbor(99);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
 
     result = ts.findPreNeighbor(100);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
     result = ts.findPostNeighbor(100);
     assertNotNull(result);
-    assertSame(d1, result);    
+    assertSame(d1, result);
 
     result = ts.findPreNeighbor(101);
     assertNotNull(result);
-    assertSame(d2, result);    
+    assertSame(d2, result);
     result = ts.findPostNeighbor(101);
     assertNotNull(result);
-    assertSame(d2, result);    
+    assertSame(d2, result);
 
     result = ts.findPreNeighbor(102);
     assertNotNull(result);
-    assertSame(d3, result);    
+    assertSame(d3, result);
     result = ts.findPostNeighbor(102);
     assertNotNull(result);
-    assertSame(d3, result);    
+    assertSame(d3, result);
 
     result = ts.findPreNeighbor(103);
     assertNotNull(result);
-    assertSame(d3, result);    
+    assertSame(d3, result);
     result = ts.findPostNeighbor(103);
     assertNull(result);
   }
-  
+
   public void testFloatOp() {
     TimeSeries ts;
-    
+
     ts = arithOpTimeSeriesSource1();
     ts.plusPre(2.0f);
     assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
@@ -471,8 +473,8 @@ public class TimeSeriesTest extends TestCase {
 
     ts = arithOpTimeSeriesSource1();
     ts.minusPre(2.0f);
-    assertEquals( 1.0f, ts.getDatapoints().get(0).mValue.y);
-    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(0.0f, ts.getDatapoints().get(1).mValue.y);
     assertEquals(-2.0f, ts.getDatapoints().get(2).mValue.y);
 
     ts = arithOpTimeSeriesSource1();
@@ -496,8 +498,8 @@ public class TimeSeriesTest extends TestCase {
     ts = arithOpTimeSeriesSource1();
     ts.minusPost(2.0f);
     assertEquals(-1.0f, ts.getDatapoints().get(0).mValue.y);
-    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
-    assertEquals( 2.0f, ts.getDatapoints().get(2).mValue.y);
+    assertEquals(0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
 
     ts = arithOpTimeSeriesSource1();
     ts.multiplyPost(2.0f);
@@ -514,7 +516,7 @@ public class TimeSeriesTest extends TestCase {
 
   public void testLongOp() {
     TimeSeries ts;
-    
+
     ts = arithOpTimeSeriesSource1();
     ts.plusPre(2L);
     assertEquals(3.0f, ts.getDatapoints().get(0).mValue.y);
@@ -523,8 +525,8 @@ public class TimeSeriesTest extends TestCase {
 
     ts = arithOpTimeSeriesSource1();
     ts.minusPre(2L);
-    assertEquals( 1.0f, ts.getDatapoints().get(0).mValue.y);
-    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
+    assertEquals(0.0f, ts.getDatapoints().get(1).mValue.y);
     assertEquals(-2.0f, ts.getDatapoints().get(2).mValue.y);
 
     ts = arithOpTimeSeriesSource1();
@@ -548,8 +550,8 @@ public class TimeSeriesTest extends TestCase {
     ts = arithOpTimeSeriesSource1();
     ts.minusPost(2L);
     assertEquals(-1.0f, ts.getDatapoints().get(0).mValue.y);
-    assertEquals( 0.0f, ts.getDatapoints().get(1).mValue.y);
-    assertEquals( 2.0f, ts.getDatapoints().get(2).mValue.y);
+    assertEquals(0.0f, ts.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
 
     ts = arithOpTimeSeriesSource1();
     ts.multiplyPost(2L);
@@ -563,10 +565,10 @@ public class TimeSeriesTest extends TestCase {
     assertEquals(1.0f, ts.getDatapoints().get(1).mValue.y);
     assertEquals(2.0f, ts.getDatapoints().get(2).mValue.y);
   }
-  
+
   public void testPreviousOp() {
     TimeSeries ts;
-    
+
     ts = arithOpTimeSeriesSource1();
     ts.previousValue();
     assertEquals(1.0f, ts.getDatapoints().get(0).mValue.y);
@@ -577,7 +579,7 @@ public class TimeSeriesTest extends TestCase {
     ts.previousTimestamp();
     assertEquals(0.0f, ts.getDatapoints().get(0).mValue.y);
     assertEquals(50.0f, ts.getDatapoints().get(1).mValue.y);
-    assertEquals(100.0f, ts.getDatapoints().get(2).mValue.y);    
+    assertEquals(100.0f, ts.getDatapoints().get(2).mValue.y);
   }
 
   private TimeSeries newPeriodOpTimeSeries(DateUtil.Period p, boolean divide) {
@@ -599,10 +601,10 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
     return ts;
   }
-  
+
   public void testPeriodOp() {
     TimeSeries ts;
 
@@ -654,7 +656,6 @@ public class TimeSeriesTest extends TestCase {
     assertEquals(2.0f, ts.getDatapoints().get(1).mValue.y);
     assertEquals(4.0f, ts.getDatapoints().get(2).mValue.y);
 
-    
     ts = newPeriodOpTimeSeries(DateUtil.Period.MINUTE, true);
     ts.asPeriod(DateUtil.Period.MINUTE);
     assertEquals(100000.0f, ts.getDatapoints().get(0).mValue.y);
@@ -703,20 +704,20 @@ public class TimeSeriesTest extends TestCase {
     assertEquals(200000.0f, ts.getDatapoints().get(1).mValue.y);
     assertEquals(400000.0f, ts.getDatapoints().get(2).mValue.y);
   }
-  
+
   public void testInterpolateValue() {
-      TimeSeries ts;
+    TimeSeries ts;
 
-      ts = arithOpTimeSeriesSource1();
+    ts = arithOpTimeSeriesSource1();
 
-      assertEquals(1.0f, ts.interpolateValue(100L));
-      assertEquals(2.0f, ts.interpolateValue(150L));
-      assertEquals(4.0f, ts.interpolateValue(250L));
+    assertEquals(1.0f, ts.interpolateValue(100L));
+    assertEquals(2.0f, ts.interpolateValue(150L));
+    assertEquals(4.0f, ts.interpolateValue(250L));
 
-      assertNull(ts.interpolateValue(99L));
-      assertEquals(1.5f, ts.interpolateValue(125L));
-      assertEquals(3.0f, ts.interpolateValue(200L));
-      assertNull(ts.interpolateValue(251L));
+    assertNull(ts.interpolateValue(99L));
+    assertEquals(1.5f, ts.interpolateValue(125L));
+    assertEquals(3.0f, ts.interpolateValue(200L));
+    assertNull(ts.interpolateValue(251L));
   }
 
   private TimeSeries arithOpTimeSeriesSource1() {
@@ -746,7 +747,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
     ts.setInterpolator(i);
     return ts;
   }
@@ -762,39 +763,39 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);    
+    ts.setDatapoints(null, range, null);
     ts.setInterpolator(i);
     return ts;
   }
-  
+
   private float interp(long x1, float y1, long x2, float y2, long atX) {
     return y1 + ((y2 - y1) / (x2 - x1)) * (atX - x1);
   }
-  
+
   public void testTimeSeriesPlusOp() {
     TimeSeries ts1, ts2;
     float y[] = new float[6];
-    
+
     // ts1 + ts2 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts1.timeseriesPlus(ts2);
-    assertEquals( 3.0f, ts1.getDatapoints().get(0).mValue.y);
-    assertEquals( 6.0f, ts1.getDatapoints().get(1).mValue.y);
+    assertEquals(3.0f, ts1.getDatapoints().get(0).mValue.y);
+    assertEquals(6.0f, ts1.getDatapoints().get(1).mValue.y);
     assertEquals(12.0f, ts1.getDatapoints().get(2).mValue.y);
 
     // ts2 + ts1 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts2.timeseriesPlus(ts1);
-    assertEquals( 3.0f, ts2.getDatapoints().get(0).mValue.y);
-    assertEquals( 6.0f, ts2.getDatapoints().get(1).mValue.y);
+    assertEquals(3.0f, ts2.getDatapoints().get(0).mValue.y);
+    assertEquals(6.0f, ts2.getDatapoints().get(1).mValue.y);
     assertEquals(12.0f, ts2.getDatapoints().get(2).mValue.y);
 
     // ts1 + ts2 (offset timestamps)
     // time: 100 125 150 200 250 300
-    // val1:   1       2       4
-    // val2:       2       4       8
+    // val1: 1 2 4
+    // val2: 2 4 8
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     y[0] = 1.0f;
@@ -803,7 +804,7 @@ public class TimeSeriesTest extends TestCase {
     y[3] = interp(150, 2.0f, 250, 4.0f, 200) + 4.0f;
     y[4] = 4.0f + interp(200, 4.0f, 300, 8.0f, 250);
     y[5] = 8.0f;
-    
+
     ts1.timeseriesPlus(ts2);
     assertEquals(6, ts1.getDatapoints().size());
     assertEquals(y[0], ts1.getDatapoints().get(0).mValue.y);
@@ -822,7 +823,7 @@ public class TimeSeriesTest extends TestCase {
     y[3] = 4.0f + interp(150, 2.0f, 250, 4.0f, 200);
     y[4] = interp(200, 4.0f, 300, 8.0f, 250) + 4.0f;
     y[5] = 8.0f;
-    
+
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     ts2.timeseriesPlus(ts1);
@@ -838,7 +839,7 @@ public class TimeSeriesTest extends TestCase {
   public void testTimeSeriesMinusOp() {
     TimeSeries ts1, ts2;
     float y[] = new float[6];
-    
+
     // ts1 - ts2 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
@@ -851,14 +852,14 @@ public class TimeSeriesTest extends TestCase {
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts2.timeseriesMinus(ts1);
-    assertEquals( 1.0f, ts2.getDatapoints().get(0).mValue.y);
-    assertEquals( 2.0f, ts2.getDatapoints().get(1).mValue.y);
-    assertEquals( 4.0f, ts2.getDatapoints().get(2).mValue.y);
+    assertEquals(1.0f, ts2.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts2.getDatapoints().get(1).mValue.y);
+    assertEquals(4.0f, ts2.getDatapoints().get(2).mValue.y);
 
     // ts1 - ts2 (offset timestamps)
     // time: 100 125 150 200 250 300
-    // val1:   1       2       4
-    // val2:       2       4       8
+    // val1: 1 2 4
+    // val2: 2 4 8
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     y[0] = 1.0f;
@@ -867,7 +868,7 @@ public class TimeSeriesTest extends TestCase {
     y[3] = interp(150, 2.0f, 250, 4.0f, 200) - 4.0f;
     y[4] = 4.0f - interp(200, 4.0f, 300, 8.0f, 250);
     y[5] = -8.0f;
-    
+
     ts1.timeseriesMinus(ts2);
     assertEquals(6, ts1.getDatapoints().size());
     assertEquals(y[0], ts1.getDatapoints().get(0).mValue.y);
@@ -886,7 +887,7 @@ public class TimeSeriesTest extends TestCase {
     y[3] = 4.0f - interp(150, 2.0f, 250, 4.0f, 200);
     y[4] = interp(200, 4.0f, 300, 8.0f, 250) - 4.0f;
     y[5] = 8.0f;
-    
+
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     ts2.timeseriesMinus(ts1);
@@ -902,34 +903,34 @@ public class TimeSeriesTest extends TestCase {
   public void testTimeSeriesMultiplyOp() {
     TimeSeries ts1, ts2;
     float y[] = new float[6];
-    
+
     // ts1 * ts2 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts1.timeseriesMultiply(ts2);
-    assertEquals( 2.0f, ts1.getDatapoints().get(0).mValue.y);
-    assertEquals( 8.0f, ts1.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts1.getDatapoints().get(0).mValue.y);
+    assertEquals(8.0f, ts1.getDatapoints().get(1).mValue.y);
     assertEquals(32.0f, ts1.getDatapoints().get(2).mValue.y);
 
     // ts2 * ts1 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts2.timeseriesMultiply(ts1);
-    assertEquals( 2.0f, ts2.getDatapoints().get(0).mValue.y);
-    assertEquals( 8.0f, ts2.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts2.getDatapoints().get(0).mValue.y);
+    assertEquals(8.0f, ts2.getDatapoints().get(1).mValue.y);
     assertEquals(32.0f, ts2.getDatapoints().get(2).mValue.y);
 
     // ts1 * ts2 (offset timestamps)
     // time: 100 125 150 200 250 300
-    // val1:   1       2       4
-    // val2:       2       4       8
+    // val1: 1 2 4
+    // val2: 2 4 8
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     y[0] = interp(100, 1.0f, 150, 2.0f, 125) * 2.0f;
     y[1] = 2.0f * interp(125, 2.0f, 200, 4.0f, 150);
     y[2] = interp(150, 2.0f, 250, 4.0f, 200) * 4.0f;
     y[3] = 4.0f * interp(200, 4.0f, 300, 8.0f, 250);
-    
+
     ts1.timeseriesMultiply(ts2);
     assertEquals(4, ts1.getDatapoints().size());
     assertEquals(y[0], ts1.getDatapoints().get(0).mValue.y);
@@ -944,7 +945,7 @@ public class TimeSeriesTest extends TestCase {
     y[1] = interp(125, 2.0f, 200, 4.0f, 150) * 2.0f;
     y[2] = 4.0f * interp(150, 2.0f, 250, 4.0f, 200);
     y[3] = interp(200, 4.0f, 300, 8.0f, 250) * 4.0f;
-    
+
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     ts2.timeseriesMultiply(ts1);
@@ -958,34 +959,34 @@ public class TimeSeriesTest extends TestCase {
   public void testTimeSeriesDivideOp() {
     TimeSeries ts1, ts2;
     float y[] = new float[6];
-    
+
     // ts1 / ts2 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts1.timeseriesDivide(ts2);
-    assertEquals( 0.5f, ts1.getDatapoints().get(0).mValue.y);
-    assertEquals( 0.5f, ts1.getDatapoints().get(1).mValue.y);
-    assertEquals( 0.5f, ts1.getDatapoints().get(2).mValue.y);
+    assertEquals(0.5f, ts1.getDatapoints().get(0).mValue.y);
+    assertEquals(0.5f, ts1.getDatapoints().get(1).mValue.y);
+    assertEquals(0.5f, ts1.getDatapoints().get(2).mValue.y);
 
     // ts2 / ts1 (matching timestamps)
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Matching();
     ts2.timeseriesDivide(ts1);
-    assertEquals( 2.0f, ts2.getDatapoints().get(0).mValue.y);
-    assertEquals( 2.0f, ts2.getDatapoints().get(1).mValue.y);
-    assertEquals( 2.0f, ts2.getDatapoints().get(2).mValue.y);
+    assertEquals(2.0f, ts2.getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, ts2.getDatapoints().get(1).mValue.y);
+    assertEquals(2.0f, ts2.getDatapoints().get(2).mValue.y);
 
     // ts1 / ts2 (offset timestamps)
     // time: 100 125 150 200 250 300
-    // val1:   1       2       4
-    // val2:       2       4       8
+    // val1: 1 2 4
+    // val2: 2 4 8
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     y[0] = interp(100, 1.0f, 150, 2.0f, 125) / 2.0f;
     y[1] = 2.0f / interp(125, 2.0f, 200, 4.0f, 150);
     y[2] = interp(150, 2.0f, 250, 4.0f, 200) / 4.0f;
     y[3] = 4.0f / interp(200, 4.0f, 300, 8.0f, 250);
-    
+
     ts1.timeseriesDivide(ts2);
     assertEquals(4, ts1.getDatapoints().size());
     assertEquals(y[0], ts1.getDatapoints().get(0).mValue.y);
@@ -1000,7 +1001,7 @@ public class TimeSeriesTest extends TestCase {
     y[1] = interp(125, 2.0f, 200, 4.0f, 150) / 2.0f;
     y[2] = 4.0f / interp(150, 2.0f, 250, 4.0f, 200);
     y[3] = interp(200, 4.0f, 300, 8.0f, 250) / 4.0f;
-    
+
     ts1 = arithOpTimeSeriesSource1();
     ts2 = arithOpTimeSeriesSource2Offset();
     ts2.timeseriesDivide(ts1);
@@ -1012,9 +1013,7 @@ public class TimeSeriesTest extends TestCase {
   }
 
   // These will be tested in Number.* unittests:
-  //   testCalcStatsAndBounds()
-  //   testRecalcStatsAndBounds()
-  
-  
-}
+  // testCalcStatsAndBounds()
+  // testRecalcStatsAndBounds()
 
+}

@@ -18,54 +18,54 @@ package net.redgeek.android.eventrend.category;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 
-
 public class CategoryRow implements Comparable<CategoryRow> {
-	private CategoryDbTable.Row mRow;
-	private long                mTimestamp;
-	    
-	private boolean mSelectable = true;
+  private CategoryDbTable.Row mRow;
+  private long mTimestamp;
 
-	public CategoryRow() { }
+  private boolean mSelectable = true;
 
-	public CategoryRow(CategoryDbTable.Row row) {
-		mRow = new CategoryDbTable.Row(row);
-		mTimestamp = 0;
-	}
+  public CategoryRow() {
+  }
 
-	public CategoryRow(CategoryDbTable.Row row, long timestamp) {
-		mRow = new CategoryDbTable.Row(row);
-		mTimestamp = timestamp;
-	}
-	
-    public boolean isSelectable() {
-    	return mSelectable;
-    }
-     
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
-    }
+  public CategoryRow(CategoryDbTable.Row row) {
+    mRow = new CategoryDbTable.Row(row);
+    mTimestamp = 0;
+  }
 
-    public CategoryDbTable.Row getDbRow() {
-    	return mRow;
-    }
-    
-    public void setDbRow(CategoryDbTable.Row row) {
-    	mRow = row;
-    }
+  public CategoryRow(CategoryDbTable.Row row, long timestamp) {
+    mRow = new CategoryDbTable.Row(row);
+    mTimestamp = timestamp;
+  }
 
-    public long getTimestamp() {
-    	return mTimestamp;
-    }
-	
-    public void setTimestamp(long timestamp) {
-    	mTimestamp = timestamp;
-    }
+  public boolean isSelectable() {
+    return mSelectable;
+  }
 
-	public int compareTo(CategoryRow other) {
-    	if (this.mRow.getRank() < other.mRow.getRank())
-        	return -1;
-        else if (this.mRow.getRank() > other.mRow.getRank())
-        	return 1;
-        return 0;
-    }
+  public void setSelectable(boolean selectable) {
+    mSelectable = selectable;
+  }
+
+  public CategoryDbTable.Row getDbRow() {
+    return mRow;
+  }
+
+  public void setDbRow(CategoryDbTable.Row row) {
+    mRow = row;
+  }
+
+  public long getTimestamp() {
+    return mTimestamp;
+  }
+
+  public void setTimestamp(long timestamp) {
+    mTimestamp = timestamp;
+  }
+
+  public int compareTo(CategoryRow other) {
+    if (this.mRow.getRank() < other.mRow.getRank())
+      return -1;
+    else if (this.mRow.getRank() > other.mRow.getRank())
+      return 1;
+    return 0;
+  }
 }

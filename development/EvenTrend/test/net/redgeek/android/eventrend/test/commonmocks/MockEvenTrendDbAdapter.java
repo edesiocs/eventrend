@@ -31,7 +31,7 @@ import java.util.HashMap;
 
 public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   private MockCursor mCursor;
-  private long       mReturnValue;
+  private long mReturnValue;
 
   public MockEvenTrendDbAdapter() {
     mCursor = new MockCursor();
@@ -166,12 +166,13 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return mCursor;
   }
 
-  public Cursor fetchCategoryEntriesRange(long catId, long milliStart, long milliEnd) {
+  public Cursor fetchCategoryEntriesRange(long catId, long milliStart,
+      long milliEnd) {
     return mCursor;
   }
 
-  public EntryDbTable.Row fetchCategoryEntryInPeriod(long catId,
-      long period, long date_ms) {
+  public EntryDbTable.Row fetchCategoryEntryInPeriod(long catId, long period,
+      long date_ms) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -181,7 +182,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   }
 
   public int fetchCategoryMaxRank() {
-    return (int)mReturnValue;
+    return (int) mReturnValue;
   }
 
   public Cursor fetchEntriesRange(long milliStart, long milliEnd) {

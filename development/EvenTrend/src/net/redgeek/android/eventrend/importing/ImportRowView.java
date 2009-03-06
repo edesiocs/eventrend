@@ -22,72 +22,73 @@ import android.view.Gravity;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-/** Implements the view of each row in the ListView of importable content.
- * Each row is currently jsut a filename and filesize.  Could certainly be
- * made much prettier.
+/**
+ * Implements the view of each row in the ListView of importable content. Each
+ * row is currently jsut a filename and filesize. Could certainly be made much
+ * prettier.
  * 
  * @author barclay
  */
 public class ImportRowView extends LinearLayout {
-	private TextView mFilename;
-	private TextView mSize;
-	private Context  mCtx;
-	private boolean  mSelectable = true;
-	
-	public ImportRowView(Context context, ImportRow aRow) {
-		super(context);
-		mCtx = context;
-		
-		setupUI();
-		populateFields(aRow);
-	}
-	
-	private void setupUI() {
-		this.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-		this.setLongClickable(true);
-        
-        mFilename = new TextView(mCtx);
-        mFilename.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL );
-        addView(mFilename, new LinearLayout.LayoutParams(
-         		LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-        
-        mSize = new TextView(mCtx);
-        mSize.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL );
-        addView(mSize, new LinearLayout.LayoutParams(
-         		LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));        
-	}
-	
-	private void populateFields(ImportRow row) {
-        mFilename.setText(row.getFilename());
-        long bytes = Long.valueOf(row.getSize()).longValue();
-        if (bytes < 1024) {
-            mSize.setText(": " + bytes + " Bytes");
-        } else {
-            float size = ((float)bytes) / 1024.0f;
-            if (size < 1024)
-                mSize.setText(": " + Number.Round(size) + " KBytes");
-            else
-                mSize.setText(": " + Number.Round(size/1024.0f) + " MBytes");
-        }
-	}
-    
-    public boolean isSelectable() {
-    	return mSelectable;
-    }
-    
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
-    }
-    
-    public void setFilename(String filename) {
-        mFilename.setText(filename);
-    }
+  private TextView mFilename;
+  private TextView mSize;
+  private Context mCtx;
+  private boolean mSelectable = true;
 
-    public String getFilename() {
-        return mFilename.getText().toString();
-    }
+  public ImportRowView(Context context, ImportRow aRow) {
+    super(context);
+    mCtx = context;
 
-    public void setSize(String size) {
-        mSize.setText(size);
+    setupUI();
+    populateFields(aRow);
+  }
+
+  private void setupUI() {
+    this.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    this.setLongClickable(true);
+
+    mFilename = new TextView(mCtx);
+    mFilename.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    addView(mFilename, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        LayoutParams.WRAP_CONTENT));
+
+    mSize = new TextView(mCtx);
+    mSize.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    addView(mSize, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        LayoutParams.WRAP_CONTENT));
+  }
+
+  private void populateFields(ImportRow row) {
+    mFilename.setText(row.getFilename());
+    long bytes = Long.valueOf(row.getSize()).longValue();
+    if (bytes < 1024) {
+      mSize.setText(": " + bytes + " Bytes");
+    } else {
+      float size = ((float) bytes) / 1024.0f;
+      if (size < 1024)
+        mSize.setText(": " + Number.Round(size) + " KBytes");
+      else
+        mSize.setText(": " + Number.Round(size / 1024.0f) + " MBytes");
     }
+  }
+
+  public boolean isSelectable() {
+    return mSelectable;
+  }
+
+  public void setSelectable(boolean selectable) {
+    mSelectable = selectable;
+  }
+
+  public void setFilename(String filename) {
+    mFilename.setText(filename);
+  }
+
+  public String getFilename() {
+    return mFilename.getText().toString();
+  }
+
+  public void setSize(String size) {
+    mSize.setText(size);
+  }
 }

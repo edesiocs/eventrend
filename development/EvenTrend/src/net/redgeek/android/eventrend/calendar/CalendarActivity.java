@@ -178,7 +178,8 @@ public class CalendarActivity extends EvenTrendActivity {
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     // mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_DAY, new
     // Long(0));
-    mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
+    mPeriodSpinner
+        .addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
     // mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new
     // Long(2));
     mPeriodSpinner.setSelection(0);
@@ -190,7 +191,8 @@ public class CalendarActivity extends EvenTrendActivity {
 
   private void setupListeners() {
     mCategorySpinnerListener = new Spinner.OnItemSelectedListener() {
-      public void onItemSelected(AdapterView parent, View v, int position, long id) {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
         ArrayList<TimeSeries> series = mTSC.getAllSeries();
         for (int i = 0; i < series.size(); i++) {
           setSeriesEnabled(series.get(i).getDbRow().getId(), false);
@@ -208,7 +210,8 @@ public class CalendarActivity extends EvenTrendActivity {
     };
 
     mPeriodSpinnerListener = new Spinner.OnItemSelectedListener() {
-      public void onItemSelected(AdapterView parent, View v, int position, long id) {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
         String period = ((TextView) v).getText().toString();
         if (period.equals(CategoryDbTable.KEY_PERIOD_YEAR)) {
           mCalendarView.getCalendar().setSpan(Period.YEAR);
@@ -228,38 +231,40 @@ public class CalendarActivity extends EvenTrendActivity {
   }
 
   public void setupGestures() {
-    mGestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
-      public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        float deltaX = e2.getRawX() - e1.getRawX();
-        float deltaY = e2.getRawY() - e1.getRawY();
-        int minSlideWidth = mCalendarView.getWidth() / 2;
-        int minSlideHeight = mCalendarView.getHeight() / 2;
+    mGestureDetector = new GestureDetector(
+        new GestureDetector.SimpleOnGestureListener() {
+          public boolean onFling(MotionEvent e1, MotionEvent e2,
+              float velocityX, float velocityY) {
+            float deltaX = e2.getRawX() - e1.getRawX();
+            float deltaY = e2.getRawY() - e1.getRawY();
+            int minSlideWidth = mCalendarView.getWidth() / 2;
+            int minSlideHeight = mCalendarView.getHeight() / 2;
 
-        if (Math.abs(deltaX) < 100) {
-          if (deltaY > minSlideHeight) {
-            slideDown();
-            return true;
-          }
+            if (Math.abs(deltaX) < 100) {
+              if (deltaY > minSlideHeight) {
+                slideDown();
+                return true;
+              }
 
-          if (deltaY < -minSlideHeight) {
-            slideUp();
-            return true;
-          }
-        }
-        if (Math.abs(deltaY) < 100) {
-          if (deltaX > minSlideWidth) {
-            slideRight();
-            return true;
-          }
+              if (deltaY < -minSlideHeight) {
+                slideUp();
+                return true;
+              }
+            }
+            if (Math.abs(deltaY) < 100) {
+              if (deltaX > minSlideWidth) {
+                slideRight();
+                return true;
+              }
 
-          if (deltaX < -minSlideWidth) {
-            slideLeft();
-            return true;
+              if (deltaX < -minSlideWidth) {
+                slideLeft();
+                return true;
+              }
+            }
+            return false;
           }
-        }
-        return false;
-      }
-    });
+        });
     mGestureDetector.setIsLongpressEnabled(true);
 
     mTouchListener = new OnTouchListener() {
@@ -277,7 +282,6 @@ public class CalendarActivity extends EvenTrendActivity {
     return super.dispatchTouchEvent(ev);
   }
 
-
   private void populateFields() {
     mCalendarView.getCalendar().setCalendarStart(mStartMs);
     mTSC.setAutoAggregation(false);
@@ -286,12 +290,14 @@ public class CalendarActivity extends EvenTrendActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     boolean result = super.onCreateOptionsMenu(menu);
-    menu.add(0, MENU_CALENDAR_RANGE_ID, 0, R.string.menu_calendar_range).setIcon(
-        android.R.drawable.ic_dialog_info);
-    menu.add(0, MENU_CALENDAR_GRAPH_ID, 0, R.string.menu_graph).setIcon(R.drawable.graph);
+    menu.add(0, MENU_CALENDAR_RANGE_ID, 0, R.string.menu_calendar_range)
+        .setIcon(android.R.drawable.ic_dialog_info);
+    menu.add(0, MENU_CALENDAR_GRAPH_ID, 0, R.string.menu_graph).setIcon(
+        R.drawable.graph);
     menu.add(0, MENU_CALENDAR_PREFS_ID, 0, R.string.menu_app_prefs).setIcon(
         android.R.drawable.ic_menu_preferences);
-    menu.add(0, MENU_HELP_ID, 0, R.string.menu_app_help).setIcon(android.R.drawable.ic_menu_help);
+    menu.add(0, MENU_HELP_ID, 0, R.string.menu_app_help).setIcon(
+        android.R.drawable.ic_menu_help);
     return result;
   }
 
@@ -365,17 +371,20 @@ public class CalendarActivity extends EvenTrendActivity {
   public void setSeriesEnabled(long catId, boolean enabled) {
     mTSC.setSeriesEnabled(catId, enabled);
 
-    if (mSeriesEnabled == null) return;
+    if (mSeriesEnabled == null)
+      return;
 
     for (int i = 0; i < mSeriesEnabled.size(); i++) {
       Integer id = mSeriesEnabled.get(i);
       if (catId == id) {
-        if (enabled == false) mSeriesEnabled.remove(i);
+        if (enabled == false)
+          mSeriesEnabled.remove(i);
         return;
       }
     }
 
-    if (enabled == true) mSeriesEnabled.add(new Integer((int) catId));
+    if (enabled == true)
+      mSeriesEnabled.add(new Integer((int) catId));
   }
 
   @Override
@@ -386,9 +395,11 @@ public class CalendarActivity extends EvenTrendActivity {
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    if (mSeriesEnabled != null) outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
+    if (mSeriesEnabled != null)
+      outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
 
-    outState.putLong(GRAPH_START_MS, mCalendarView.getCalendar().getCalendarStart());
+    outState.putLong(GRAPH_START_MS, mCalendarView.getCalendar()
+        .getCalendarStart());
     super.onSaveInstanceState(outState);
   }
 
@@ -423,18 +434,19 @@ public class CalendarActivity extends EvenTrendActivity {
       Datapoint first = ts.getFirstVisible();
       Datapoint last = ts.getLastVisible();
 
-      info +=
-          "Values:\n" + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n" + "  "
-              + DateUtil.toTimestamp(last.mMillis) + "\n" + "  Range:       "
-              + ts.getVisibleValueMin() + " - " + ts.getVisibleValueMax() + "\n" + "  Average:   "
-              + Number.Round(valueStats.mMean, decimals) + "\n" + "  Std Dev.:    "
-              + Number.Round(valueStats.mStdDev, decimals) + "\n" + "  Variance:   "
-              + Number.Round(valueStats.mVar, decimals) + "\n" + "  Trend:       "
-              + Number.Round(ts.getTrendStats().mMin, decimals) + " - "
-              + Number.Round(ts.getTrendStats().mMax, decimals) + "\n" + "Date Goal is Reached:\n"
-              + "Time Between Datapoints:\n" + "  Avgerage:  " + tsAvgPeriod + "\n"
-              + "  Std Dev.:   " + tsSD + "\n" + "  Variance:   " + tsVar + "\n"
-              + "Time Between Entries:\n" + "  Avg/Entry:   " + tsAvgEntry + "\n";
+      info += "Values:\n" + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
+          + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
+          + "  Range:       " + ts.getVisibleValueMin() + " - "
+          + ts.getVisibleValueMax() + "\n" + "  Average:   "
+          + Number.Round(valueStats.mMean, decimals) + "\n" + "  Std Dev.:    "
+          + Number.Round(valueStats.mStdDev, decimals) + "\n"
+          + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"
+          + "  Trend:       " + Number.Round(ts.getTrendStats().mMin, decimals)
+          + " - " + Number.Round(ts.getTrendStats().mMax, decimals) + "\n"
+          + "Date Goal is Reached:\n" + "Time Between Datapoints:\n"
+          + "  Avgerage:  " + tsAvgPeriod + "\n" + "  Std Dev.:   " + tsSD
+          + "\n" + "  Variance:   " + tsVar + "\n" + "Time Between Entries:\n"
+          + "  Avg/Entry:   " + tsAvgEntry + "\n";
     }
 
     b.setTitle("Visible Range Info");

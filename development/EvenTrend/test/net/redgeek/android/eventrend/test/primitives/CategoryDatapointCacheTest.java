@@ -95,13 +95,13 @@ public class CategoryDatapointCacheTest extends TestCase {
 
     out = cache.getDataInRange(51, 149);
     assertEquals(1, out.size());
-    assertSame(d, out.get(0));		
+    assertSame(d, out.get(0));
 
     out = cache.getDataInRange(50, 150);
     assertEquals(3, out.size());
-    assertSame(d, out.get(1));		
-    assertNotSame(d, out.get(0));		
-    assertNotSame(d, out.get(2));		
+    assertSame(d, out.get(1));
+    assertNotSame(d, out.get(0));
+    assertNotSame(d, out.get(2));
     assertEquals(50L, out.get(0).mMillis);
     assertEquals(100L, out.get(1).mMillis);
     assertEquals(150L, out.get(2).mMillis);
@@ -148,18 +148,18 @@ public class CategoryDatapointCacheTest extends TestCase {
 
     out = cache.getDataBefore(10, 151);
     assertEquals(3, out.size());
-    assertSame(d, out.get(1));		
-    assertNotSame(d, out.get(0));		
-    assertNotSame(d, out.get(2));		
+    assertSame(d, out.get(1));
+    assertNotSame(d, out.get(0));
+    assertNotSame(d, out.get(2));
     assertEquals(50L, out.get(0).mMillis);
     assertEquals(100L, out.get(1).mMillis);
     assertEquals(150L, out.get(2).mMillis);
 
     out = cache.getDataAfter(10, 49);
     assertEquals(3, out.size());
-    assertSame(d, out.get(1));		
-    assertNotSame(d, out.get(0));		
-    assertNotSame(d, out.get(2));		
+    assertSame(d, out.get(1));
+    assertNotSame(d, out.get(0));
+    assertNotSame(d, out.get(2));
     assertEquals(50L, out.get(0).mMillis);
     assertEquals(100L, out.get(1).mMillis);
     assertEquals(150L, out.get(2).mMillis);
@@ -248,4 +248,3 @@ public class CategoryDatapointCacheTest extends TestCase {
     assertEquals(Long.MIN_VALUE, cache.getEnd());
   }
 }
-

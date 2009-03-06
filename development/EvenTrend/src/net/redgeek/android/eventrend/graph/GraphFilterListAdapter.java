@@ -26,40 +26,48 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class GraphFilterListAdapter extends BaseAdapter {
-	private Context              mCtx;
-    private List<GraphFilterRow> mItems = new ArrayList<GraphFilterRow>();
-    private TimeSeriesCollector  mTSC;
+  private Context mCtx;
+  private List<GraphFilterRow> mItems = new ArrayList<GraphFilterRow>();
+  private TimeSeriesCollector mTSC;
 
-    public GraphFilterListAdapter(Context context, TimeSeriesCollector tsc) {
-    	mCtx = context;
-    	mTSC = tsc;
+  public GraphFilterListAdapter(Context context, TimeSeriesCollector tsc) {
+    mCtx = context;
+    mTSC = tsc;
+  }
+
+  public void addItem(GraphFilterRow it) {
+    mItems.add(it);
+  }
+
+  public void setListItems(List<GraphFilterRow> lit) {
+    mItems = lit;
+  }
+
+  public int getCount() {
+    return mItems.size();
+  }
+
+  public Object getItem(int position) {
+    return mItems.get(position);
+  }
+
+  public boolean areAllItemsSelectable() {
+    return false;
+  }
+
+  public boolean isSelectable(int position) {
+    try {
+      return mItems.get(position).isSelectable();
+    } catch (IndexOutOfBoundsException aioobe) {
+      return false;
     }
+  }
 
-	public void addItem(GraphFilterRow it) { mItems.add(it); }
+  public long getItemId(int position) {
+    return position;
+  }
 
-    public void setListItems(List<GraphFilterRow> lit) { mItems = lit; }
-    
-    public int getCount() { return mItems.size(); }
-    
-    public Object getItem(int position) { return mItems.get(position); }
-
-    public boolean areAllItemsSelectable() { return false; }
-
-    public boolean isSelectable(int position) {
-    	try{
-        	return mItems.get(position).isSelectable();
-        } catch (IndexOutOfBoundsException aioobe){
-        	return false;
-        }
-    }
-
-    public long getItemId(int position) {
-    	return position;
-    }
-    
-    public View getView(int position, View convertView, ViewGroup parent) {
-    	return new GraphFilterRowView(mCtx, mItems.get(position), mTSC);
-    }
+  public View getView(int position, View convertView, ViewGroup parent) {
+    return new GraphFilterRowView(mCtx, mItems.get(position), mTSC);
+  }
 }
-
-

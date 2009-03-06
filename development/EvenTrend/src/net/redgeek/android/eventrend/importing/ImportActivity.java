@@ -32,122 +32,127 @@ import android.view.Window;
 import android.widget.ListView;
 import android.widget.TextView;
 
-/** ImportActivity handles the listing of importable files, spawning the
- * actual importing into a background task, and displaying progress 
- * dialogs and results.
+/**
+ * ImportActivity handles the listing of importable files, spawning the actual
+ * importing into a background task, and displaying progress dialogs and
+ * results.
  * 
- * <p>Currenlty only supports importing from a pre-defined directory,
- * and only replace-importing, not merge-importing.
+ * <p>
+ * Currenlty only supports importing from a pre-defined directory, and only
+ * replace-importing, not merge-importing.
  * 
  * @author barclay
- *
+ * 
  */
-public class ImportActivity extends EvenTrendActivity {	
-    // Dialogs
-    private static final int DIALOG_IMPORT_SUCCESS = 0;
-    private static final int DIALOG_ERR_FILEREAD   = 1;
-    private static final int DIALOG_PROGRESS       = 2;
-    
-    // UI elements
-    private ImportListAdapter  	 mILA;
-    private TextView			 mEmptyList;
-    ProgressIndicator.DialogSoft mProgress;
+public class ImportActivity extends EvenTrendActivity {
+  // Dialogs
+  private static final int DIALOG_IMPORT_SUCCESS = 0;
+  private static final int DIALOG_ERR_FILEREAD = 1;
+  private static final int DIALOG_PROGRESS = 2;
 
-    // Data
-    private String 				mFilename;
-    private String 				mErrMsg;
-    private String 				mImportDir;
-    private int 				mHistory;
-    
-    // Tasks
-    private ImportTask          mImporter;
+  // UI elements
+  private ImportListAdapter mILA;
+  private TextView mEmptyList;
+  ProgressIndicator.DialogSoft mProgress;
 
-    @Override
-    public void onCreate(Bundle icicle) {
-        super.onCreate(icicle); 
-        getPrefs();
-        setupTasks();
-        setupUI();
-        populateFilenameList();
-    }
-    
-    private void getPrefs() {
-        mHistory = Preferences.getHistory(getCtx());
-    }
-    
-    private void setupTasks() {	
-    	mImporter = new ImportTask(getDbh());
-    }
-    
-    private void setupUI() {
-        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-        setContentView(R.layout.import_list);
-                
-        mProgress = new ProgressIndicator.DialogSoft(getCtx(), DIALOG_PROGRESS);
-        mImportDir = getResources().getString(R.string.import_dir);
-        mEmptyList = (TextView) findViewById(android.R.id.empty);
-        mEmptyList.setText("No importable files found in " + mImportDir);    	
-    }
-        
-    private void populateFilenameList() {
-        File dir = new File(mImportDir);
-        File[] files = dir.listFiles();
-        
-        if (files == null)
-        	return;
+  // Data
+  private String mFilename;
+  private String mErrMsg;
+  private String mImportDir;
+  private int mHistory;
 
-    	mFilename = "";
-        mILA = new ImportListAdapter(this);
-        for (int i = 0; i < files.length; i++ ) {
-        	String size = new String(Long.toString(files[i].length()));
-        	mILA.addItem(new ImportRow(files[i].getName().toString(), size));
-        }
+  // Tasks
+  private ImportTask mImporter;
 
-        setListAdapter(mILA); 
+  @Override
+  public void onCreate(Bundle icicle) {
+    super.onCreate(icicle);
+    getPrefs();
+    setupTasks();
+    setupUI();
+    populateFilenameList();
+  }
+
+  private void getPrefs() {
+    mHistory = Preferences.getHistory(getCtx());
+  }
+
+  private void setupTasks() {
+    mImporter = new ImportTask(getDbh());
+  }
+
+  private void setupUI() {
+    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    setContentView(R.layout.import_list);
+
+    mProgress = new ProgressIndicator.DialogSoft(getCtx(), DIALOG_PROGRESS);
+    mImportDir = getResources().getString(R.string.import_dir);
+    mEmptyList = (TextView) findViewById(android.R.id.empty);
+    mEmptyList.setText("No importable files found in " + mImportDir);
+  }
+
+  private void populateFilenameList() {
+    File dir = new File(mImportDir);
+    File[] files = dir.listFiles();
+
+    if (files == null)
+      return;
+
+    mFilename = "";
+    mILA = new ImportListAdapter(this);
+    for (int i = 0; i < files.length; i++) {
+      String size = new String(Long.toString(files[i].length()));
+      mILA.addItem(new ImportRow(files[i].getName().toString(), size));
     }
 
-    @Override
-	public void executeNonGuiTask() throws Exception {
-		mImporter.doImport();
-	}
+    setListAdapter(mILA);
+  }
 
-    @Override
-	public void afterExecute() {
-		showDialog(DIALOG_IMPORT_SUCCESS);
-	}
+  @Override
+  public void executeNonGuiTask() throws Exception {
+    mImporter.doImport();
+  }
 
-    @Override
-	public void onFailure(Throwable t) {
-		mErrMsg = t.getMessage();
-		showDialog(DIALOG_ERR_FILEREAD);
-	}
+  @Override
+  public void afterExecute() {
+    showDialog(DIALOG_IMPORT_SUCCESS);
+  }
 
-    @Override
-    protected void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
-        mFilename = ((ImportRowView)v).getFilename();
-        mImporter.setFilename(mImportDir + "/" + mFilename);
-        mImporter.setHistory(mHistory);
-        GUITaskQueue.getInstance().addTask(mProgress, this);
+  @Override
+  public void onFailure(Throwable t) {
+    mErrMsg = t.getMessage();
+    showDialog(DIALOG_ERR_FILEREAD);
+  }
+
+  @Override
+  protected void onListItemClick(ListView l, View v, int position, long id) {
+    super.onListItemClick(l, v, position, id);
+    mFilename = ((ImportRowView) v).getFilename();
+    mImporter.setFilename(mImportDir + "/" + mFilename);
+    mImporter.setHistory(mHistory);
+    GUITaskQueue.getInstance().addTask(mProgress, this);
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    super.onActivityResult(requestCode, resultCode, intent);
+    populateFilenameList();
+  }
+
+  @Override
+  protected Dialog onCreateDialog(int id) {
+    switch (id) {
+      case DIALOG_IMPORT_SUCCESS:
+        return getDialogUtil().newOkDialog("Import Success",
+            "Imported from " + mFilename);
+      case DIALOG_ERR_FILEREAD:
+        return getDialogUtil().newOkDialog("Import Failure",
+            "Error reading from " + mFilename + ": " + mErrMsg);
+      case DIALOG_PROGRESS:
+        return getDialogUtil().newProgressDialog(
+            "Importing data from " + mFilename + " ...");
+      default:
     }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
-        populateFilenameList();
-    }
-    
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-        case DIALOG_IMPORT_SUCCESS:
-        	return getDialogUtil().newOkDialog("Import Success", "Imported from " + mFilename);
-        case DIALOG_ERR_FILEREAD:
-        	return getDialogUtil().newOkDialog("Import Failure", "Error reading from " + mFilename + ": " + mErrMsg);
-        case DIALOG_PROGRESS:
-        	return getDialogUtil().newProgressDialog("Importing data from " + mFilename + " ...");
-        default:
-        }
-        return null;
-    }    
+    return null;
+  }
 }

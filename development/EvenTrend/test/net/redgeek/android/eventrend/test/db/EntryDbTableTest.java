@@ -37,7 +37,7 @@ public class EntryDbTableTest extends TestCase {
   }
 
   public void testConstructors() {
-    HashMap<String, String> map = new HashMap<String, String>();		
+    HashMap<String, String> map = new HashMap<String, String>();
     map.put(EntryDbTable.KEY_ROWID, "1");
     map.put(EntryDbTable.KEY_CATEGORY_ID, "2");
     map.put(EntryDbTable.KEY_TIMESTAMP, "3");
@@ -69,6 +69,5 @@ public class EntryDbTableTest extends TestCase {
     assertEquals(3, row.getTimestamp());
     assertEquals(4.0f, row.getValue());
     assertEquals(5, row.getNEntries());
-  }	
+  }
 }
-

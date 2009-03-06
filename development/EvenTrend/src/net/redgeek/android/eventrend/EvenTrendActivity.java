@@ -80,9 +80,9 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
-    mCtx        = this;
+    mCtx = this;
     mDialogUtil = new DialogUtil(mCtx);
-    mDbh        = new EvenTrendDbAdapter.SqlAdapter(this);
+    mDbh = new EvenTrendDbAdapter.SqlAdapter(this);
     mDbh.open();
 
     mInterpolators = new ArrayList<TimeSeriesInterpolator>();
@@ -115,7 +115,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
 
   public void onFailure(Throwable t) {
   }
-  
+
   public Context getCtx() {
     return mCtx;
   }
@@ -135,11 +135,13 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public TimeSeriesInterpolator getInterpolator(String name) {
     TimeSeriesInterpolator tsi = null;
 
-    if (name == null) return null;
+    if (name == null)
+      return null;
 
     for (int i = 0; i < mInterpolators.size(); i++) {
       tsi = mInterpolators.get(i);
-      if (name.equals(tsi.getName())) return tsi;
+      if (name.equals(tsi.getName()))
+        return tsi;
     }
 
     return null;
