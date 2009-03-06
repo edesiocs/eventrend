@@ -60,7 +60,7 @@ public class TimeSeriesCollector {
   private long mQueryStart;
   private long mQueryEnd;
 
-  private TimeSeriesPainter mPainter;
+  private TimeSeriesPainter mDefaultPainter;
 
   public TimeSeriesCollector(EvenTrendDbAdapter dbh) {
     initialize(dbh, null);
@@ -82,9 +82,7 @@ public class TimeSeriesCollector {
     mCal1 = Calendar.getInstance();
     mCal2 = Calendar.getInstance();
 
-    mPainter = painter;
-    if (painter == null)
-      mPainter = new TimeSeriesPainter.Default();
+    mDefaultPainter = painter;
 
     mLock = new ReentrantLock();
   }
@@ -126,7 +124,12 @@ public class TimeSeriesCollector {
     TimeSeries ts = getSeriesById(row.getId());
 
     if (ts == null) {
-      ts = new TimeSeries(row, mHistory, mSmoothing, mPainter);
+      if (mDefaultPainter == null) {
+        TimeSeriesPainter p = new TimeSeriesPainter.Default();
+        ts = new TimeSeries(row, mHistory, mSmoothing, p);
+      } else {
+        ts = new TimeSeries(row, mHistory, mSmoothing, mDefaultPainter);
+      }
       mSeries.add(ts);
       mDatapointCache.addCacheableCategory(row.getId(), mHistory);
     }
