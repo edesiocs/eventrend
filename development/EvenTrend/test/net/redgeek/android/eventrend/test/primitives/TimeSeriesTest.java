@@ -16,16 +16,13 @@
 
 package net.redgeek.android.eventrend.test.primitives;
 
-import android.graphics.Canvas;
-
 import junit.framework.TestCase;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.eventrend.test.commonmocks.MockTimeSeriesPainter;
 import net.redgeek.android.eventrend.util.DateUtil;
 
 import java.util.ArrayList;
@@ -33,18 +30,6 @@ import java.util.ArrayList;
 // Note that several tests use equality comparison on float, which could be 
 // dangerous in general, but should be safe for such small predefined values.
 public class TimeSeriesTest extends TestCase {
-  // Not testing any drawing calls yet
-  public static class MockTimeSeriesPainter implements TimeSeriesPainter {
-    public MockTimeSeriesPainter() { }
-    public void drawGoal(Canvas canvas, Tuple start, Tuple end) { }
-    public void drawMarker(Canvas canvas, Tuple start, Tuple end) { }
-    public void drawPath(Canvas canvas, TimeSeries ts) { }
-    public void drawText(Canvas canvas, String text, float x, float y) { }
-    public void drawTrend(Canvas canvas, TimeSeries ts) { }
-    public void setColor(String color) { }
-    public void setPointRadius(float size) { } 
-  }
-
   public TimeSeries newDefaultTimeSeries() {
     MockTimeSeriesPainter painter = new MockTimeSeriesPainter();
     CategoryDbTable.Row row = new CategoryDbTable.Row();

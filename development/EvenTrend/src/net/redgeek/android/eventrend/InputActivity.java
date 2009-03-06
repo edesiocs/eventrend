@@ -204,7 +204,7 @@ public class InputActivity extends EvenTrendActivity {
     	mUndoLock = new ReentrantLock();
     	
     	mTSC = new TimeSeriesCollector(getDbh());
-    	mTSC.initialize();
+    	mTSC.updateTimeSeriesMeta(true);
         mTSC.setHistory(mHistory);
         mTSC.setSmoothing(mSmoothing);
         mTSC.setSensitivity(mSensitivity);
@@ -390,7 +390,7 @@ public class InputActivity extends EvenTrendActivity {
     	scheduleUpdateNow();
     	getPrefs();
 
-    	mTSC.updateTimeSeriesMeta();
+    	mTSC.updateTimeSeriesMeta(false);
         fillCategoryData(mFlipper.getDisplayedChild());                
     	setCurrentViews(false);
         

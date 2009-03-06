@@ -247,7 +247,7 @@ public class EntryEditActivity extends EvenTrendActivity {
         		getDbh().deleteEntry(mRowId);
     		    CategoryDbTable.Row row = getDbh().fetchCategory(mCategoryId);
     		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-    		    tsc.initialize();
+    		    tsc.updateTimeSeriesMeta(true);
     		    tsc.setHistory(mHistory);
                 tsc.setSmoothing(mSmoothing);
                 tsc.setSmoothing(mSensitivity);
@@ -442,7 +442,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     					getDbh().deleteEntry(entry.getId());
     	    		    if (cat != null) {
     	        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-    	        		    tsc.initialize();
+    	        		    tsc.updateTimeSeriesMeta(true);
                             tsc.setHistory(mHistory);
                             tsc.setSmoothing(mSmoothing);
                             tsc.setSensitivity(mSensitivity);
@@ -456,7 +456,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     		    getDbh().updateEntry(entry);
     		    if (cat != null) {
         		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-        		    tsc.initialize();
+        		    tsc.updateTimeSeriesMeta(true);
                     tsc.setHistory(mHistory);
                     tsc.setSmoothing(mSmoothing);
                     tsc.setSensitivity(mSensitivity);
