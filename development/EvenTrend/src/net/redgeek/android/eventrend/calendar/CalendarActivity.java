@@ -113,11 +113,11 @@ public class CalendarActivity extends EvenTrendActivity {
 
   private void setupData(Bundle icicle) {
     mTSC = new TimeSeriesCollector(getDbh());
-    mTSC.updateTimeSeriesMeta(true);
     mTSC.setHistory(mHistory);
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
+    mTSC.updateTimeSeriesMeta(true);
 
     mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
     if (mSeriesEnabled != null) {
