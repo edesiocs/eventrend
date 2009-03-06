@@ -87,7 +87,9 @@ public class EntryEditActivity extends EvenTrendActivity {
 	private int			     mAggregation;
 
 	// Prefs
-	private int				 mHistory;
+    private int              mHistory;
+    private float            mSmoothing;
+    private float            mSensitivity;
 	
     // original values
     private long              mOriginalCategoryId;
@@ -134,7 +136,12 @@ public class EntryEditActivity extends EvenTrendActivity {
 		mCal = Calendar.getInstance();
 		mOriginalTimestamp = new DateUtil.DateItem();
 		mPickerTimestamp = new DateUtil.DateItem();
-		mHistory = Preferences.getHistory(getCtx());
+    }
+    
+    private void setupPrefs() {
+        mHistory = Preferences.getHistory(getCtx());
+        mSmoothing = Preferences.getSmoothingConstant(getCtx());
+        mSensitivity = Preferences.getStdDevSensitivity(getCtx());
     }
     
     private void setupUI() {
@@ -239,8 +246,12 @@ public class EntryEditActivity extends EvenTrendActivity {
         	public void onClick(View view) {
         		getDbh().deleteEntry(mRowId);
     		    CategoryDbTable.Row row = getDbh().fetchCategory(mCategoryId);
-    		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
+    		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
     		    tsc.initialize();
+    		    tsc.setHistory(mHistory);
+                tsc.setSmoothing(mSmoothing);
+                tsc.setSmoothing(mSensitivity);
+                tsc.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
     		    tsc.updateCategoryTrend(mCategoryId);
         	    setResult(RESULT_OK);
         	    getDbh().close();
@@ -405,7 +416,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     @Override
     protected void onResume() {
         super.onResume();
-		mHistory = Preferences.getHistory(getCtx());
+        setupPrefs();
         populateFields(null);
     }
     
@@ -430,8 +441,12 @@ public class EntryEditActivity extends EvenTrendActivity {
     					getDbh().updateEntry(other);
     					getDbh().deleteEntry(entry.getId());
     	    		    if (cat != null) {
-    	        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
+    	        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
     	        		    tsc.initialize();
+                            tsc.setHistory(mHistory);
+                            tsc.setSmoothing(mSmoothing);
+                            tsc.setSensitivity(mSensitivity);
+                            tsc.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
     	        		    tsc.updateCategoryTrend(mCategoryId);
     	    		    }
     					return;
@@ -440,8 +455,12 @@ public class EntryEditActivity extends EvenTrendActivity {
     			
     		    getDbh().updateEntry(entry);
     		    if (cat != null) {
-        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
+        		    TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
         		    tsc.initialize();
+                    tsc.setHistory(mHistory);
+                    tsc.setSmoothing(mSmoothing);
+                    tsc.setSensitivity(mSensitivity);
+                    tsc.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
         		    tsc.updateCategoryTrend(mCategoryId);
     		    }
     		}

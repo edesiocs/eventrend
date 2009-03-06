@@ -18,16 +18,28 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import junit.framework.TestCase;
 
+import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
+import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendContext;
 import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendDbAdapter;
 
+import java.util.ArrayList;
+
 // TODO: implement
 public class TimeSeriesCollectorTest extends TestCase {
   private TimeSeriesCollector newTSC() {
-    MockEvenTrendContext   ctx = new MockEvenTrendContext();
-    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter(ctx);
-    return new TimeSeriesCollector(ctx, dbh, 20);
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    ArrayList<TimeSeriesInterpolator> interpolators = new ArrayList<TimeSeriesInterpolator>();
+    interpolators.add(new LinearInterpolator());
+
+    TimeSeriesCollector tsc = new TimeSeriesCollector(dbh);
+    tsc.setHistory(20);
+    tsc.setSmoothing(0.1f);
+    tsc.setSensitivity(1.0f);
+    tsc.setInterpolators(interpolators);
+    
+    return tsc;
   }
   
   public void testConstructor() {
@@ -41,7 +53,6 @@ public class TimeSeriesCollectorTest extends TestCase {
     assertEquals(0, tsc.getAllEnabledSeries().size());
     assertNull(tsc.getLastDatapoint(0));
     assertNull(tsc.getLastDatapoint(1));
-    assertNull(tsc.getSeries(0));
     assertNull(tsc.getSeriesById(1));
     assertNull(tsc.getSeriesByName("foo"));
     assertNull(tsc.getVisibleFirstDatapoint());

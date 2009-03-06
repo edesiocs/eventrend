@@ -131,7 +131,9 @@ public class InputActivity extends EvenTrendActivity {
     
     // From preferences
 	private String              mDefaultGroup;
-	private int                 mHistory;
+    private int                 mHistory;
+    private float               mSmoothing;
+    private float               mSensitivity;
 
 	// Listeners
 	private OnTouchListener		     mTouchListener;
@@ -193,14 +195,20 @@ public class InputActivity extends EvenTrendActivity {
     //*** main setup routines ***/
     private void getPrefs() {
     	mDefaultGroup = Preferences.getDefaultGroup(getCtx());
-    	mHistory = Preferences.getHistory(getCtx());
+        mHistory = Preferences.getHistory(getCtx());
+        mSmoothing = Preferences.getSmoothingConstant(getCtx());
+        mSensitivity = Preferences.getStdDevSensitivity(getCtx());
     }
     
     private void setupTasksAndData() {
     	mUndoLock = new ReentrantLock();
     	
-    	mTSC = new TimeSeriesCollector(getCtx(), getDbh(), mHistory);
+    	mTSC = new TimeSeriesCollector(getDbh());
     	mTSC.initialize();
+        mTSC.setHistory(mHistory);
+        mTSC.setSmoothing(mSmoothing);
+        mTSC.setSensitivity(mSensitivity);
+        mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
     	
     	mDataUpdater = new UpdateRecentDataTask(mTSC);
 //    	mDataUpdater.setZerofill(true);
