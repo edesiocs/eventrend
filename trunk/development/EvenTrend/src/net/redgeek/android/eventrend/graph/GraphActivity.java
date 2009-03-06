@@ -353,10 +353,6 @@ public class GraphActivity extends EvenTrendActivity {
     return mGraphStatus;
   }
 
-  public EvenTrendDbAdapter getDbh() {
-    return getDbh();
-  }
-
   @Override
   protected Dialog onCreateDialog(int id) {
     switch (id) {
