@@ -25,7 +25,6 @@ import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.backgroundtasks.CorrelateTask;
 import net.redgeek.android.eventrend.calendar.CalendarActivity;
 import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.graph.plugins.LinearMatrixCorrelator;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;

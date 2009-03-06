@@ -247,7 +247,6 @@ public class EntryEditActivity extends EvenTrendActivity {
     mDeleteListener = new View.OnClickListener() {
       public void onClick(View view) {
         getDbh().deleteEntry(mRowId);
-        CategoryDbTable.Row row = getDbh().fetchCategory(mCategoryId);
         TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
         tsc.setHistory(mHistory);
         tsc.setSmoothing(mSmoothing);

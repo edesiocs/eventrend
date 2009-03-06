@@ -97,7 +97,6 @@ public class InputActivity extends EvenTrendActivity {
   private static final int TIME_DIALOG_ID = 0;
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
-  private static final int PROGRESS_DIALOG_ID = 3;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -142,7 +141,6 @@ public class InputActivity extends EvenTrendActivity {
   private View.OnClickListener mPickTimeListener;
   private View.OnClickListener mPickNowListener;
   private View.OnClickListener mUndoListener;
-  private View.OnLongClickListener mLongClickListener;
   private DatePickerDialog.OnDateSetListener mDateSetListener;
   private TimePickerDialog.OnTimeSetListener mTimeSetListener;
 
@@ -309,12 +307,6 @@ public class InputActivity extends EvenTrendActivity {
       }
     };
 
-    mLongClickListener = new View.OnLongClickListener() {
-      public boolean onLongClick(View v) {
-        return true;
-      }
-    };
-
     mDateSetListener = new DatePickerDialog.OnDateSetListener() {
       public void onDateSet(DatePicker view, int year, int monthOfYear,
           int dayOfMonth) {
@@ -472,7 +464,6 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   public boolean onContextItemSelected(MenuItem item) {
-    int id = item.getItemId();
     AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item
         .getMenuInfo();
 
@@ -609,7 +600,7 @@ public class InputActivity extends EvenTrendActivity {
         CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
         if (row.getDbRow().getSynthetic() == true) {
           row.populateFields();
-          row.setLayoutAnimationSlideOutLeftIn(row, getCtx());
+          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, getCtx());
         }
       }
     }

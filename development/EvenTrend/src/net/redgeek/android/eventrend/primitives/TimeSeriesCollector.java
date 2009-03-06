@@ -97,9 +97,6 @@ public class TimeSeriesCollector {
   }
 
   public void updateTimeSeriesMeta(boolean disableByDefault) {
-    TimeSeries ts;
-    Formula formula;
-
     waitForLock();
     Cursor c = mDbh.fetchAllCategories();
     c.moveToFirst();

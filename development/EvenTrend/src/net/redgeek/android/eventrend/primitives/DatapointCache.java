@@ -18,7 +18,6 @@ package net.redgeek.android.eventrend.primitives;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -26,7 +25,6 @@ import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
@@ -40,8 +38,7 @@ public class DatapointCache {
   }
 
   public void clearCache() {
-    Collection c = mCache.values();
-    Iterator itr = c.iterator();
+    Iterator<CategoryDatapointCache> itr = mCache.values().iterator();
     while (itr.hasNext()) {
       ((CategoryDatapointCache) itr.next()).clear();
     }

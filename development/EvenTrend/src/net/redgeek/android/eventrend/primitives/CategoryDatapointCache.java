@@ -18,7 +18,6 @@ package net.redgeek.android.eventrend.primitives;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -97,13 +96,11 @@ public class CategoryDatapointCache {
     SortedMap<Long, Datapoint> map = mCache.subMap(Long.valueOf(msStart), Long
         .valueOf(msEnd + 1));
 
-    Iterator iterator = map.entrySet().iterator();
+    Iterator<Datapoint> iterator = map.values().iterator();
     while (iterator.hasNext()) {
-      Map.Entry entry = (Map.Entry) iterator.next();
-      Datapoint d = (Datapoint) entry.getValue();
-      if (d != null) {
+      Datapoint d = iterator.next();
+      if (d != null)
         range.add(d);
-      }
     }
 
     return range;
@@ -116,10 +113,9 @@ public class CategoryDatapointCache {
         java.util.Collections.reverseOrder());
     reverse.putAll(range);
 
-    Iterator iterator = reverse.entrySet().iterator();
+    Iterator<Datapoint> iterator = reverse.values().iterator();
     for (int i = 0; i < number && iterator.hasNext();) {
-      Map.Entry entry = (Map.Entry) iterator.next();
-      Datapoint d = (Datapoint) entry.getValue();
+      Datapoint d = iterator.next();
       if (d != null) {
         i++;
         pre.add(0, d);
@@ -132,11 +128,10 @@ public class CategoryDatapointCache {
   public ArrayList<Datapoint> getDataAfter(int number, long ms) {
     ArrayList<Datapoint> post = new ArrayList<Datapoint>();
     SortedMap<Long, Datapoint> range = mCache.tailMap(Long.valueOf(ms) + 1);
-    Iterator iterator = range.entrySet().iterator();
+    Iterator<Datapoint> iterator = range.values().iterator();
 
     for (int i = 0; i < number && iterator.hasNext();) {
-      Map.Entry entry = (Map.Entry) iterator.next();
-      Datapoint d = (Datapoint) entry.getValue();
+      Datapoint d = iterator.next();
       if (d != null) {
         i++;
         post.add(d);
@@ -152,10 +147,9 @@ public class CategoryDatapointCache {
         java.util.Collections.reverseOrder());
     reverse.putAll(mCache);
 
-    Iterator iterator = reverse.entrySet().iterator();
+    Iterator<Datapoint> iterator = reverse.values().iterator();
     for (int i = 0; i < number && iterator.hasNext();) {
-      Map.Entry entry = (Map.Entry) iterator.next();
-      Datapoint d = (Datapoint) entry.getValue();
+      Datapoint d = iterator.next();
       if (d != null) {
         i++;
         last.add(0, d);
