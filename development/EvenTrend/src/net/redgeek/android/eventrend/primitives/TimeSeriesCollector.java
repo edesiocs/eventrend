@@ -16,14 +16,9 @@
 
 package net.redgeek.android.eventrend.primitives;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import android.content.Context;
+import android.database.Cursor;
 
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
@@ -33,23 +28,28 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 import net.redgeek.android.eventrend.util.Number.TrendState;
-import android.content.Context;
-import android.database.Cursor;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TimeSeriesCollector {
   private ArrayList<TimeSeries> mSeries;
 
   private long mAggregationMs;
-  private int mHistory;
-  private float mSmoothing;
+  private int mHistory       = 20;
+  private float mSmoothing   = 0.1f;
+  private float mSensitivity = 1.0f;
   private Lock mLock;
   private boolean mAutoAggregation;
   private int mAutoAggregationOffset;
 
   private DatapointCache mDatapointCache;
   private FormulaCache mFormulaCache;
+  private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
-  private Context mCtx;
   private EvenTrendDbAdapter mDbh;
   private DateUtil mAutoAggSpan;
   private Calendar mCal1;
@@ -60,21 +60,18 @@ public class TimeSeriesCollector {
   private long mQueryStart;
   private long mQueryEnd;
 
-  public TimeSeriesCollector(Context context, EvenTrendDbAdapter dbh, int history) {
-    mCtx = context;
+  public TimeSeriesCollector(EvenTrendDbAdapter dbh) {
     mDbh = dbh;
     mSeries = new ArrayList<TimeSeries>();
 
     mAutoAggSpan = new DateUtil();
-    mDatapointCache = new DatapointCache(mCtx, mDbh);
+    mDatapointCache = new DatapointCache(mDbh);
     mFormulaCache = new FormulaCache();
-    mHistory = history;
     mAutoAggregation = false;
     mAutoAggregationOffset = 0;
     mCal1 = Calendar.getInstance();
     mCal2 = Calendar.getInstance();
 
-    mSmoothing = Preferences.getSmoothingConstant(mCtx);
     mLock = new ReentrantLock();
   }
 
@@ -213,6 +210,14 @@ public class TimeSeriesCollector {
     }
   }
 
+  public void setSensitivity(float sensitivity) {
+    mSensitivity = sensitivity;
+  }
+  
+  public void setInterpolators(ArrayList<TimeSeriesInterpolator> list) {
+    mInterpolators = list;
+  }
+
   public Boolean lock() {
     return mLock.tryLock();
   }
@@ -244,8 +249,17 @@ public class TimeSeriesCollector {
   }
 
   public void setSeriesInterpolator(TimeSeries ts, String type) {
-    TimeSeriesInterpolator tsi = ((EvenTrendActivity) mCtx).getInterpolator(type);
-    ts.setInterpolator(tsi);
+    TimeSeriesInterpolator tsi = null;
+      for (int i = 0; i < mInterpolators.size(); i++) {
+      tsi = mInterpolators.get(i);
+      if (type.equals(tsi.getName())) 
+        break;
+    }
+
+    if (tsi != null) 
+      ts.setInterpolator(tsi);
+
+    return;
   }
 
   public void clearSeries() {
@@ -480,8 +494,6 @@ public class TimeSeriesCollector {
     float lastTrend = 0.0f;
     float newTrend = 0.0f;
 
-    float sensitivity = Preferences.getStdDevSensitivity(mCtx);
-
     gatherLatestDatapoints(catId, mHistory);
     TimeSeries ts = getSeriesById(catId);
     if (ts == null) return;
@@ -491,7 +503,7 @@ public class TimeSeriesCollector {
     stdDev = ts.getValueStats().mStdDev;
 
     TrendState state =
-        Number.getTrendState(lastTrend, newTrend, ts.getDbRow().getGoal(), sensitivity, stdDev);
+        Number.getTrendState(lastTrend, newTrend, ts.getDbRow().getGoal(), mSensitivity, stdDev);
     trendStr = Number.mapTrendStateToString(state);
 
     mDbh.updateCategoryTrend(catId, trendStr, newTrend);
@@ -514,7 +526,7 @@ public class TimeSeriesCollector {
         stdDev = dependee.getValueStats().mStdDev;
 
         state =
-            Number.getTrendState(lastTrend, newTrend, dependee.getDbRow().getGoal(), sensitivity,
+            Number.getTrendState(lastTrend, newTrend, dependee.getDbRow().getGoal(), mSensitivity,
                 stdDev);
         trendStr = Number.mapTrendStateToString(state);
 

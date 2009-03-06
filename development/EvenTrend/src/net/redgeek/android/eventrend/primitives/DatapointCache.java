@@ -32,9 +32,9 @@ import android.util.Log;
 
 public class DatapointCache {	
 	private HashMap<Long,CategoryDatapointCache> mCache;
-	private EvenTrendDbAdapter              mDbh;
+	private EvenTrendDbAdapter                   mDbh;
 	    
-	public DatapointCache(Context context, EvenTrendDbAdapter dbh) {
+	public DatapointCache(EvenTrendDbAdapter dbh) {
 		mDbh     = dbh;
 		mCache   = new HashMap<Long,CategoryDatapointCache>();
 	}

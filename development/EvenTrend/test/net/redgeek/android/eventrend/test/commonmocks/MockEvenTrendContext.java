@@ -19,6 +19,5 @@ package net.redgeek.android.eventrend.test.commonmocks;
 import android.test.mock.MockContext;
 
 public class MockEvenTrendContext extends MockContext {
-  public MockEvenTrendContext() {
-  }
+
 }
