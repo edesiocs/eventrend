@@ -205,11 +205,11 @@ public class InputActivity extends EvenTrendActivity {
     mUndoLock = new ReentrantLock();
 
     mTSC = new TimeSeriesCollector(getDbh());
-    mTSC.updateTimeSeriesMeta(true);
     mTSC.setHistory(mHistory);
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
+    mTSC.updateTimeSeriesMeta(true);
 
     mDataUpdater = new UpdateRecentDataTask(mTSC);
     // mDataUpdater.setZerofill(true);

@@ -249,11 +249,11 @@ public class EntryEditActivity extends EvenTrendActivity {
         getDbh().deleteEntry(mRowId);
         CategoryDbTable.Row row = getDbh().fetchCategory(mCategoryId);
         TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-        tsc.updateTimeSeriesMeta(true);
         tsc.setHistory(mHistory);
         tsc.setSmoothing(mSmoothing);
         tsc.setSmoothing(mSensitivity);
         tsc.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
+        tsc.updateTimeSeriesMeta(true);
         tsc.updateCategoryTrend(mCategoryId);
         setResult(RESULT_OK);
         getDbh().close();
@@ -443,12 +443,12 @@ public class EntryEditActivity extends EvenTrendActivity {
             getDbh().deleteEntry(entry.getId());
             if (cat != null) {
               TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-              tsc.updateTimeSeriesMeta(true);
               tsc.setHistory(mHistory);
               tsc.setSmoothing(mSmoothing);
               tsc.setSensitivity(mSensitivity);
               tsc.setInterpolators(((EvenTrendActivity) getCtx())
                   .getInterpolators());
+              tsc.updateTimeSeriesMeta(true);
               tsc.updateCategoryTrend(mCategoryId);
             }
             return;
@@ -458,12 +458,12 @@ public class EntryEditActivity extends EvenTrendActivity {
         getDbh().updateEntry(entry);
         if (cat != null) {
           TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-          tsc.updateTimeSeriesMeta(true);
           tsc.setHistory(mHistory);
           tsc.setSmoothing(mSmoothing);
           tsc.setSensitivity(mSensitivity);
           tsc.setInterpolators(((EvenTrendActivity) getCtx())
               .getInterpolators());
+          tsc.updateTimeSeriesMeta(true);
           tsc.updateCategoryTrend(mCategoryId);
         }
       }
