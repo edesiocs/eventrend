@@ -16,11 +16,11 @@
 
 package net.redgeek.android.eventrend.primitives;
 
-import android.content.Context;
 import android.database.Cursor;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.synthetic.Formula;
 import net.redgeek.android.eventrend.synthetic.FormulaCache;
@@ -39,8 +39,8 @@ public class TimeSeriesCollector {
   private ArrayList<TimeSeries> mSeries;
 
   private long mAggregationMs;
-  private int mHistory       = 20;
-  private float mSmoothing   = 0.1f;
+  private int mHistory = 20;
+  private float mSmoothing = 0.1f;
   private float mSensitivity = 1.0f;
   private Lock mLock;
   private boolean mAutoAggregation;
@@ -60,7 +60,17 @@ public class TimeSeriesCollector {
   private long mQueryStart;
   private long mQueryEnd;
 
+  private TimeSeriesPainter mPainter;
+
   public TimeSeriesCollector(EvenTrendDbAdapter dbh) {
+    initialize(dbh, null);
+  }
+
+  public TimeSeriesCollector(EvenTrendDbAdapter dbh, TimeSeriesPainter painter) {
+    initialize(dbh, painter);
+  }
+
+  public void initialize(EvenTrendDbAdapter dbh, TimeSeriesPainter painter) {
     mDbh = dbh;
     mSeries = new ArrayList<TimeSeries>();
 
@@ -72,9 +82,14 @@ public class TimeSeriesCollector {
     mCal1 = Calendar.getInstance();
     mCal2 = Calendar.getInstance();
 
+    mPainter = painter;
+    if (painter == null)
+      mPainter = new TimeSeriesPainter.Default();
+
     mLock = new ReentrantLock();
   }
 
+  @Override
   public String toString() {
     return mSeries.toString();
   }
@@ -83,7 +98,7 @@ public class TimeSeriesCollector {
     return mDbh;
   }
 
-  public void initialize() {
+  public void updateTimeSeriesMeta(boolean disableByDefault) {
     TimeSeries ts;
     Formula formula;
 
@@ -92,78 +107,59 @@ public class TimeSeriesCollector {
     c.moveToFirst();
     for (int i = 0; i < c.getCount(); i++) {
       CategoryDbTable.Row row = new CategoryDbTable.Row(c);
-
-      long id = CategoryDbTable.getId(c);
-
-      ts = new TimeSeries(row, mHistory, mSmoothing);
-      setSeriesInterpolator(ts, row.getInterpolation());
-
-      if (row.getSynthetic() == true) {
-        formula = new Formula(row.getFormula());
-        mFormulaCache.setFormula(id, formula);
-      }
-
-      mSeries.add(ts);
-      mDatapointCache.addCacheableCategory(id, mHistory);
-
-      setSeriesEnabled(id, false);
+      updateTimeSeriesMeta(row, disableByDefault);
       c.moveToNext();
     }
     c.close();
 
+    // cycle through again, we may have had a series that was dependent on
+    // another series that was created later
     for (int i = 0; i < mSeries.size(); i++) {
       setDependents(mSeries.get(i));
       setDependees(mSeries.get(i));
     }
+    
     unlock();
   }
 
-  public void updateTimeSeriesMeta() {
-    Cursor c = mDbh.fetchAllCategories();
-    c.moveToFirst();
-    for (int i = 0; i < c.getCount(); i++) {
-      updateTimeSeriesMeta(new CategoryDbTable.Row(c));
-      c.moveToNext();
-    }
-    c.close();
-    return;
-  }
-
-  public void updateTimeSeriesMeta(CategoryDbTable.Row row) {
-    long id = row.getId();
-
-    waitForLock();
-    TimeSeries ts = getSeriesById(id);
+  public void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
+    TimeSeries ts = getSeriesById(row.getId());
+    
     if (ts == null) {
-      ts = new TimeSeries(row, mHistory, mSmoothing);
+      ts = new TimeSeries(row, mHistory, mSmoothing, mPainter);
       mSeries.add(ts);
-      mDatapointCache.addCacheableCategory(id, mHistory);
+      mDatapointCache.addCacheableCategory(row.getId(), mHistory);
     }
-
+     
     ts.setDbRow(row);
     setSeriesInterpolator(ts, row.getInterpolation());
 
     if (row.getSynthetic() == true) {
-      Formula formula = mFormulaCache.getFormula(Long.valueOf(id));
-      if (formula == null) formula = new Formula();
+      Formula formula = mFormulaCache.getFormula(Long.valueOf(row.getId()));
+      if (formula == null)
+        formula = new Formula();
       formula.setFormula(row.getFormula());
-      mFormulaCache.setFormula(Long.valueOf(id), formula);
+      mFormulaCache.setFormula(row.getId(), formula);
     }
+
+    if (disable)
+      setSeriesEnabled(row.getId(), false);
 
     setDependents(ts);
     setDependees(ts);
-    unlock();
   }
-
+    
   public void updateTimeSeriesStats(long catId) {
     TimeSeries ts = getSeriesById(catId);
-    if (ts == null) return;
+    if (ts == null)
+      return;
 
     ts.recalcStatsAndBounds(mSmoothing, mHistory);
   }
 
   public void updateTimeSeriesStats(TimeSeries ts) {
-    if (ts == null) return;
+    if (ts == null)
+      return;
 
     ts.recalcStatsAndBounds(mSmoothing, mHistory);
   }
@@ -186,9 +182,11 @@ public class TimeSeriesCollector {
     updateTimeSeriesData(catId, mQueryStart, mQueryEnd, flushCache);
   }
 
-  public void updateTimeSeriesData(long catId, long start, long end, boolean flushCache) {
+  public void updateTimeSeriesData(long catId, long start, long end,
+      boolean flushCache) {
     waitForLock();
-    if (flushCache == true) mDatapointCache.refresh(catId);
+    if (flushCache == true)
+      mDatapointCache.refresh(catId);
 
     if (mDatapointCache.isCategoryCacheValid(catId) == true) {
       gatherSeries(start, end);
@@ -213,7 +211,7 @@ public class TimeSeriesCollector {
   public void setSensitivity(float sensitivity) {
     mSensitivity = sensitivity;
   }
-  
+
   public void setInterpolators(ArrayList<TimeSeriesInterpolator> list) {
     mInterpolators = list;
   }
@@ -250,13 +248,13 @@ public class TimeSeriesCollector {
 
   public void setSeriesInterpolator(TimeSeries ts, String type) {
     TimeSeriesInterpolator tsi = null;
-      for (int i = 0; i < mInterpolators.size(); i++) {
+    for (int i = 0; i < mInterpolators.size(); i++) {
       tsi = mInterpolators.get(i);
-      if (type.equals(tsi.getName())) 
+      if (type.equals(tsi.getName()))
         break;
     }
 
-    if (tsi != null) 
+    if (tsi != null)
       ts.setInterpolator(tsi);
 
     return;
@@ -278,13 +276,15 @@ public class TimeSeriesCollector {
 
   public boolean isSeriesEnabled(long catId) {
     TimeSeries ts = getSeriesById(catId);
-    if (ts == null) return false;
+    if (ts == null)
+      return false;
     return ts.isEnabled();
   }
 
   public void setSeriesEnabled(long catId, boolean b) {
     TimeSeries ts = getSeriesById(catId);
-    if (ts == null) return;
+    if (ts == null)
+      return;
     ts.setEnabled(b);
   }
 
@@ -338,7 +338,8 @@ public class TimeSeriesCollector {
     ArrayList<TimeSeries> list = new ArrayList<TimeSeries>();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
-      if (ts != null && ts.isEnabled()) list.add(ts);
+      if (ts != null && ts.isEnabled())
+        list.add(ts);
     }
     return list;
   }
@@ -352,7 +353,8 @@ public class TimeSeriesCollector {
         Datapoint d = ts.getFirstVisible();
         if (first == null)
           first = d;
-        else if (d.mMillis < first.mMillis) first = d;
+        else if (d.mMillis < first.mMillis)
+          first = d;
       }
     }
     unlock();
@@ -368,31 +370,12 @@ public class TimeSeriesCollector {
         Datapoint d = ts.getFirstVisible();
         if (last == null)
           last = d;
-        else if (d.mMillis > last.mMillis) last = d;
+        else if (d.mMillis > last.mMillis)
+          last = d;
       }
     }
     unlock();
     return last;
-  }
-
-  public Tuple getVisibleRange() {
-    float minY = Float.MAX_VALUE;
-    float maxY = Float.MIN_VALUE;
-    long minX = Long.MAX_VALUE;
-    long maxX = Long.MIN_VALUE;
-    Tuple mins = new Tuple(Float.MAX_VALUE, Float.MAX_VALUE);
-    Tuple maxs = new Tuple(Float.MIN_VALUE, Float.MIN_VALUE);
-
-    waitForLock();
-    for (int i = 0; i < mSeries.size(); i++) {
-      TimeSeries ts = mSeries.get(i);
-      if (ts != null && ts.isEnabled() == true) {
-        minY = Math.min(minY, ts.getVisibleValueMin());
-        maxY = Math.max(maxY, ts.getVisibleValueMax());
-      }
-    }
-    unlock();
-    return Tuple.minus(maxs, mins);
   }
 
   public void clearCache() {
@@ -408,7 +391,8 @@ public class TimeSeriesCollector {
     if (ts.getDbRow().getSynthetic() == false) {
       ts.clearSeries();
 
-      ArrayList<Datapoint> l = mDatapointCache.getLast(ts.getDbRow().getId(), history);
+      ArrayList<Datapoint> l = mDatapointCache.getLast(ts.getDbRow().getId(),
+          history);
       if (l != null) {
         l = aggregateDatapoints(l, ts.getDbRow().getType());
         ts.setDatapoints(null, l, null);
@@ -433,7 +417,8 @@ public class TimeSeriesCollector {
       has_data = false;
 
       TimeSeries ts = mSeries.get(i);
-      if (ts.getDbRow().getSynthetic()) continue;
+      if (ts.getDbRow().getSynthetic())
+        continue;
 
       if (ts.isEnabled() == false) {
         boolean skip = true;
@@ -443,26 +428,29 @@ public class TimeSeriesCollector {
             break;
           }
         }
-        if (skip == true) continue;
+        if (skip == true)
+          continue;
       }
 
-      mDatapointCache.populateRange(ts.getDbRow().getId(), mCollectionStart, mCollectionEnd,
-          mAggregationMs);
+      mDatapointCache.populateRange(ts.getDbRow().getId(), mCollectionStart,
+          mCollectionEnd, mAggregationMs);
 
-      pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory, mCollectionStart);
+      pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory,
+          mCollectionStart);
       if (pre != null && pre.size() > 0) {
         has_data = true;
         pre = aggregateDatapoints(pre, ts.getDbRow().getType());
       }
 
-      range =
-          mDatapointCache.getDataInRange(ts.getDbRow().getId(), mCollectionStart, mCollectionEnd);
+      range = mDatapointCache.getDataInRange(ts.getDbRow().getId(),
+          mCollectionStart, mCollectionEnd);
       if (range != null && range.size() > 0) {
         has_data = true;
         range = aggregateDatapoints(range, ts.getDbRow().getType());
       }
 
-      post = mDatapointCache.getDataAfter(ts.getDbRow().getId(), 1, mCollectionEnd);
+      post = mDatapointCache.getDataAfter(ts.getDbRow().getId(), 1,
+          mCollectionEnd);
       if (post != null && range.size() > 0) {
         has_data = true;
         post = aggregateDatapoints(post, ts.getDbRow().getType());
@@ -484,7 +472,8 @@ public class TimeSeriesCollector {
 
   public Datapoint getLastDatapoint(long catId) {
     ArrayList<Datapoint> list = mDatapointCache.getLast(catId, 1);
-    if (list == null || list.size() < 1) return null;
+    if (list == null || list.size() < 1)
+      return null;
     return list.get(0);
   }
 
@@ -496,14 +485,15 @@ public class TimeSeriesCollector {
 
     gatherLatestDatapoints(catId, mHistory);
     TimeSeries ts = getSeriesById(catId);
-    if (ts == null) return;
+    if (ts == null)
+      return;
 
     lastTrend = ts.getTrendStats().mTrendPrev;
     newTrend = ts.getTrendStats().mTrend;
     stdDev = ts.getValueStats().mStdDev;
 
-    TrendState state =
-        Number.getTrendState(lastTrend, newTrend, ts.getDbRow().getGoal(), mSensitivity, stdDev);
+    TrendState state = Number.getTrendState(lastTrend, newTrend, ts.getDbRow()
+        .getGoal(), mSensitivity, stdDev);
     trendStr = Number.mapTrendStateToString(state);
 
     mDbh.updateCategoryTrend(catId, trendStr, newTrend);
@@ -518,19 +508,20 @@ public class TimeSeriesCollector {
         }
 
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());
-        ArrayList<Datapoint> calculated = formula.apply(dependee.getDependents());
+        ArrayList<Datapoint> calculated = formula.apply(dependee
+            .getDependents());
         dependee.setDatapoints(null, calculated, null);
 
         lastTrend = dependee.getTrendStats().mTrendPrev;
         newTrend = dependee.getTrendStats().mTrend;
         stdDev = dependee.getValueStats().mStdDev;
 
-        state =
-            Number.getTrendState(lastTrend, newTrend, dependee.getDbRow().getGoal(), mSensitivity,
-                stdDev);
+        state = Number.getTrendState(lastTrend, newTrend, dependee.getDbRow()
+            .getGoal(), mSensitivity, stdDev);
         trendStr = Number.mapTrendStateToString(state);
 
-        mDbh.updateCategoryTrend(dependee.getDbRow().getId(), trendStr, newTrend);
+        mDbh.updateCategoryTrend(dependee.getDbRow().getId(), trendStr,
+            newTrend);
       }
     }
   }
@@ -538,7 +529,9 @@ public class TimeSeriesCollector {
   private void generateSynthetics() {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries synth = mSeries.get(i);
-      if (synth.getDbRow().getSynthetic() == false || synth.isEnabled() == false) continue;
+      if (synth.getDbRow().getSynthetic() == false
+          || synth.isEnabled() == false)
+        continue;
 
       generateSynthetic(synth);
     }
@@ -557,9 +550,11 @@ public class TimeSeriesCollector {
 
       if (range != null) {
         ms = range.get(0).mMillis;
-        if (ms < firstVisibleMs) firstVisibleMs = ms;
+        if (ms < firstVisibleMs)
+          firstVisibleMs = ms;
         ms = range.get(range.size() - 1).mMillis;
-        if (ms > lastVisibleMs) lastVisibleMs = ms;
+        if (ms > lastVisibleMs)
+          lastVisibleMs = ms;
       }
     }
 
@@ -587,11 +582,13 @@ public class TimeSeriesCollector {
     synth.setDatapoints(pre, visible, post);
   }
 
-  private ArrayList<Datapoint> aggregateDatapoints(ArrayList<Datapoint> list, String type) {
+  private ArrayList<Datapoint> aggregateDatapoints(ArrayList<Datapoint> list,
+      String type) {
     Datapoint accumulator = null;
     Datapoint d = null;
 
-    if (mAggregationMs == 0) return list;
+    if (mAggregationMs == 0)
+      return list;
 
     ArrayList<Datapoint> newList = new ArrayList<Datapoint>();
 
@@ -621,7 +618,8 @@ public class TimeSeriesCollector {
       }
     }
 
-    if (accumulator != null) newList.add(accumulator);
+    if (accumulator != null)
+      newList.add(accumulator);
 
     return newList;
   }
@@ -659,7 +657,8 @@ public class TimeSeriesCollector {
       DateUtil.setToPeriodStart(mCal2, p);
 
       int step = 1;
-      if (p == Period.QUARTER) step = 3;
+      if (p == Period.QUARTER)
+        step = 3;
       mCal2.add(DateUtil.mapLongToCal(mAggregationMs), step);
 
       milliEnd = mCal2.getTimeInMillis();
@@ -672,7 +671,8 @@ public class TimeSeriesCollector {
   }
 
   private boolean inSameAggregationPeriod(Datapoint d1, Datapoint d2) {
-    if (d1 == null || d2 == null) return false;
+    if (d1 == null || d2 == null)
+      return false;
 
     mCal1.setTimeInMillis(d1.mMillis);
     mCal2.setTimeInMillis(d2.mMillis);
@@ -680,32 +680,40 @@ public class TimeSeriesCollector {
   }
 
   private void setDependents(TimeSeries synth) {
-    if (synth.getDbRow().getSynthetic() == false) return;
+    if (synth.getDbRow().getSynthetic() == false)
+      return;
 
     Formula formula = mFormulaCache.getFormula(synth.getDbRow().getId());
     ArrayList<String> names = formula.getDependentNames();
-    if (names == null) return;
+    if (names == null)
+      return;
 
+    synth.getDependents().clear();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
-      if (ts == null || ts == synth) continue;
+      if (ts == null || ts == synth)
+        continue;
 
-      if (names.contains(ts.getDbRow().getCategoryName())) synth.addDependent(ts);
+      if (names.contains(ts.getDbRow().getCategoryName()))
+        synth.addDependent(ts);
     }
 
     return;
   }
 
   private void setDependees(TimeSeries ts) {
+    ts.getDependees().clear();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries dependee = getSeries(i);
-      if (ts == null || ts == dependee) continue;
+      if (ts == null || ts == dependee)
+        continue;
 
       if (dependee.getDbRow().getSynthetic() == true) {
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());
         ArrayList<String> names = formula.getDependentNames();
 
-        if (names.contains(ts.getDbRow().getCategoryName())) ts.addDependee(dependee);
+        if (names.contains(ts.getDbRow().getCategoryName()))
+          ts.addDependee(dependee);
       }
     }
 

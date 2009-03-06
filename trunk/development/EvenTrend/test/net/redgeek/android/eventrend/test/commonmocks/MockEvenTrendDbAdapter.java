@@ -34,7 +34,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   private long       mReturnValue;
 
   public MockEvenTrendDbAdapter() {
-    mCursor = null;
+    mCursor = new MockCursor();
   }
 
   public MockEvenTrendDbAdapter(MockContext context) {

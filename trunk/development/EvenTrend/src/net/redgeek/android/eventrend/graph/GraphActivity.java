@@ -131,7 +131,7 @@ public class GraphActivity extends EvenTrendActivity {
 
   private void setupData(Bundle icicle) {
     mTSC = new TimeSeriesCollector(getDbh());
-    mTSC.initialize();
+    mTSC.updateTimeSeriesMeta(true);
     mTSC.setHistory(mHistory);
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
