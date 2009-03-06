@@ -2,7 +2,6 @@ package net.redgeek.android.eventrend.db;
 
 import java.util.Calendar;
 
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.importing.CSV;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;

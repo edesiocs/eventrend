@@ -16,7 +16,10 @@
 
 package net.redgeek.android.eventrend.primitives;
 
-import android.graphics.Canvas;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeMap;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.GraphView;
@@ -25,13 +28,7 @@ import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.synthetic.AST;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.Map.Entry;
+import android.graphics.Canvas;
 
 /**
  * A representation of series of Datapoints plottable on screen. Specific
@@ -695,7 +692,7 @@ public final class TimeSeries {
   // commutative
   public void timeseriesOp(TimeSeries ts, AST.Opcode op) {
     Float f1, f2;
-    Datapoint d1, d2;
+    Datapoint d1;
     ArrayList<Datapoint> pre = new ArrayList<Datapoint>();
     ArrayList<Datapoint> range = new ArrayList<Datapoint>();
     ArrayList<Datapoint> post = new ArrayList<Datapoint>();
