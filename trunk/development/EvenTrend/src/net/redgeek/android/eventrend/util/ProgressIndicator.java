@@ -21,131 +21,145 @@ import android.app.Dialog;
 import android.content.Context;
 import android.widget.ProgressBar;
 
-/** Abstract base class of progress indicators for use with GUITask.  Implementing
+/**
+ * Abstract base class of progress indicators for use with GUITask. Implementing
  * class must implement showProgressIndicator() and hideProgressIndicator().
  * 
  * @author barclay
  * @see GUITask
  */
 public interface ProgressIndicator {
-	void showProgressIndicator();
-	void hideProgressIndicator();
+  void showProgressIndicator();
 
-	/** A ProgressIndicator for setting the visiblity of an indeterminate progress
-	 * indicator in the titlebar.  Note that the activity must have called
-	 * <code>requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);</code>
-	 * 
-	 * @author barclay
-	 * @see ProgressIndicator
-	 */
-	public static class Titlebar implements ProgressIndicator {
-		Context mCtx;
+  void hideProgressIndicator();
 
-		/** Sole constructor.
-		 * 
-		 * @param ctx The Context of the activity to with which to set the
-		 * indeterminate progress window decoration visible or invisible.  
-		 * Typically this will a class implementing GUITask.
-		 * @see GUITask
-		 * @see ProgressIndicator
-		 */
-		public Titlebar(Context ctx) {
-			mCtx = ctx;
-		}
+  /**
+   * A ProgressIndicator for setting the visiblity of an indeterminate progress
+   * indicator in the titlebar. Note that the activity must have called
+   * <code>requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);</code>
+   * 
+   * @author barclay
+   * @see ProgressIndicator
+   */
+  public static class Titlebar implements ProgressIndicator {
+    Context mCtx;
 
-		/** Sets the indeterminate progress decoration visible.
-		 */
-		public void showProgressIndicator() {
-			((Activity) mCtx).setProgressBarIndeterminateVisibility(true);
-		}
+    /**
+     * Sole constructor.
+     * 
+     * @param ctx
+     *          The Context of the activity to with which to set the
+     *          indeterminate progress window decoration visible or invisible.
+     *          Typically this will a class implementing GUITask.
+     * @see GUITask
+     * @see ProgressIndicator
+     */
+    public Titlebar(Context ctx) {
+      mCtx = ctx;
+    }
 
-		/** Sets the indeterminate progress decoration invisible.
-		 */
-		public void hideProgressIndicator() {
-			((Activity) mCtx).setProgressBarIndeterminateVisibility(false);
-		}
-	}
+    /**
+     * Sets the indeterminate progress decoration visible.
+     */
+    public void showProgressIndicator() {
+      ((Activity) mCtx).setProgressBarIndeterminateVisibility(true);
+    }
 
-	/** A ProgressIndicator that displays and dismissed a dialog box, most likely
-	 * with an indeterminate progress indicator.  This dialog is "soft" because it
-	 * is cancel-able.
-	 * 
-	 * @author barclay
-	 * @see ProgressIndicator
-	 * @see DialogUtil
-	 */
-	public static class DialogSoft implements ProgressIndicator {
-		private Context mCtx;
-		private int     mId;
+    /**
+     * Sets the indeterminate progress decoration invisible.
+     */
+    public void hideProgressIndicator() {
+      ((Activity) mCtx).setProgressBarIndeterminateVisibility(false);
+    }
+  }
 
-		/** Constructor.
-		 * 
-		 * @param context The Context of the activity with which to generate the dialog.
-		 * @param id The id of the dialog, which must be present in the calling
-		 * activity's <code>onCreateDialog()</code> in order to display the dialog.
-		 * @see ProgressIndicator
-		 * @see DialogUtil
-		 */
-		public DialogSoft(Context context, int id) {
-			mCtx = context;
-			mId  = id;
-		}
+  /**
+   * A ProgressIndicator that displays and dismissed a dialog box, most likely
+   * with an indeterminate progress indicator. This dialog is "soft" because it
+   * is cancel-able.
+   * 
+   * @author barclay
+   * @see ProgressIndicator
+   * @see DialogUtil
+   */
+  public static class DialogSoft implements ProgressIndicator {
+    private Context mCtx;
+    private int mId;
 
-		/** Calls showDialog() on the previously generated dialog.
-		 */
-		public void showProgressIndicator() {
-			((Activity) mCtx).showDialog(mId);
-		}
+    /**
+     * Constructor.
+     * 
+     * @param context
+     *          The Context of the activity with which to generate the dialog.
+     * @param id
+     *          The id of the dialog, which must be present in the calling
+     *          activity's <code>onCreateDialog()</code> in order to display the
+     *          dialog.
+     * @see ProgressIndicator
+     * @see DialogUtil
+     */
+    public DialogSoft(Context context, int id) {
+      mCtx = context;
+      mId = id;
+    }
 
-		/** Calls dismissDialog() on the previously generated dialog.
-		 */
-		public void hideProgressIndicator() {
-			((Activity) mCtx).dismissDialog(mId);
-		}
-	}
+    /**
+     * Calls showDialog() on the previously generated dialog.
+     */
+    public void showProgressIndicator() {
+      ((Activity) mCtx).showDialog(mId);
+    }
 
-	/** A ProgressIndicator composed of a dialog box with an updateable progress
-	 * bar.  <strong>Not yet implemented</strong>
-	 * 
-	 * @author barclay
-	 * @see ProgressIndicator
-	 * @see DialogUtil
-	 */
-	public static class DialogWithBar implements ProgressIndicator {
-		private DialogUtil   mDU;
-		private Dialog       mDialog;
-		private int          mId;
-	    private ProgressBar  mProgress;
+    /**
+     * Calls dismissDialog() on the previously generated dialog.
+     */
+    public void hideProgressIndicator() {
+      ((Activity) mCtx).dismissDialog(mId);
+    }
+  }
 
-		public DialogWithBar(DialogUtil du, int id, String msg) {
-			mDU = du;
-			mId = id;
-			mProgress = new ProgressBar(mDU.getContext());
-			mProgress.setIndeterminate(false);
-        	mDialog = mDU.newViewDialog(msg, mProgress);
-		}
+  /**
+   * A ProgressIndicator composed of a dialog box with an updateable progress
+   * bar. <strong>Not yet implemented</strong>
+   * 
+   * @author barclay
+   * @see ProgressIndicator
+   * @see DialogUtil
+   */
+  public static class DialogWithBar implements ProgressIndicator {
+    private DialogUtil mDU;
+    private Dialog mDialog;
+    private int mId;
+    private ProgressBar mProgress;
 
-		public DialogWithBar(DialogUtil du, int id, String title, String msg) {
-			mDU = du;
-			mId = id;
-			mProgress = new ProgressBar(mDU.getContext());
-			mProgress.setIndeterminate(false);
-        	mDialog = mDU.newViewDialog(title, msg, mProgress);
-		}
+    public DialogWithBar(DialogUtil du, int id, String msg) {
+      mDU = du;
+      mId = id;
+      mProgress = new ProgressBar(mDU.getContext());
+      mProgress.setIndeterminate(false);
+      mDialog = mDU.newViewDialog(msg, mProgress);
+    }
 
-		public Dialog getDialog() {
-			return mDialog;
-		}
-		
-		public void showProgressIndicator() {
-			mProgress.setProgress(0);
-			mProgress.setSecondaryProgress(0);
-			((Activity) mDU.getContext()).showDialog(mId);
-		}
+    public DialogWithBar(DialogUtil du, int id, String title, String msg) {
+      mDU = du;
+      mId = id;
+      mProgress = new ProgressBar(mDU.getContext());
+      mProgress.setIndeterminate(false);
+      mDialog = mDU.newViewDialog(title, msg, mProgress);
+    }
 
-		public void hideProgressIndicator() {
-			((Activity) mDU.getContext()).dismissDialog(mId);
-		}
-	}
+    public Dialog getDialog() {
+      return mDialog;
+    }
+
+    public void showProgressIndicator() {
+      mProgress.setProgress(0);
+      mProgress.setSecondaryProgress(0);
+      ((Activity) mDU.getContext()).showDialog(mId);
+    }
+
+    public void hideProgressIndicator() {
+      ((Activity) mDU.getContext()).dismissDialog(mId);
+    }
+  }
 }
-

@@ -67,7 +67,7 @@ public class TupleTest extends TestCase {
 
     assertTrue(same1.compareTo(same2) == 0);
     assertTrue(same1.compareTo(greater) < 0);
-    assertTrue(same1.compareTo(less) > 0);		
+    assertTrue(same1.compareTo(less) > 0);
   }
 
   public void testTupleOps() {
@@ -78,22 +78,22 @@ public class TupleTest extends TestCase {
     result = new Tuple();
 
     result.set(source1);
-    result.plus(source2);		
+    result.plus(source2);
     assertEquals(3.0f, result.x);
     assertEquals(6.0f, result.y);
 
     result.set(source1);
-    result.minus(source2);		
+    result.minus(source2);
     assertEquals(-1.0f, result.x);
     assertEquals(-2.0f, result.y);
 
     result.set(source1);
-    result.multiply(source2);		
+    result.multiply(source2);
     assertEquals(2.0f, result.x);
     assertEquals(8.0f, result.y);
 
     result.set(source1);
-    result.divide(source2);		
+    result.divide(source2);
     assertEquals(0.5f, result.x);
     assertEquals(0.5f, result.y);
   }
@@ -105,22 +105,22 @@ public class TupleTest extends TestCase {
     result = new Tuple();
 
     result.set(source1);
-    result.plus(2.0f);		
+    result.plus(2.0f);
     assertEquals(3.0f, result.x);
     assertEquals(4.0f, result.y);
 
     result.set(source1);
-    result.minus(2.0f);		
+    result.minus(2.0f);
     assertEquals(-1.0f, result.x);
-    assertEquals( 0.0f, result.y);
+    assertEquals(0.0f, result.y);
 
     result.set(source1);
-    result.multiply(2.0f);		
+    result.multiply(2.0f);
     assertEquals(2.0f, result.x);
     assertEquals(4.0f, result.y);
 
     result.set(source1);
-    result.divide(2.0f);		
+    result.divide(2.0f);
     assertEquals(0.5f, result.x);
     assertEquals(1.0f, result.y);
   }
@@ -131,25 +131,25 @@ public class TupleTest extends TestCase {
     source1 = new Tuple(1.0f, 2.0f);
     source2 = new Tuple(2.0f, 4.0f);
 
-    result = Tuple.plus(source1, source2);		
+    result = Tuple.plus(source1, source2);
     assertEquals(3.0f, result.x);
     assertEquals(6.0f, result.y);
     assertNotSame(result, source1);
     assertNotSame(result, source2);
 
-    result = Tuple.minus(source1, source2);		
+    result = Tuple.minus(source1, source2);
     assertEquals(-1.0f, result.x);
     assertEquals(-2.0f, result.y);
     assertNotSame(result, source1);
     assertNotSame(result, source2);
 
-    result = Tuple.multiply(source1, source2);		
+    result = Tuple.multiply(source1, source2);
     assertEquals(2.0f, result.x);
     assertEquals(8.0f, result.y);
     assertNotSame(result, source1);
     assertNotSame(result, source2);
 
-    result = Tuple.divide(source1, source2);	
+    result = Tuple.divide(source1, source2);
     assertEquals(0.5f, result.x);
     assertEquals(0.5f, result.y);
     assertNotSame(result, source1);
@@ -225,4 +225,3 @@ public class TupleTest extends TestCase {
     assertNotSame(result, max);
   }
 }
-

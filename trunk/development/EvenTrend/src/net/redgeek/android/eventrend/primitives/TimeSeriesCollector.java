@@ -118,19 +118,19 @@ public class TimeSeriesCollector {
       setDependents(mSeries.get(i));
       setDependees(mSeries.get(i));
     }
-    
+
     unlock();
   }
 
   public void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
     TimeSeries ts = getSeriesById(row.getId());
-    
+
     if (ts == null) {
       ts = new TimeSeries(row, mHistory, mSmoothing, mPainter);
       mSeries.add(ts);
       mDatapointCache.addCacheableCategory(row.getId(), mHistory);
     }
-     
+
     ts.setDbRow(row);
     setSeriesInterpolator(ts, row.getInterpolation());
 
@@ -148,7 +148,7 @@ public class TimeSeriesCollector {
     setDependents(ts);
     setDependees(ts);
   }
-    
+
   public void updateTimeSeriesStats(long catId) {
     TimeSeries ts = getSeriesById(catId);
     if (ts == null)
@@ -633,15 +633,20 @@ public class TimeSeriesCollector {
 
     // this adjustment is to make sure that the edges of the visible range
     // doesn't
-    // span periods (for the purposes of calculations, not display -- anything
+    // span periods (for the purposes of calculations, not display --
+    // anything
     // that's
-    // in the visible range array, but not actually on-screen due to aggregation
+    // in the visible range array, but not actually on-screen due to
+    // aggregation
     // back
-    // to the first datapoint in the period, will just be drawn off screen. Note
+    // to the first datapoint in the period, will just be drawn off screen.
+    // Note
     // that
-    // this will also cause the scaling to take into account these off-screen
+    // this will also cause the scaling to take into account these
+    // off-screen
     // points,
-    // but that's okay, and perhaps desireable, since it's more likely to have
+    // but that's okay, and perhaps desireable, since it's more likely to
+    // have
     // no
     // datapoints visible within the range, having only aggregated points on
     // either

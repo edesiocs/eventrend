@@ -37,7 +37,7 @@ public class CategoryDbTableTest extends TestCase {
   }
 
   public void testConstructors() {
-    HashMap<String, String> map = new HashMap<String, String>();		
+    HashMap<String, String> map = new HashMap<String, String>();
     map.put(CategoryDbTable.KEY_ROWID, "10");
     map.put(CategoryDbTable.KEY_GROUP_NAME, "group");
     map.put(CategoryDbTable.KEY_CATEGORY_NAME, "catName");
@@ -107,6 +107,5 @@ public class CategoryDbTableTest extends TestCase {
     assertEquals(true, copy.getZeroFill());
     assertEquals(true, copy.getSynthetic());
     assertEquals("series foo + series bar", copy.getFormula());
-  }	
+  }
 }
-

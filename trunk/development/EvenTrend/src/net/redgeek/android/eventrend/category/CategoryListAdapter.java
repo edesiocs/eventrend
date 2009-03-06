@@ -27,49 +27,57 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class CategoryListAdapter extends BaseAdapter {
-	private TimeSeriesCollector  mTSC;
-	private Context              mCtx;
-    private List<CategoryRow>    mItems = new ArrayList<CategoryRow>();
+  private TimeSeriesCollector mTSC;
+  private Context mCtx;
+  private List<CategoryRow> mItems = new ArrayList<CategoryRow>();
 
-    public CategoryListAdapter(Context context, TimeSeriesCollector tsc) {
-    	mCtx = context;
-    	mTSC = tsc;
+  public CategoryListAdapter(Context context, TimeSeriesCollector tsc) {
+    mCtx = context;
+    mTSC = tsc;
+  }
+
+  public void addItem(CategoryRow it) {
+    mItems.add(it);
+  }
+
+  public void setListItems(List<CategoryRow> lit) {
+    mItems = lit;
+  }
+
+  public int getCount() {
+    return mItems.size();
+  }
+
+  public Object getItem(int position) {
+    return mItems.get(position);
+  }
+
+  public boolean areAllItemsSelectable() {
+    return false;
+  }
+
+  public boolean isSelectable(int position) {
+    try {
+      return mItems.get(position).isSelectable();
+    } catch (IndexOutOfBoundsException aioobe) {
+      return false;
     }
+  }
 
-	public void addItem(CategoryRow it) { mItems.add(it); }
+  public long getItemId(int position) {
+    return position;
+  }
 
-    public void setListItems(List<CategoryRow> lit) { mItems = lit; }
-    
-    public int getCount() { return mItems.size(); }
-    
-    public Object getItem(int position) { return mItems.get(position); }
+  public void swapItems(int a, int b) {
+    CategoryRow objA = mItems.get(a);
+    CategoryRow objB = mItems.get(b);
+    mItems.remove(a);
+    mItems.add(a, objB);
+  }
 
-    public boolean areAllItemsSelectable() { return false; }
-
-    public boolean isSelectable(int position) {
-    	try{
-        	return mItems.get(position).isSelectable();
-        } catch (IndexOutOfBoundsException aioobe){
-        	return false;
-        }
-    }
-
-    public long getItemId(int position) {
-    	return position;
-    }
-
-    public void swapItems(int a, int b) {
-    	CategoryRow objA = mItems.get(a);
-    	CategoryRow objB = mItems.get(b);
-    	mItems.remove(a);
-    	mItems.add(a, objB);
-    }
-    
-    public View getView(int position, View convertView, ViewGroup parent) {
-        CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position), mTSC);
-        row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-        return row;
-    }
+  public View getView(int position, View convertView, ViewGroup parent) {
+    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position), mTSC);
+    row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    return row;
+  }
 }
-
-

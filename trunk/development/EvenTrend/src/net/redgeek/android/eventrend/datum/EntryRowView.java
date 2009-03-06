@@ -23,62 +23,63 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 public class EntryRowView extends TableLayout {
-	private TextView mCategoryText;
-	private TextView mValueText;
-	private TextView mTimestampText;
+  private TextView mCategoryText;
+  private TextView mValueText;
+  private TextView mTimestampText;
 
-	private long mRowId;
-	
-	private TableRow mRow;
-	private int mPad = 2;
-         
-    public EntryRowView(Context context, EntryRow anEntry) {
-    	super(context);
+  private long mRowId;
 
-    	setupUI(context);
-    	populateFields(anEntry);
-    }
-    
-    private void setupUI(Context context) {
-        mRow = new TableRow(context);
-    	
-        mCategoryText = new TextView(context);
-        mCategoryText.setPadding(mPad, mPad, mPad, mPad);
+  private TableRow mRow;
+  private int mPad = 2;
 
-        mTimestampText = new TextView(context);
-        mTimestampText.setPadding(mPad, mPad, mPad, mPad);
+  public EntryRowView(Context context, EntryRow anEntry) {
+    super(context);
 
-        mValueText = new TextView(context);
-        mValueText.setPadding(mPad, mPad, mPad, mPad);
+    setupUI(context);
+    populateFields(anEntry);
+  }
 
-        mRow.addView(mCategoryText, new TableRow.LayoutParams(1));
-        mRow.addView(mTimestampText, new TableRow.LayoutParams(1));
-        mRow.addView(mValueText, new TableRow.LayoutParams(1));
-        
-        this.addView(mRow, new TableLayout.LayoutParams());
-    }
-    
-    private void populateFields(EntryRow entry) {
-        mCategoryText.setText(entry.getCategoryName());
-        mTimestampText.setText(DateUtil.toTimestamp(entry.getDbRow().getTimestamp()));
-        mValueText.setText(Float.valueOf(entry.getDbRow().getValue()).toString());
-        mRowId = entry.getDbRow().getId();
-    }
+  private void setupUI(Context context) {
+    mRow = new TableRow(context);
 
-    public void setCategoryName(String words) {
-        mCategoryText.setText(words);
-    }
+    mCategoryText = new TextView(context);
+    mCategoryText.setPadding(mPad, mPad, mPad, mPad);
 
-    public void setValue(float value) {
-        mValueText.setText(Float.valueOf(value).toString());
-    }
+    mTimestampText = new TextView(context);
+    mTimestampText.setPadding(mPad, mPad, mPad, mPad);
 
-    public void setTimestamp(long timestamp) {
-    	mTimestampText.setText(DateUtil.toTimestamp(timestamp));
-    }
-    
-    public long getRowId() {
-    	return mRowId;
-   	
-    }
+    mValueText = new TextView(context);
+    mValueText.setPadding(mPad, mPad, mPad, mPad);
+
+    mRow.addView(mCategoryText, new TableRow.LayoutParams(1));
+    mRow.addView(mTimestampText, new TableRow.LayoutParams(1));
+    mRow.addView(mValueText, new TableRow.LayoutParams(1));
+
+    this.addView(mRow, new TableLayout.LayoutParams());
+  }
+
+  private void populateFields(EntryRow entry) {
+    mCategoryText.setText(entry.getCategoryName());
+    mTimestampText.setText(DateUtil
+        .toTimestamp(entry.getDbRow().getTimestamp()));
+    mValueText.setText(Float.valueOf(entry.getDbRow().getValue()).toString());
+    mRowId = entry.getDbRow().getId();
+  }
+
+  public void setCategoryName(String words) {
+    mCategoryText.setText(words);
+  }
+
+  public void setValue(float value) {
+    mValueText.setText(Float.valueOf(value).toString());
+  }
+
+  public void setTimestamp(long timestamp) {
+    mTimestampText.setText(DateUtil.toTimestamp(timestamp));
+  }
+
+  public long getRowId() {
+    return mRowId;
+
+  }
 }

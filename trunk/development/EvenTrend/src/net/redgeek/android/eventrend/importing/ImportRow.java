@@ -16,43 +16,42 @@
 
 package net.redgeek.android.eventrend.importing;
 
-
 public class ImportRow implements Comparable<ImportRow> {
-	private String   mFilename;
-	private String   mSize;
-    
-	private boolean  mSelectable = true;
-	
-	public ImportRow(String filename, String size) {
-    	mFilename = filename;
-    	mSize	  = size;
-	}
-	
-    public boolean isSelectable() {
-    	return mSelectable;
-    }
-     
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
-    }
+  private String mFilename;
+  private String mSize;
 
-	public void setFilename(String filename) {
-		mFilename = filename;
-	}
+  private boolean mSelectable = true;
 
-	public String getFilename() {
-		return mFilename;
-	}
+  public ImportRow(String filename, String size) {
+    mFilename = filename;
+    mSize = size;
+  }
 
-	public void setSize(String size) {
-		mSize = size;
-	}
+  public boolean isSelectable() {
+    return mSelectable;
+  }
 
-	public String getSize() {
-		return mSize;
-	}
+  public void setSelectable(boolean selectable) {
+    mSelectable = selectable;
+  }
 
-	public int compareTo(ImportRow other) {
-		return this.mFilename.compareTo(other.mFilename);
-    }
+  public void setFilename(String filename) {
+    mFilename = filename;
+  }
+
+  public String getFilename() {
+    return mFilename;
+  }
+
+  public void setSize(String size) {
+    mSize = size;
+  }
+
+  public String getSize() {
+    return mSize;
+  }
+
+  public int compareTo(ImportRow other) {
+    return this.mFilename.compareTo(other.mFilename);
+  }
 }

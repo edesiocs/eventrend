@@ -20,17 +20,16 @@ import java.util.ArrayList;
 
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 
-/** Interface for plugging in different correlators, currently only used
- * by the TimeSeriesCollector.  Correlators must be able to take an
- * ArrayList of TimerSeries, and return a Float[][] (matrix) such that
- * the values of (Float[i][j] == Float[j][i] == the calculated correlation
- * of TimeSeries i to TimeSeries j).  Float[i][i] should always be 1.0f,
- * as it is the correlation of a timeseries to itself, which should be
- * perfectly correlated.
+/**
+ * Interface for plugging in different correlators, currently only used by the
+ * TimeSeriesCollector. Correlators must be able to take an ArrayList of
+ * TimerSeries, and return a Float[][] (matrix) such that the values of
+ * (Float[i][j] == Float[j][i] == the calculated correlation of TimeSeries i to
+ * TimeSeries j). Float[i][i] should always be 1.0f, as it is the correlation of
+ * a timeseries to itself, which should be perfectly correlated.
  * 
  * @author barclay
  */
 public interface TimeSeriesCorrelator {
-	Float[][] correlate(ArrayList<TimeSeries> timeseries);
+  Float[][] correlate(ArrayList<TimeSeries> timeseries);
 }
-

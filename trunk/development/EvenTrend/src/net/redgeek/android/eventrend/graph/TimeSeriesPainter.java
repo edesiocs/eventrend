@@ -28,26 +28,32 @@ import net.redgeek.android.eventrend.primitives.Tuple;
 
 import java.util.ArrayList;
 
-public interface TimeSeriesPainter { 
+public interface TimeSeriesPainter {
   public void setColor(String colorStr);
+
   public void setPointRadius(float size);
+
   public void drawPath(Canvas canvas, TimeSeries ts);
+
   public void drawTrend(Canvas canvas, TimeSeries ts);
+
   public void drawMarker(Canvas canvas, Tuple start, Tuple end);
+
   public void drawGoal(Canvas canvas, Tuple start, Tuple end);
+
   public void drawText(Canvas canvas, String text, float x, float y);
 
   public static class Default implements TimeSeriesPainter {
-    private Path     mPath;
-    private Path     mTrend;
-    private Path     mPoints;
-    private Paint    mPathPaint;
-    private Paint    mPointsPaint;
-    private Paint    mTrendPaint;
-    private Paint    mTrendMarkerPaint;
-    private Paint    mGoalPaint;
-    private Paint    mLabelPaint;
-    private float    mPointRadius;
+    private Path mPath;
+    private Path mTrend;
+    private Path mPoints;
+    private Paint mPathPaint;
+    private Paint mPointsPaint;
+    private Paint mTrendPaint;
+    private Paint mTrendMarkerPaint;
+    private Paint mGoalPaint;
+    private Paint mLabelPaint;
+    private float mPointRadius;
 
     public Default() {
       defaultInit();
@@ -57,31 +63,31 @@ public interface TimeSeriesPainter {
       if (other == null) {
         defaultInit();
       } else
-        mPath   = new Path(other.mPath);
-      mTrend  = new Path(other.mTrend);
+        mPath = new Path(other.mPath);
+      mTrend = new Path(other.mTrend);
       mPoints = new Path(other.mPoints);
 
-      mPathPaint        = new Paint(other.mPathPaint);
-      mPointsPaint      = new Paint(other.mPointsPaint);
-      mTrendPaint       = new Paint(other.mTrendPaint);
+      mPathPaint = new Paint(other.mPathPaint);
+      mPointsPaint = new Paint(other.mPointsPaint);
+      mTrendPaint = new Paint(other.mTrendPaint);
       mTrendMarkerPaint = new Paint(other.mTrendMarkerPaint);
-      mGoalPaint        = new Paint(other.mGoalPaint);
-      mLabelPaint       = new Paint(other.mLabelPaint);
+      mGoalPaint = new Paint(other.mGoalPaint);
+      mLabelPaint = new Paint(other.mLabelPaint);
 
       mPointRadius = other.mPointRadius;
     }
 
     private void defaultInit() {
-      mPath   = new Path();
-      mTrend  = new Path();
+      mPath = new Path();
+      mTrend = new Path();
       mPoints = new Path();
 
-      mPathPaint        = new Paint();
-      mPointsPaint      = new Paint();
-      mTrendPaint       = new Paint();
+      mPathPaint = new Paint();
+      mPointsPaint = new Paint();
+      mTrendPaint = new Paint();
       mTrendMarkerPaint = new Paint();
-      mGoalPaint        = new Paint();
-      mLabelPaint       = new Paint();
+      mGoalPaint = new Paint();
+      mLabelPaint = new Paint();
 
       mPointRadius = 3.0f;
     }
@@ -105,7 +111,7 @@ public interface TimeSeriesPainter {
     public void drawPath(Canvas canvas, TimeSeries ts) {
       Datapoint thisPoint = null;
       Datapoint prevPoint = null;
-      Tuple first  = null;
+      Tuple first = null;
       Tuple second = null;
       int datapointsSize;
 
@@ -123,24 +129,25 @@ public interface TimeSeriesPainter {
 
       ArrayList<Datapoint> datapoints = ts.getDatapoints();
       datapointsSize = datapoints.size();
-      for (int i = offset; i <  datapointsSize && i <= ts.getVisiblePostFirstIdx(); i++ ) {
+      for (int i = offset; i < datapointsSize
+          && i <= ts.getVisiblePostFirstIdx(); i++) {
         thisPoint = datapoints.get(i);
-        if (thisPoint != null) 
+        if (thisPoint != null)
           second = thisPoint.mValueScreen;
-        if (prevPoint != null) 
+        if (prevPoint != null)
           first = prevPoint.mValueScreen;
 
         ts.getInterpolator().updatePath(mPath, first, second);
 
         mPoints.moveTo(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y);
-        mPoints.addCircle(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y, 
+        mPoints.addCircle(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y,
             mPointRadius, Path.Direction.CW);
 
         prevPoint = thisPoint;
       }
 
       if (thisPoint != null) {
-        mPath.setLastPoint(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y);     
+        mPath.setLastPoint(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y);
         canvas.drawPath(mPath, mPathPaint);
         canvas.drawPath(mPoints, mPointsPaint);
       }
@@ -149,7 +156,7 @@ public interface TimeSeriesPainter {
     public void drawTrend(Canvas canvas, TimeSeries ts) {
       Datapoint thisPoint = null;
       Datapoint prevPoint = null;
-      Tuple first  = null;
+      Tuple first = null;
       Tuple second = null;
       int datapointsSize;
 
@@ -165,11 +172,12 @@ public interface TimeSeriesPainter {
       mTrend.rewind();
       ArrayList<Datapoint> datapoints = ts.getDatapoints();
       datapointsSize = datapoints.size();
-      for (int i = offset; i <  datapointsSize && i <= ts.getVisiblePostFirstIdx(); i++ ) {
+      for (int i = offset; i < datapointsSize
+          && i <= ts.getVisiblePostFirstIdx(); i++) {
         thisPoint = datapoints.get(i);
-        if (thisPoint != null) 
+        if (thisPoint != null)
           second = thisPoint.mTrendScreen;
-        if (prevPoint != null) 
+        if (prevPoint != null)
           first = prevPoint.mTrendScreen;
 
         ts.getInterpolator().updatePath(mTrend, first, second);
@@ -193,46 +201,41 @@ public interface TimeSeriesPainter {
       mPathPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mPathPaint.setStyle(Paint.Style.STROKE);
       mPathPaint.setStrokeWidth(GraphView.PATH_WIDTH);
-      mPathPaint.setColor(colorInt); 
+      mPathPaint.setColor(colorInt);
 
       mPointsPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mPointsPaint.setStyle(Paint.Style.FILL_AND_STROKE);
       mPointsPaint.setStrokeWidth(GraphView.PATH_WIDTH);
-      mPointsPaint.setColor(colorInt);   
+      mPointsPaint.setColor(colorInt);
 
       mTrendPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mTrendPaint.setStyle(Paint.Style.STROKE);
       mTrendPaint.setStrokeWidth(GraphView.TREND_WIDTH);
-      mTrendPaint.setColor(colorInt);    
-      DashPathEffect trendDashes = new DashPathEffect(
-          new float[] {GraphView.TREND_DASH_WIDTH, 
-              GraphView.TREND_DASH_WIDTH}, 0);
+      mTrendPaint.setColor(colorInt);
+      DashPathEffect trendDashes = new DashPathEffect(new float[] {
+          GraphView.TREND_DASH_WIDTH, GraphView.TREND_DASH_WIDTH }, 0);
       mTrendPaint.setPathEffect(trendDashes);
 
       mTrendMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mTrendMarkerPaint.setStyle(Paint.Style.STROKE);
       mTrendMarkerPaint.setStrokeWidth(GraphView.TREND_WIDTH);
-      mTrendMarkerPaint.setColor(colorInt);  
-      DashPathEffect trendMarkerDashes = new DashPathEffect(
-          new float[] {
-              GraphView.GOAL_DASH_WIDTH/2, 
-              GraphView.GOAL_DASH_WIDTH, 
-          }, 0);
+      mTrendMarkerPaint.setColor(colorInt);
+      DashPathEffect trendMarkerDashes = new DashPathEffect(new float[] {
+          GraphView.GOAL_DASH_WIDTH / 2, GraphView.GOAL_DASH_WIDTH, }, 0);
       mTrendMarkerPaint.setPathEffect(trendMarkerDashes);
 
       mGoalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mGoalPaint.setStyle(Paint.Style.STROKE);
       mGoalPaint.setStrokeWidth(GraphView.GOAL_WIDTH);
-      mGoalPaint.setColor(colorInt); 
-      DashPathEffect goalDashes = new DashPathEffect(
-          new float[] {GraphView.GOAL_DASH_WIDTH, 
-              GraphView.GOAL_DASH_WIDTH}, 0);
+      mGoalPaint.setColor(colorInt);
+      DashPathEffect goalDashes = new DashPathEffect(new float[] {
+          GraphView.GOAL_DASH_WIDTH, GraphView.GOAL_DASH_WIDTH }, 0);
       mGoalPaint.setPathEffect(goalDashes);
 
       mLabelPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
       mLabelPaint.setStyle(Paint.Style.STROKE);
       mLabelPaint.setStrokeWidth(GraphView.LABEL_WIDTH);
-      mLabelPaint.setColor(colorInt);    
+      mLabelPaint.setColor(colorInt);
     }
   }
 }

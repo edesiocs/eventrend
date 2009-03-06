@@ -25,116 +25,129 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 import android.os.Debug;
 
-/** Task to add an entry to the database.  This may also trigger an instantiation of
- * UpdateRecentDataTask in order to zero-fill data for any missing periods, although
- * that task will be run sequentially in the same thread as this task, not as a 
- * separate background task.
+/**
+ * Task to add an entry to the database. This may also trigger an instantiation
+ * of UpdateRecentDataTask in order to zero-fill data for any missing periods,
+ * although that task will be run sequentially in the same thread as this task,
+ * not as a separate background task.
  * 
- * <p>Adding an entry require checking the category to see if any datapoints should be
- * aggregated, and if so, performing the update instead of and addition.  The trend
- * is also recalculated for the category.
- *
- * <p>The previous values are also stored int some public member variables (which
- * should be encapsulated and accessors established, but I haven't gotten around to
- * it yet) that can be referenced by the calling activity in order to "undo" this
- * addition.
+ * <p>
+ * Adding an entry require checking the category to see if any datapoints should
+ * be aggregated, and if so, performing the update instead of and addition. The
+ * trend is also recalculated for the category.
  * 
- * <p>Note that since this is "backgroundtask", no UI operations may be performed.
+ * <p>
+ * The previous values are also stored int some public member variables (which
+ * should be encapsulated and accessors established, but I haven't gotten around
+ * to it yet) that can be referenced by the calling activity in order to "undo"
+ * this addition.
+ * 
+ * <p>
+ * Note that since this is "backgroundtask", no UI operations may be performed.
  * 
  * @author barclay
- *
+ * 
  */
-public class AddEntryTask {	
-	// Input
-	private TimeSeriesCollector mTSC;
-	private int				    mHistory;
-	private int				    mDecimals;
-	
-	// Output
-	public long    mLastAddId;
-	public float   mLastAddValue;
-	public float   mLastAddOldValue;
-	public long    mLastAddTimestamp;
-	public boolean mLastAddUpdate;
-	
-	public AddEntryTask(TimeSeriesCollector tsc) {
-		mTSC = tsc;
-	}
-	
-	public AddEntryTask(TimeSeriesCollector tsc, int decimals, int history) {
-		mTSC = tsc;
-		mHistory = history;
-		mDecimals = decimals;
-	}
+public class AddEntryTask {
+  // Input
+  private TimeSeriesCollector mTSC;
+  private int mHistory;
+  private int mDecimals;
 
-	public void AddEntry(CategoryDbTable.Row category, long timestamp, float value) {
-		EntryDbTable.Row entry;
-		Calendar entryTScal = Calendar.getInstance();
-		Calendar lastTScal;
-		long periodInMs = category.getPeriodMs();
+  // Output
+  public long mLastAddId;
+  public float mLastAddValue;
+  public float mLastAddOldValue;
+  public long mLastAddTimestamp;
+  public boolean mLastAddUpdate;
 
-		// float value = Float.valueOf(mComboBox.getText().toString()).floatValue();
-		entryTScal.setTimeInMillis(timestamp);            
+  public AddEntryTask(TimeSeriesCollector tsc) {
+    mTSC = tsc;
+  }
 
-		if (periodInMs > 0) {
-        	UpdateRecentDataTask updater = new UpdateRecentDataTask(mTSC);
-        	updater.setZerofill(true);
-        	updater.setUpdateTrend(false);
-        	updater.fillCategory(category.getId());
-		}
+  public AddEntryTask(TimeSeriesCollector tsc, int decimals, int history) {
+    mTSC = tsc;
+    mHistory = history;
+    mDecimals = decimals;
+  }
 
-		entry = mTSC.getDbh().fetchCategoryEntryInPeriod(category.getId(), 
-				category.getPeriodMs(), timestamp);
-		if (entry == null || periodInMs == 0) {
-			value = Number.Round(value, mDecimals);
-			entry = new EntryDbTable.Row();
-			entry.setTimestamp(timestamp);
-			entry.setValue(value);
-			entry.setCategoryId(category.getId());
-			entry.setNEntries(1);
+  public void AddEntry(CategoryDbTable.Row category, long timestamp, float value) {
+    EntryDbTable.Row entry;
+    Calendar entryTScal = Calendar.getInstance();
+    Calendar lastTScal;
+    long periodInMs = category.getPeriodMs();
 
-	    	mLastAddId        = mTSC.getDbh().createEntry(entry);
-	    	mLastAddValue     = value;
-	    	mLastAddTimestamp = timestamp;
-	    	mLastAddUpdate    = false;
-	    	
-    		mTSC.updateTimeSeriesData(category.getId(), false);
-		} else {
-			lastTScal = Calendar.getInstance();
-			lastTScal.setTimeInMillis(entry.getTimestamp());
-			int periodEntries = category.getPeriodEntries();
+    // float value = Float.valueOf(mComboBox.getText().toString()).floatValue();
+    entryTScal.setTimeInMillis(timestamp);
 
-			if ((periodInMs == DateUtil.YEAR_MS && DateUtil.inSameYear(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.QUARTER_MS && DateUtil.inSameQuarter(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.MONTH_MS && DateUtil.inSameMonth(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.WEEK_MS && DateUtil.inSameWeek(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.DAY_MS && DateUtil.inSameDay(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.AMPM_MS && DateUtil.inSameAMPM(entryTScal, lastTScal))
-					|| (periodInMs == DateUtil.HOUR_MS && DateUtil.inSameHour(entryTScal, lastTScal))) {
-				if (category.getType().equals(CategoryDbTable.KEY_TYPE_SUM))
-					value += entry.getValue();
-				else if(category.getType().equals(CategoryDbTable.KEY_TYPE_AVERAGE))
-					value = ((entry.getValue() * entry.getNEntries()) + value) / (entry.getNEntries() + 1);
-			}
+    if (periodInMs > 0) {
+      UpdateRecentDataTask updater = new UpdateRecentDataTask(mTSC);
+      updater.setZerofill(true);
+      updater.setUpdateTrend(false);
+      updater.fillCategory(category.getId());
+    }
 
-			value = Number.Round(value, mDecimals);
+    entry = mTSC.getDbh().fetchCategoryEntryInPeriod(category.getId(),
+        category.getPeriodMs(), timestamp);
+    if (entry == null || periodInMs == 0) {
+      value = Number.Round(value, mDecimals);
+      entry = new EntryDbTable.Row();
+      entry.setTimestamp(timestamp);
+      entry.setValue(value);
+      entry.setCategoryId(category.getId());
+      entry.setNEntries(1);
 
-			// entry.setTimestamp(mTimestamp);
-			float oldValue = entry.getValue();
-			entry.setValue(value);
-			entry.setNEntries(entry.getNEntries() + 1);
+      mLastAddId = mTSC.getDbh().createEntry(entry);
+      mLastAddValue = value;
+      mLastAddTimestamp = timestamp;
+      mLastAddUpdate = false;
 
-	    	mLastAddId        = entry.getId();
-	    	mLastAddValue     = value;
-	    	mLastAddOldValue  = oldValue;
-	    	mLastAddTimestamp = timestamp;
-	    	mLastAddUpdate    = true;
-			
-			mTSC.getDbh().updateEntry(entry);        
-			mTSC.getDbh().updateCategoryPeriodEntries(category.getId(), periodEntries+1);
-    		mTSC.updateTimeSeriesData(category.getId(), false);
-		}
+      mTSC.updateTimeSeriesData(category.getId(), false);
+    } else {
+      lastTScal = Calendar.getInstance();
+      lastTScal.setTimeInMillis(entry.getTimestamp());
+      int periodEntries = category.getPeriodEntries();
 
-		mTSC.updateCategoryTrend(category.getId());		
-	}
+      if ((periodInMs == DateUtil.YEAR_MS && DateUtil.inSameYear(entryTScal,
+          lastTScal))
+          || (periodInMs == DateUtil.QUARTER_MS && DateUtil.inSameQuarter(
+              entryTScal, lastTScal))
+          || (periodInMs == DateUtil.MONTH_MS && DateUtil.inSameMonth(
+              entryTScal, lastTScal))
+          || (periodInMs == DateUtil.WEEK_MS && DateUtil.inSameWeek(entryTScal,
+              lastTScal))
+          || (periodInMs == DateUtil.DAY_MS && DateUtil.inSameDay(entryTScal,
+              lastTScal))
+          || (periodInMs == DateUtil.AMPM_MS && DateUtil.inSameAMPM(entryTScal,
+              lastTScal))
+          || (periodInMs == DateUtil.HOUR_MS && DateUtil.inSameHour(entryTScal,
+              lastTScal))) {
+        if (category.getType().equals(CategoryDbTable.KEY_TYPE_SUM))
+          value += entry.getValue();
+        else if (category.getType().equals(CategoryDbTable.KEY_TYPE_AVERAGE))
+          value = ((entry.getValue() * entry.getNEntries()) + value)
+              / (entry.getNEntries() + 1);
+      }
+
+      value = Number.Round(value, mDecimals);
+
+      // entry.setTimestamp(mTimestamp);
+      float oldValue = entry.getValue();
+      entry.setValue(value);
+      entry.setNEntries(entry.getNEntries() + 1);
+
+      mLastAddId = entry.getId();
+      mLastAddValue = value;
+      mLastAddOldValue = oldValue;
+      mLastAddTimestamp = timestamp;
+      mLastAddUpdate = true;
+
+      mTSC.getDbh().updateEntry(entry);
+      mTSC.getDbh().updateCategoryPeriodEntries(category.getId(),
+          periodEntries + 1);
+      mTSC.updateTimeSeriesData(category.getId(), false);
+    }
+
+    mTSC.updateCategoryTrend(category.getId());
+  }
 }

@@ -16,69 +16,69 @@
 
 package net.redgeek.android.eventrend.graph;
 
-
 public class GraphFilterRow implements Comparable<GraphFilterRow> {
-	private long   mCategoryId;
-	private String mCategoryName;
-	private String mColor;
-	private int    mRank;
-	    
-	private boolean mSelectable = true;
+  private long mCategoryId;
+  private String mCategoryName;
+  private String mColor;
+  private int mRank;
 
-	public GraphFilterRow() { }
+  private boolean mSelectable = true;
 
-	public GraphFilterRow(long id, String name, String color, int rank) {
-		mCategoryId = id;
-		mCategoryName = name;
-		mColor = color;
-		mRank = rank;
-	}
+  public GraphFilterRow() {
+  }
 
-    public boolean isSelectable() {
-    	return mSelectable;
-    }
-     
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
-    }
+  public GraphFilterRow(long id, String name, String color, int rank) {
+    mCategoryId = id;
+    mCategoryName = name;
+    mColor = color;
+    mRank = rank;
+  }
 
-    public long getCategoryId() {
-		return mCategoryId;
-	}
+  public boolean isSelectable() {
+    return mSelectable;
+  }
 
-	public void setCategoryId(long categoryId) {
-		mCategoryId = categoryId;
-	}
+  public void setSelectable(boolean selectable) {
+    mSelectable = selectable;
+  }
 
-	public String getCategoryName() {
-		return mCategoryName;
-	}
+  public long getCategoryId() {
+    return mCategoryId;
+  }
 
-	public void setCategoryName(String categoryName) {
-		mCategoryName = categoryName;
-	}
+  public void setCategoryId(long categoryId) {
+    mCategoryId = categoryId;
+  }
 
-	public String getColor() {
-		return mColor;
-	}
+  public String getCategoryName() {
+    return mCategoryName;
+  }
 
-	public void setColor(String color) {
-		mColor = color;
-	}
+  public void setCategoryName(String categoryName) {
+    mCategoryName = categoryName;
+  }
 
-	public int getRank() {
-		return mRank;
-	}
+  public String getColor() {
+    return mColor;
+  }
 
-	public void setRank(int rank) {
-		mRank = rank;
-	}
+  public void setColor(String color) {
+    mColor = color;
+  }
 
-	public int compareTo(GraphFilterRow other) {
-    	if (this.mRank < other.mRank)
-        	return -1;
-        else if (this.mRank > other.mRank)
-        	return 1;
-        return 0;
-    }
+  public int getRank() {
+    return mRank;
+  }
+
+  public void setRank(int rank) {
+    mRank = rank;
+  }
+
+  public int compareTo(GraphFilterRow other) {
+    if (this.mRank < other.mRank)
+      return -1;
+    else if (this.mRank > other.mRank)
+      return 1;
+    return 0;
+  }
 }

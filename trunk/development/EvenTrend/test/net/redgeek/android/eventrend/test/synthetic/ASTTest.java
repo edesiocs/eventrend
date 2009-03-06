@@ -142,4 +142,3 @@ public class ASTTest extends TestCase {
     assertEquals(input, parseAndPrint(input));
   }
 }
-

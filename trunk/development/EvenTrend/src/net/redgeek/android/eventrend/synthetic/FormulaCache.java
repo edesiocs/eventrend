@@ -18,30 +18,27 @@ package net.redgeek.android.eventrend.synthetic;
 
 import java.util.HashMap;
 
-public class FormulaCache {			
-	private HashMap<Long, Formula> mCache;
-	
-	public FormulaCache() {
-		mCache = new HashMap<Long, Formula>();
-	}
+public class FormulaCache {
+  private HashMap<Long, Formula> mCache;
 
-	public void setFormula(long catId, Formula f) {
-		mCache.put(new Long(catId), f);
-	}
+  public FormulaCache() {
+    mCache = new HashMap<Long, Formula>();
+  }
 
-	public Formula getFormula(long catId) {
-		return mCache.get(Long.valueOf(catId));
-	}
-	
-	public boolean updateFormula(long catId, String input) {
-		Formula f = mCache.get(Long.valueOf(catId));
-		if (f == null)
-			return false;
-		
-		f.setFormula(input);
-		return true;
-	}
+  public void setFormula(long catId, Formula f) {
+    mCache.put(new Long(catId), f);
+  }
+
+  public Formula getFormula(long catId) {
+    return mCache.get(Long.valueOf(catId));
+  }
+
+  public boolean updateFormula(long catId, String input) {
+    Formula f = mCache.get(Long.valueOf(catId));
+    if (f == null)
+      return false;
+
+    f.setFormula(input);
+    return true;
+  }
 }
-
-
-

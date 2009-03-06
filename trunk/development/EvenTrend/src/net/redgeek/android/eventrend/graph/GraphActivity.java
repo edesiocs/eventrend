@@ -146,10 +146,11 @@ public class GraphActivity extends EvenTrendActivity {
     }
 
     Calendar cal = Calendar.getInstance();
-    mStartMs =
-        getIntent().getLongExtra(GRAPH_START_MS, cal.getTimeInMillis() - DateUtil.DAY_MS * 7);
+    mStartMs = getIntent().getLongExtra(GRAPH_START_MS,
+        cal.getTimeInMillis() - DateUtil.DAY_MS * 7);
     mEndMs = getIntent().getLongExtra(GRAPH_END_MS, cal.getTimeInMillis());
-    mAggregation = getIntent().getLongExtra(GRAPH_START_MS, CategoryDbTable.KEY_PERIOD_MS_AUTO);
+    mAggregation = getIntent().getLongExtra(GRAPH_START_MS,
+        CategoryDbTable.KEY_PERIOD_MS_AUTO);
 
     if (icicle != null) {
       mStartMs = icicle.getLong(GRAPH_START_MS);
@@ -171,25 +172,28 @@ public class GraphActivity extends EvenTrendActivity {
     mGraphView.resetZoom();
 
     mGraphControls = (LinearLayout) findViewById(R.id.graph_controls);
-    mGraphControls.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+    mGraphControls.setGravity(Gravity.CENTER_HORIZONTAL
+        | Gravity.CENTER_VERTICAL);
 
     mAggregationSpinner = new DynamicSpinner(getCtx());
     mAggregationSpinner.setPrompt("Aggregate By");
     mAggregationSpinnerLayout = (LinearLayout) findViewById(R.id.graph_view_agg_menu);
-    mAggregationSpinnerLayout.addView(mAggregationSpinner, new LinearLayout.LayoutParams(
-        LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
+    mAggregationSpinnerLayout.addView(mAggregationSpinner,
+        new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
+            LayoutParams.WRAP_CONTENT));
     mAggregationSpinner.addSpinnerItem(AUTO_AGGREGATION, new Long(
         CategoryDbTable.KEY_PERIOD_MS_AUTO));
     for (int i = 0; i < CategoryDbTable.KEY_PERIODS.length; i++) {
-      mAggregationSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIODS[i], new Long(i));
+      mAggregationSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIODS[i],
+          new Long(i));
     }
     mAggregationSpinner.setOnItemSelectedListener(mAggregationSpinnerListener);
 
     mGraphPlotLayout = (LinearLayout) findViewById(R.id.graph_plot);
     mGraphPlotLayout.addView(mGraphView);
     mGraphZoomLayout = (LinearLayout) findViewById(R.id.graph_zoom);
-    mGraphZoomLayout.addView(mZoomControls, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
-        LayoutParams.FILL_PARENT));
+    mGraphZoomLayout.addView(mZoomControls, new LinearLayout.LayoutParams(
+        LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 
     mShowTrendsToggle = (ToggleButton) findViewById(R.id.graph_view_trends);
     mShowTrendsToggle.setOnCheckedChangeListener(mShowTrendsToggleListener);
@@ -205,7 +209,8 @@ public class GraphActivity extends EvenTrendActivity {
 
   private void setupListeners() {
     mAggregationSpinnerListener = new Spinner.OnItemSelectedListener() {
-      public void onItemSelected(AdapterView parent, View v, int position, long id) {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
         String period = ((TextView) v).getText().toString();
         if (period.equals(AUTO_AGGREGATION)) {
           mAggregation = CategoryDbTable.KEY_PERIOD_MS_AUTO;
@@ -248,8 +253,9 @@ public class GraphActivity extends EvenTrendActivity {
 
   private ZoomControls createZoomControls() {
     ZoomControls zoomControls = new ZoomControls(this);
-    zoomControls.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-        LayoutParams.WRAP_CONTENT, Gravity.BOTTOM + Gravity.CENTER_HORIZONTAL));
+    zoomControls.setLayoutParams(new FrameLayout.LayoutParams(
+        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM
+            + Gravity.CENTER_HORIZONTAL));
     zoomControls.setVisibility(View.INVISIBLE);
     return zoomControls;
   }
@@ -264,7 +270,8 @@ public class GraphActivity extends EvenTrendActivity {
       mTSC.setAggregationMs(mAggregation);
       // XXX ugly hack. We add one because we inserted "Auto" ahead of
       // everything else
-      mAggregationSpinner.setSelection(CategoryDbTable.mapMsToIndex(mAggregation) + 1);
+      mAggregationSpinner.setSelection(CategoryDbTable
+          .mapMsToIndex(mAggregation) + 1);
     }
   }
 
@@ -285,10 +292,12 @@ public class GraphActivity extends EvenTrendActivity {
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     boolean result = super.onCreateOptionsMenu(menu);
-    menu.add(0, MENU_GRAPH_FILTER_ID, 0, R.string.graph_filter).setIcon(R.drawable.filter_small);
+    menu.add(0, MENU_GRAPH_FILTER_ID, 0, R.string.graph_filter).setIcon(
+        R.drawable.filter_small);
     menu.add(0, MENU_GRAPH_CORRELATE_ID, 0, R.string.graph_correlate).setIcon(
         R.drawable.correlate_small);
-    menu.add(0, MENU_GRAPH_SNAP_TO_PERIOD_ID, 0, R.string.graph_snap_to).setIcon(R.drawable.snapto);
+    menu.add(0, MENU_GRAPH_SNAP_TO_PERIOD_ID, 0, R.string.graph_snap_to)
+        .setIcon(R.drawable.snapto);
     menu.add(0, MENU_CALENDAR_VIEW_ID, 0, R.string.menu_calendar).setIcon(
         android.R.drawable.ic_menu_today);
     menu.add(0, MENU_GRAPH_PREFS_ID, 0, R.string.menu_app_prefs).setIcon(
@@ -412,7 +421,8 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    if (mSeriesEnabled != null) outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
+    if (mSeriesEnabled != null)
+      outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
 
     outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
     outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());

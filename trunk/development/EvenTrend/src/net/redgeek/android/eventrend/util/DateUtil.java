@@ -69,7 +69,8 @@ public final class DateUtil {
      * Set all the fields of the DateItem to the date/time represented by the
      * current value of the Calendar passed in.
      * 
-     * @param c The Calendar that's the source data.
+     * @param c
+     *          The Calendar that's the source data.
      */
     public void setTo(Calendar c) {
       mYear = c.get(Calendar.YEAR);
@@ -90,9 +91,11 @@ public final class DateUtil {
      * @return true if the two DateItems are equal in all fields, else false.
      */
     public boolean isEqual(DateItem other) {
-      if (this.mYear == other.mYear && this.mMonth == other.mMonth && this.mDay == other.mDay
-          && this.mHour == other.mHour && this.mMinute == other.mMinute
-          && this.mSecond == other.mSecond && this.mMillis == other.mMillis) return true;
+      if (this.mYear == other.mYear && this.mMonth == other.mMonth
+          && this.mDay == other.mDay && this.mHour == other.mHour
+          && this.mMinute == other.mMinute && this.mSecond == other.mSecond
+          && this.mMillis == other.mMillis)
+        return true;
       return false;
     }
   }
@@ -111,16 +114,16 @@ public final class DateUtil {
     MINUTE, HOUR, AMPM, DAY, WEEK, MONTH, QUARTER, YEAR
   }
 
-  public Period[] PERIODS =
-      {Period.MINUTE, Period.HOUR, Period.AMPM, Period.DAY, Period.WEEK, Period.MONTH,
-          Period.QUARTER, Period.YEAR};
+  public Period[] PERIODS = { Period.MINUTE, Period.HOUR, Period.AMPM,
+      Period.DAY, Period.WEEK, Period.MONTH, Period.QUARTER, Period.YEAR };
 
-  public static final String[] MONTHS =
-      {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  public static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May",
+      "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
-  public static final String[] DAYS = {"Sun", "M", "Tu", "W", "Th", "F", "Sat",};
+  public static final String[] DAYS = { "Sun", "M", "Tu", "W", "Th", "F",
+      "Sat", };
 
-  public static final String[] QUARTERS = {"Q1", "Q2", "Q3", "Q4",};
+  public static final String[] QUARTERS = { "Q1", "Q2", "Q3", "Q4", };
 
   /**
    * Constructor. Instantiates a Calendar member variable to prevent having to
@@ -146,7 +149,8 @@ public final class DateUtil {
    * Used when going to stride along a timeline. This sets the start time of the
    * walk.
    * 
-   * @param ms The start time in milliseconds since epoch.
+   * @param ms
+   *          The start time in milliseconds since epoch.
    */
   public void setBaseTime(long ms) {
     mBase.mMillis = ms;
@@ -169,7 +173,8 @@ public final class DateUtil {
       case YEAR:
         mCal.set(mCursor.mYear + 1, 0, 0, 0, 0, 0);
         ms = mCal.getTimeInMillis() - mCursor.mMillis;
-        if (ms == YEAR_MS) ms = 0;
+        if (ms == YEAR_MS)
+          ms = 0;
         break;
       case QUARTER:
         if (mCursor.mMonth >= 9)
@@ -181,7 +186,8 @@ public final class DateUtil {
         else
           mCal.set(mCursor.mYear, 3, 0, 0, 0, 0);
         ms = mCal.getTimeInMillis() - mCursor.mMillis;
-        if (ms == QUARTER_MS) ms = 0;
+        if (ms == QUARTER_MS)
+          ms = 0;
         break;
       case MONTH:
         if (mCursor.mMonth == 11)
@@ -189,7 +195,8 @@ public final class DateUtil {
         else
           mCal.set(mCursor.mYear, mCursor.mMonth + 1, 0, 0, 0, 0);
         ms = mCal.getTimeInMillis() - mCursor.mMillis;
-        if (ms == MONTH_MS) ms = 0;
+        if (ms == MONTH_MS)
+          ms = 0;
         break;
       case WEEK:
         mCal.setTimeInMillis(mCursor.mMillis);
@@ -203,23 +210,29 @@ public final class DateUtil {
         mCal.set(Calendar.SECOND, 0);
         mCal.set(Calendar.MILLISECOND, 0);
         ms = mCal.getTimeInMillis() - mCursor.mMillis;
-        if (ms == WEEK_MS) ms = 0;
+        if (ms == WEEK_MS)
+          ms = 0;
         break;
       case DAY:
-        if (mCursor.mMinute == 0 && mCursor.mHour == 0) return 0;
+        if (mCursor.mMinute == 0 && mCursor.mHour == 0)
+          return 0;
         ms = ((60 - mCursor.mMinute) + (60 * (24 - mCursor.mHour))) * MINUTE_MS;
         break;
       case AMPM:
-        if (mCursor.mMinute == 0 && (mCursor.mHour == 0 || mCursor.mHour == 12)) return 0;
-        ms = ((60 - mCursor.mMinute) + (60 * (24 - (mCursor.mHour % 12)))) * MINUTE_MS;
+        if (mCursor.mMinute == 0 && (mCursor.mHour == 0 || mCursor.mHour == 12))
+          return 0;
+        ms = ((60 - mCursor.mMinute) + (60 * (24 - (mCursor.mHour % 12))))
+            * MINUTE_MS;
         break;
       case HOUR:
-        if (mCursor.mMinute == 0) return 0;
+        if (mCursor.mMinute == 0)
+          return 0;
         ms = (60 - mCursor.mMinute) * MINUTE_MS;
         break;
       case MINUTE:
       default:
-        if (mCursor.mSecond == 0) return 0;
+        if (mCursor.mSecond == 0)
+          return 0;
         ms = (60 - mCursor.mSecond) * SECOND_MS;
         break;
     }
@@ -233,8 +246,10 @@ public final class DateUtil {
    * span is calculated to be Period.YEAR with an offset of 0, then it will be
    * calculated to be Period.MONTH with an offset of -2.
    * 
-   * @param milliStart The milliseconds since epoch in start time, inclusive.
-   * @param milliEnd The milliseconds since epoch in end time, inclusive.
+   * @param milliStart
+   *          The milliseconds since epoch in start time, inclusive.
+   * @param milliEnd
+   *          The milliseconds since epoch in end time, inclusive.
    */
   public void setSpanOffset(int offset) {
     mSpanOffset = offset;
@@ -246,14 +261,18 @@ public final class DateUtil {
    * labels while striding through time. If milliStart == milliEnd, the span
    * will be set to the smallest known span.
    * 
-   * @param milliStart The milliseconds since epoch in start time, inclusive.
-   * @param milliEnd The milliseconds since epoch in end time, inclusive.
+   * @param milliStart
+   *          The milliseconds since epoch in start time, inclusive.
+   * @param milliEnd
+   *          The milliseconds since epoch in end time, inclusive.
    */
   public void setSpan(long milliStart, long milliEnd) {
     int index = 0;
     long range = milliEnd - milliStart;
-    if (range == 0) range = 1;
-    if (range < 0) range = -range;
+    if (range == 0)
+      range = 1;
+    if (range < 0)
+      range = -range;
 
     if (range > (long) (DateUtil.YEAR_MS * 3)) {
       index = DateUtil.Period.YEAR.ordinal();
@@ -276,7 +295,8 @@ public final class DateUtil {
     index += mSpanOffset;
     if (index < 0)
       index = 0;
-    else if (index >= PERIODS.length) index = PERIODS.length - 1;
+    else if (index >= PERIODS.length)
+      index = PERIODS.length - 1;
 
     mSpan = PERIODS[index];
     return;
@@ -296,7 +316,8 @@ public final class DateUtil {
    * Returns the selected Calendar.* field of the time under the current cursor
    * when striding.
    * 
-   * @param p The Period in which to format the output.
+   * @param p
+   *          The Period in which to format the output.
    * @return The field datum.
    */
   public int get(int field) {
@@ -314,7 +335,8 @@ public final class DateUtil {
    * one week to the next or one year to the next, which is queryable via
    * {@link #isUnitChanged()}
    * 
-   * @param p The Period in which to format the output.
+   * @param p
+   *          The Period in which to format the output.
    * @return String[2], containing two description strings of the date/time. The
    *         first string will be withing the Period <code>p</code>, and the
    *         second is typically auxiliary information.
@@ -374,7 +396,8 @@ public final class DateUtil {
         } else {
           dow = mCal.get(Calendar.DAY_OF_WEEK);
           strings[1] = DAYS[dow - 1];
-          if (dow == 1) mUnitChange = true;
+          if (dow == 1)
+            mUnitChange = true;
         }
         break;
       case AMPM:
@@ -433,7 +456,8 @@ public final class DateUtil {
   /**
    * Advances the internal cursor <code>milliseconds</code> in time.
    * 
-   * @param milliseconds The number of milliseconds to advance.
+   * @param milliseconds
+   *          The number of milliseconds to advance.
    */
   public void advanceInMs(long milliseconds) {
     copyDate(mCursor, mBase);
@@ -448,8 +472,10 @@ public final class DateUtil {
    * 1 and 3 months respectively, as defined by the Calendar class and based on
    * the current cursor, not precisely MONTH_MS or QUARTER_MS milliseconds.
    * 
-   * @param p The DateUtil.Period unit.
-   * @param step The number of Period units to advance.
+   * @param p
+   *          The DateUtil.Period unit.
+   * @param step
+   *          The number of Period units to advance.
    */
   public void advance(Period p, int step) {
     copyDate(mCursor, mBase);
@@ -554,7 +580,8 @@ public final class DateUtil {
    * closest Calendar.* field. Note that if the milliseconds is not one of the
    * DateUtil constants, the smallest known field will be returned.
    * 
-   * @param millis The DateUtil.*_MS field to map from.
+   * @param millis
+   *          The DateUtil.*_MS field to map from.
    * @return The int representing the closest Calendar.* field.
    */
   public static int mapLongToCal(long millis) {
@@ -570,7 +597,8 @@ public final class DateUtil {
       return Calendar.DAY_OF_MONTH;
     else if (millis == AMPM_MS)
       return Calendar.AM_PM;
-    else if (millis == HOUR_MS) return Calendar.HOUR_OF_DAY;
+    else if (millis == HOUR_MS)
+      return Calendar.HOUR_OF_DAY;
     return Calendar.MINUTE;
   }
 
@@ -579,7 +607,8 @@ public final class DateUtil {
    * DateUtil.Period. Note that if the milliseconds is not one of the DateUtil
    * constants, the smallest known field will be returned.
    * 
-   * @param millis The DateUtil.*_MS field to map from.
+   * @param millis
+   *          The DateUtil.*_MS field to map from.
    * @return The Period enum representing the associated DateUtil.Period.
    */
   public static Period mapLongToPeriod(long millis) {
@@ -595,7 +624,8 @@ public final class DateUtil {
       return Period.DAY;
     else if (millis == AMPM_MS)
       return Period.AMPM;
-    else if (millis == HOUR_MS) return Period.HOUR;
+    else if (millis == HOUR_MS)
+      return Period.HOUR;
     return Period.MINUTE;
   }
 
@@ -603,34 +633,50 @@ public final class DateUtil {
    * Provide a mapping from a Period to the number of millisecond
    * (DateUtil.*_MS)
    * 
-   * @param The Period enum representing the associated DateUtil.Period.
+   * @param The
+   *          Period enum representing the associated DateUtil.Period.
    * @return A String describing the period..
    */
   public static String mapPeriodToString(Period p) {
-    if (p == Period.YEAR) return "year";
-    if (p == Period.QUARTER) return "quarter";
-    if (p == Period.MONTH) return "month";
-    if (p == Period.WEEK) return "week";
-    if (p == Period.DAY) return "day";
-    if (p == Period.AMPM) return "am/pm";
-    if (p == Period.HOUR) return "hour";
+    if (p == Period.YEAR)
+      return "year";
+    if (p == Period.QUARTER)
+      return "quarter";
+    if (p == Period.MONTH)
+      return "month";
+    if (p == Period.WEEK)
+      return "week";
+    if (p == Period.DAY)
+      return "day";
+    if (p == Period.AMPM)
+      return "am/pm";
+    if (p == Period.HOUR)
+      return "hour";
     return "minute";
   }
 
   /**
    * Provide a mapping from string to a Period.
    * 
-   * @param s The string to map from. Case insensitive.
+   * @param s
+   *          The string to map from. Case insensitive.
    * @return The associated DateUtil.Period
    */
   public static Period mapStringToPeriod(String s) {
-    if (s.toLowerCase().equals("year")) return Period.YEAR;
-    if (s.toLowerCase().equals("quarter")) return Period.QUARTER;
-    if (s.toLowerCase().equals("month")) return Period.MONTH;
-    if (s.toLowerCase().equals("week")) return Period.WEEK;
-    if (s.toLowerCase().equals("day")) return Period.DAY;
-    if (s.toLowerCase().equals("am/pm")) return Period.AMPM;
-    if (s.toLowerCase().equals("hour")) return Period.HOUR;
+    if (s.toLowerCase().equals("year"))
+      return Period.YEAR;
+    if (s.toLowerCase().equals("quarter"))
+      return Period.QUARTER;
+    if (s.toLowerCase().equals("month"))
+      return Period.MONTH;
+    if (s.toLowerCase().equals("week"))
+      return Period.WEEK;
+    if (s.toLowerCase().equals("day"))
+      return Period.DAY;
+    if (s.toLowerCase().equals("am/pm"))
+      return Period.AMPM;
+    if (s.toLowerCase().equals("hour"))
+      return Period.HOUR;
     return Period.MINUTE;
   }
 
@@ -638,19 +684,28 @@ public final class DateUtil {
    * Provide a mapping from a Period to the number of millisecond
    * (DateUtil.*_MS)
    * 
-   * @param millis The DateUtil.*_MS field to map from.
-   * @param The Period enum representing the associated DateUtil.Period.
+   * @param millis
+   *          The DateUtil.*_MS field to map from.
+   * @param The
+   *          Period enum representing the associated DateUtil.Period.
    * @return the DateUtil.*_MS constant representing the number of milliseconds
    *         in the period.
    */
   public static long mapPeriodToLong(Period p) {
-    if (p == Period.YEAR) return YEAR_MS;
-    if (p == Period.QUARTER) return QUARTER_MS;
-    if (p == Period.MONTH) return MONTH_MS;
-    if (p == Period.WEEK) return WEEK_MS;
-    if (p == Period.DAY) return DAY_MS;
-    if (p == Period.AMPM) return AMPM_MS;
-    if (p == Period.HOUR) return HOUR_MS;
+    if (p == Period.YEAR)
+      return YEAR_MS;
+    if (p == Period.QUARTER)
+      return QUARTER_MS;
+    if (p == Period.MONTH)
+      return MONTH_MS;
+    if (p == Period.WEEK)
+      return WEEK_MS;
+    if (p == Period.DAY)
+      return DAY_MS;
+    if (p == Period.AMPM)
+      return AMPM_MS;
+    if (p == Period.HOUR)
+      return HOUR_MS;
     return MINUTE_MS;
   }
 
@@ -659,7 +714,8 @@ public final class DateUtil {
    * rounded to the default number of decimal places, with the associated label
    * (e.g., "years", "weeks", etc.)
    * 
-   * @param millis The milliseconds since epoch to format.
+   * @param millis
+   *          The milliseconds since epoch to format.
    * @return The descriptive string.
    */
   public static String toString(float millis) {
@@ -688,24 +744,31 @@ public final class DateUtil {
    * (millis > (unit^2)) ? and displays the value (millis/(unit^2)). Otherwise
    * it is identical to {@link #toString(float)}.
    * 
-   * @param millis The (squared) milliseconds since epoch to format.
+   * @param millis
+   *          The (squared) milliseconds since epoch to format.
    * @return The descriptive string.
    */
   public static String toStringSquared(float millis) {
     if (millis > (float) YEAR_MS * (float) YEAR_MS) {
-      return Number.Round(millis / ((float) YEAR_MS * (float) YEAR_MS)) + " years";
+      return Number.Round(millis / ((float) YEAR_MS * (float) YEAR_MS))
+          + " years";
     } else if (millis > (float) QUARTER_MS * (float) QUARTER_MS) {
-      return Number.Round(millis / ((float) QUARTER_MS * (float) QUARTER_MS)) + " quarters";
+      return Number.Round(millis / ((float) QUARTER_MS * (float) QUARTER_MS))
+          + " quarters";
     } else if (millis > (float) MONTH_MS * (float) MONTH_MS) {
-      return Number.Round(millis / ((float) MONTH_MS * (float) MONTH_MS)) + " months";
+      return Number.Round(millis / ((float) MONTH_MS * (float) MONTH_MS))
+          + " months";
     } else if (millis > (float) WEEK_MS * (float) WEEK_MS) {
-      return Number.Round(millis / ((float) WEEK_MS * (float) WEEK_MS)) + " weeks";
+      return Number.Round(millis / ((float) WEEK_MS * (float) WEEK_MS))
+          + " weeks";
     } else if (millis > (float) DAY_MS * (float) DAY_MS) {
       return Number.Round(millis / ((float) DAY_MS * (float) DAY_MS)) + " days";
     } else if (millis > (float) HOUR_MS * (float) HOUR_MS) {
-      return Number.Round(millis / ((float) HOUR_MS * (float) HOUR_MS)) + " hours";
+      return Number.Round(millis / ((float) HOUR_MS * (float) HOUR_MS))
+          + " hours";
     } else { // if (millis > MINUTE_MS) {
-      return Number.Round(millis / ((float) MINUTE_MS * (float) MINUTE_MS)) + " minutes";
+      return Number.Round(millis / ((float) MINUTE_MS * (float) MINUTE_MS))
+          + " minutes";
     }
   }
 
@@ -713,7 +776,8 @@ public final class DateUtil {
    * Returns the "timestamp" string representation of the time in milliseconds:
    * yyyy/mm/dd HH:MM:SS
    * 
-   * @param millis The milliseconds since epoch to format.
+   * @param millis
+   *          The milliseconds since epoch to format.
    * @return The timestamp string.
    */
   public static String toTimestamp(long millis) {
@@ -726,7 +790,8 @@ public final class DateUtil {
    * Returns the "short timestamp" string representation of the time in
    * milliseconds: HH:MM:SS
    * 
-   * @param millis The milliseconds since epoch to format.
+   * @param millis
+   *          The milliseconds since epoch to format.
    * @return The short timestamp string.
    */
   public static String toShortTimestamp(long millis) {
@@ -740,11 +805,13 @@ public final class DateUtil {
    * digits, since string concatenations this small are much more efficient that
    * using String.format("%02d",foo).
    * 
-   * @param i The integer to format.
+   * @param i
+   *          The integer to format.
    * @return A zero-padded string representation of the integer.
    */
   private static String l2pad(int i) {
-    if (i < 10) return "0" + i;
+    if (i < 10)
+      return "0" + i;
     return "" + i;
   }
 
@@ -752,36 +819,42 @@ public final class DateUtil {
    * Returns a "timestamp" formated string representing the time:
    * "yyyy/mm/dd HH:MM:SS"
    * 
-   * @param d The DateItem to format.
+   * @param d
+   *          The DateItem to format.
    * @return The timestamp string.
    */
   public static String toTimestamp(DateItem d) {
-    return d.mYear + "/" + l2pad(d.mMonth + 1) + "/" + l2pad(d.mDay) + " " + l2pad(d.mHour) + ":"
-        + l2pad(d.mMinute) + ":" + l2pad(d.mSecond);
+    return d.mYear + "/" + l2pad(d.mMonth + 1) + "/" + l2pad(d.mDay) + " "
+        + l2pad(d.mHour) + ":" + l2pad(d.mMinute) + ":" + l2pad(d.mSecond);
   }
 
   /**
    * Returns a "timestamp" formated string representing the time:
    * "yyyy/mm/dd HH:MM:SS"
    * 
-   * @param d The Calendar to format.
+   * @param d
+   *          The Calendar to format.
    * @return The timestamp string.
    */
   public static String toTimestamp(Calendar cal) {
-    return cal.get(Calendar.YEAR) + "/" + l2pad(cal.get(Calendar.MONTH) + 1) + "/"
-        + l2pad(cal.get(Calendar.DAY_OF_MONTH)) + " " + l2pad(cal.get(Calendar.HOUR_OF_DAY)) + ":"
-        + l2pad(cal.get(Calendar.MINUTE)) + ":" + l2pad(cal.get(Calendar.SECOND));
+    return cal.get(Calendar.YEAR) + "/" + l2pad(cal.get(Calendar.MONTH) + 1)
+        + "/" + l2pad(cal.get(Calendar.DAY_OF_MONTH)) + " "
+        + l2pad(cal.get(Calendar.HOUR_OF_DAY)) + ":"
+        + l2pad(cal.get(Calendar.MINUTE)) + ":"
+        + l2pad(cal.get(Calendar.SECOND));
   }
 
   /**
    * Returns a "short timestamp" formated string representing the time:
    * "HH:MM:SS"
    * 
-   * @param d The Calendar to format.
+   * @param d
+   *          The Calendar to format.
    * @return The timestamp string.
    */
   public static String toShortTimestamp(Calendar cal) {
-    return l2pad(cal.get(Calendar.HOUR_OF_DAY)) + ":" + l2pad(cal.get(Calendar.MINUTE)) + ":"
+    return l2pad(cal.get(Calendar.HOUR_OF_DAY)) + ":"
+        + l2pad(cal.get(Calendar.MINUTE)) + ":"
         + l2pad(cal.get(Calendar.SECOND));
   }
 
@@ -789,25 +862,31 @@ public final class DateUtil {
    * Returns a (generally) filesystem-safe formated string representing the
    * time: "yyyy-mm-dd_HH.MM.SS"
    * 
-   * @param d The Calendar to format.
+   * @param d
+   *          The Calendar to format.
    * @return The timestamp string.
    */
   public static String toFSTimestamp(Calendar cal) {
-    return cal.get(Calendar.YEAR) + "-" + l2pad(cal.get(Calendar.MONTH) + 1) + "-"
-        + l2pad(cal.get(Calendar.DAY_OF_MONTH)) + "_" + l2pad(cal.get(Calendar.HOUR_OF_DAY)) + "."
-        + l2pad(cal.get(Calendar.MINUTE)) + "." + l2pad(cal.get(Calendar.SECOND));
+    return cal.get(Calendar.YEAR) + "-" + l2pad(cal.get(Calendar.MONTH) + 1)
+        + "-" + l2pad(cal.get(Calendar.DAY_OF_MONTH)) + "_"
+        + l2pad(cal.get(Calendar.HOUR_OF_DAY)) + "."
+        + l2pad(cal.get(Calendar.MINUTE)) + "."
+        + l2pad(cal.get(Calendar.SECOND));
   }
 
   /**
    * Returns true if the two calendars represent dates that fall in the same
    * year, else false.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameYear(Calendar c1, Calendar c2) {
-    if (c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)) return true;
+    if (c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR))
+      return true;
     return false;
   }
 
@@ -818,18 +897,24 @@ public final class DateUtil {
    * by the Calendar package. Thus, it is not defined as the average number of
    * milliseconds in a quarter, which would be {@link #YEAR_MS}/4.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameQuarter(Calendar c1, Calendar c2) {
     if (inSameYear(c1, c2)) {
       int m1 = c1.get(Calendar.MONTH);
       int m2 = c2.get(Calendar.MONTH);
-      if (m1 >= 9 && m2 >= 9) return true;
-      if (m1 >= 6 && m1 < 9 && m2 >= 6 && m2 < 9) return true;
-      if (m1 >= 3 && m1 < 6 && m2 >= 3 && m2 < 6) return true;
-      if (m1 >= 0 && m1 < 3 && m2 >= 0 && m2 < 3) return true;
+      if (m1 >= 9 && m2 >= 9)
+        return true;
+      if (m1 >= 6 && m1 < 9 && m2 >= 6 && m2 < 9)
+        return true;
+      if (m1 >= 3 && m1 < 6 && m2 >= 3 && m2 < 6)
+        return true;
+      if (m1 >= 0 && m1 < 3 && m2 >= 0 && m2 < 3)
+        return true;
     }
     return false;
   }
@@ -838,12 +923,16 @@ public final class DateUtil {
    * Returns true if the two calendars represent dates that fall in the same
    * month, else false.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameMonth(Calendar c1, Calendar c2) {
-    if (inSameYear(c1, c2) && (c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH))) return true;
+    if (inSameYear(c1, c2)
+        && (c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH)))
+      return true;
     return false;
   }
 
@@ -855,12 +944,15 @@ public final class DateUtil {
    * specifying dates within such a week, despite Calendar.WEEK_OF_YEAR being
    * unequal for the two Calendars.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameWeek(Calendar c1, Calendar c2) {
-    if (inSameYear(c1, c2) && (c1.get(Calendar.WEEK_OF_YEAR) == c2.get(Calendar.WEEK_OF_YEAR)))
+    if (inSameYear(c1, c2)
+        && (c1.get(Calendar.WEEK_OF_YEAR) == c2.get(Calendar.WEEK_OF_YEAR)))
       return true;
 
     Calendar tmp;
@@ -878,7 +970,8 @@ public final class DateUtil {
           && c2week == c2.getActualMaximum(Calendar.WEEK_OF_YEAR)) {
         tmp = (Calendar) c2.clone();
         tmp.add(Calendar.DAY_OF_YEAR, 7);
-        if (tmp.get(Calendar.WEEK_OF_YEAR) > c1week) return true;
+        if (tmp.get(Calendar.WEEK_OF_YEAR) > c1week)
+          return true;
       }
     }
 
@@ -889,12 +982,15 @@ public final class DateUtil {
    * Returns true if the two calendars represent dates that fall in the same
    * day, else false.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameDay(Calendar c1, Calendar c2) {
-    if (inSameYear(c1, c2) && (c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)))
+    if (inSameYear(c1, c2)
+        && (c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)))
       return true;
     return false;
   }
@@ -904,12 +1000,15 @@ public final class DateUtil {
    * morning or evening, as defined by [midnight,noon) and [noon,midnight), else
    * false.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameAMPM(Calendar c1, Calendar c2) {
-    if (inSameDay(c1, c2) && (c1.get(Calendar.AM_PM) == c2.get(Calendar.AM_PM))) return true;
+    if (inSameDay(c1, c2) && (c1.get(Calendar.AM_PM) == c2.get(Calendar.AM_PM)))
+      return true;
     return false;
   }
 
@@ -917,12 +1016,15 @@ public final class DateUtil {
    * Returns true if the two calendars represent dates that fall in the same
    * hour, else false.
    * 
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
   public static boolean inSameHour(Calendar c1, Calendar c2) {
-    if (inSameDay(c1, c2) && (c1.get(Calendar.HOUR_OF_DAY) == c2.get(Calendar.HOUR_OF_DAY)))
+    if (inSameDay(c1, c2)
+        && (c1.get(Calendar.HOUR_OF_DAY) == c2.get(Calendar.HOUR_OF_DAY)))
       return true;
     return false;
   }
@@ -931,14 +1033,18 @@ public final class DateUtil {
    * Returns true if the two calendars represent dates that fall in the same
    * period, else false.
    * 
-   * @param aggregationMillis The period as specified in milliseconds, e.g.,
-   *        DateUtil.YEAR_MS
-   * @param c1 Calendar one.
-   * @param c2 Calendar two.
+   * @param aggregationMillis
+   *          The period as specified in milliseconds, e.g., DateUtil.YEAR_MS
+   * @param c1
+   *          Calendar one.
+   * @param c2
+   *          Calendar two.
    * @return boolean.
    */
-  public static boolean inSamePeriod(Calendar c1, Calendar c2, long aggregationMillis) {
-    if (aggregationMillis == 0) return false;
+  public static boolean inSamePeriod(Calendar c1, Calendar c2,
+      long aggregationMillis) {
+    if (aggregationMillis == 0)
+      return false;
 
     if ((aggregationMillis == YEAR_MS && inSameYear(c1, c2))
         || (aggregationMillis == QUARTER_MS && inSameQuarter(c1, c2))
@@ -957,8 +1063,10 @@ public final class DateUtil {
    * Sets the date/time of the Calendar object to the beginning of the Period by
    * setting all fields smaller than the specified period to the minimum value.
    * 
-   * @param c The calendar to set.
-   * @param p The DateUtil.Period to set.
+   * @param c
+   *          The calendar to set.
+   * @param p
+   *          The DateUtil.Period to set.
    */
   public static void setToPeriodStart(Calendar c, Period p) {
     switch (p) {
@@ -1014,7 +1122,8 @@ public final class DateUtil {
    * Utility routine to set each DateTime component field to that specified by
    * the DateItem's millisecond field.
    * 
-   * @param d The DateItem to modify.
+   * @param d
+   *          The DateItem to modify.
    */
   private void millisToComponent(DateItem d) {
     mCal.setTimeInMillis(d.mMillis);
@@ -1028,8 +1137,10 @@ public final class DateUtil {
   /**
    * Copy all member variable of one DateItem to that of another DateItem.
    * 
-   * @param src The DateItem to copy from.
-   * @param dst The DateItem to copy to.
+   * @param src
+   *          The DateItem to copy from.
+   * @param dst
+   *          The DateItem to copy to.
    */
   private void copyDate(DateItem src, DateItem dst) {
     dst.mYear = src.mYear;

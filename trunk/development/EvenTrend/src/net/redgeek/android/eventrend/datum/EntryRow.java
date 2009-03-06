@@ -18,49 +18,48 @@ package net.redgeek.android.eventrend.datum;
 
 import net.redgeek.android.eventrend.db.EntryDbTable;
 
+public class EntryRow implements Comparable<EntryRow> {
+  private EntryDbTable.Row mRow;
+  private String mCategoryName;
+  private boolean mSelectable = true;
 
-public class EntryRow implements Comparable<EntryRow>{
-	private EntryDbTable.Row mRow;
-	private String mCategoryName;
-	private boolean mSelectable = true;
+  public EntryRow() {
+  }
 
-	public EntryRow() {
-	}
+  public EntryRow(EntryDbTable.Row row, String categoryName) {
+    mRow = new EntryDbTable.Row(row);
+    mCategoryName = categoryName;
+  }
 
-	public EntryRow(EntryDbTable.Row row, String categoryName) {
-		mRow = new EntryDbTable.Row(row); 
-		mCategoryName = categoryName;
-	}
-     
-    public boolean isSelectable() {
-    	return mSelectable;
-    }
-     
-    public void setSelectable(boolean selectable) {
-        mSelectable = selectable;
-    }
-    
-    public EntryDbTable.Row getDbRow() {
-    	return mRow;
-    }
-    
-    public void setDbRow(EntryDbTable.Row row) {
-    	mRow = row;
-    }
+  public boolean isSelectable() {
+    return mSelectable;
+  }
 
-    public String getCategoryName() {
-    	return mCategoryName;
-    }
-    
-    public void setCategoryName(String name) {
-    	mCategoryName = name;
-    }
+  public void setSelectable(boolean selectable) {
+    mSelectable = selectable;
+  }
 
-    public int compareTo(EntryRow other) {
-    	if (this.mRow.getTimestamp() < other.mRow.getTimestamp())
-    		return -1;
-    	else if (this.mRow.getTimestamp() > other.mRow.getTimestamp())
-    		return 1;
-    	return 0;
-    }
-} 
+  public EntryDbTable.Row getDbRow() {
+    return mRow;
+  }
+
+  public void setDbRow(EntryDbTable.Row row) {
+    mRow = row;
+  }
+
+  public String getCategoryName() {
+    return mCategoryName;
+  }
+
+  public void setCategoryName(String name) {
+    mCategoryName = name;
+  }
+
+  public int compareTo(EntryRow other) {
+    if (this.mRow.getTimestamp() < other.mRow.getTimestamp())
+      return -1;
+    else if (this.mRow.getTimestamp() > other.mRow.getTimestamp())
+      return 1;
+    return 0;
+  }
+}

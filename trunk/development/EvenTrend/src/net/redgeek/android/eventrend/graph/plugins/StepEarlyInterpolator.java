@@ -20,76 +20,78 @@ import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.primitives.Tuple;
 import android.graphics.Path;
 
-/** Interpolates a continuous step function between two points.  The Y value
- * of <code>second</code> is retained between the two datapoints, hence
- * step occurs "Early" (at the exit of the <code>first</code> datapoint.)
+/**
+ * Interpolates a continuous step function between two points. The Y value of
+ * <code>second</code> is retained between the two datapoints, hence step occurs
+ * "Early" (at the exit of the <code>first</code> datapoint.)
  * 
  * @author barclay
  */
 public class StepEarlyInterpolator implements TimeSeriesInterpolator {
-	public static final String NAME        = "StepEarly";
-	public static final int    HELP_RES_ID = R.string.interpolation_help_stepearly;
-	
-	public StepEarlyInterpolator() {}
-	
-	public int getHelpResId() {
-		return HELP_RES_ID;
-	}
+  public static final String NAME = "StepEarly";
+  public static final int HELP_RES_ID = R.string.interpolation_help_stepearly;
 
-	public String getName() {
-		return NAME;
-	}
+  public StepEarlyInterpolator() {
+  }
 
-	public Tuple[] interpolate(Tuple first, Tuple second) {
-		Tuple[] result = new Tuple[1];
-		Tuple r1 = new Tuple(second);
-		result[0] = r1;
+  public int getHelpResId() {
+    return HELP_RES_ID;
+  }
 
-		if (first.equals(second) == true)
-			return result;
-		if (first.x == second.x)
-			return null;
+  public String getName() {
+    return NAME;
+  }
 
-		r1.x = first.x;
-		r1.y = second.y;
-		return result;
-	}
+  public Tuple[] interpolate(Tuple first, Tuple second) {
+    Tuple[] result = new Tuple[1];
+    Tuple r1 = new Tuple(second);
+    result[0] = r1;
 
-	public Float interpolateX(Tuple first, Tuple second, float atY) {
-		if (first.equals(second))
-			return null;
-		if (first.x == second.x)
-			return null;
+    if (first.equals(second) == true)
+      return result;
+    if (first.x == second.x)
+      return null;
 
-		if (atY > first.y && atY < second.y)
-			return new Float(first.x);
-		return null;
-	}
+    r1.x = first.x;
+    r1.y = second.y;
+    return result;
+  }
 
-	public Float interpolateY(Tuple first, Tuple second, float atX) {
-		if (first.equals(second))
-			return null;
-		if (first.x == second.x)
-			return null;
+  public Float interpolateX(Tuple first, Tuple second, float atY) {
+    if (first.equals(second))
+      return null;
+    if (first.x == second.x)
+      return null;
 
-		if (atX > first.x && atX < second.x)
-			return new Float(second.y);
-		return null;
-	}
-	
-	public void updatePath(Path path, Tuple first, Tuple second) {
-		if (first == null && second != null)
-			path.moveTo(second.x, second.y);
-		else if (first != null && second == null)
-			path.moveTo(first.x, first.y);
-		else {
-			Tuple[] tuples = interpolate(first, second);
-			if (tuples != null) {
-				for (int j = 0; j < tuples.length; j++) {
-					path.lineTo(tuples[j].x, tuples[j].y);    				
-				}
-			}
-			path.lineTo(second.x, second.y);
-		}
-	}
+    if (atY > first.y && atY < second.y)
+      return new Float(first.x);
+    return null;
+  }
+
+  public Float interpolateY(Tuple first, Tuple second, float atX) {
+    if (first.equals(second))
+      return null;
+    if (first.x == second.x)
+      return null;
+
+    if (atX > first.x && atX < second.x)
+      return new Float(second.y);
+    return null;
+  }
+
+  public void updatePath(Path path, Tuple first, Tuple second) {
+    if (first == null && second != null)
+      path.moveTo(second.x, second.y);
+    else if (first != null && second == null)
+      path.moveTo(first.x, first.y);
+    else {
+      Tuple[] tuples = interpolate(first, second);
+      if (tuples != null) {
+        for (int j = 0; j < tuples.length; j++) {
+          path.lineTo(tuples[j].x, tuples[j].y);
+        }
+      }
+      path.lineTo(second.x, second.y);
+    }
+  }
 }

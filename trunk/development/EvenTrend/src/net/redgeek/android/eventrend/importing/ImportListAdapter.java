@@ -26,46 +26,55 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class ImportListAdapter extends BaseAdapter {
-	private Context         mCtx;
-    private List<ImportRow> mItems = new ArrayList<ImportRow>();
+  private Context mCtx;
+  private List<ImportRow> mItems = new ArrayList<ImportRow>();
 
-    public ImportListAdapter(Context context) {
-    	mCtx = context;
+  public ImportListAdapter(Context context) {
+    mCtx = context;
+  }
+
+  public void addItem(ImportRow it) {
+    mItems.add(it);
+  }
+
+  public void setListItems(List<ImportRow> lit) {
+    mItems = lit;
+  }
+
+  public int getCount() {
+    return mItems.size();
+  }
+
+  public Object getItem(int position) {
+    return mItems.get(position);
+  }
+
+  public boolean areAllItemsSelectable() {
+    return false;
+  }
+
+  public boolean isSelectable(int position) {
+    try {
+      return mItems.get(position).isSelectable();
+    } catch (IndexOutOfBoundsException aioobe) {
+      return false;
     }
+  }
 
-	public void addItem(ImportRow it) { mItems.add(it); }
+  public long getItemId(int position) {
+    return position;
+  }
 
-    public void setListItems(List<ImportRow> lit) { mItems = lit; }
-    
-    public int getCount() { return mItems.size(); }
-    
-    public Object getItem(int position) { return mItems.get(position); }
-
-    public boolean areAllItemsSelectable() { return false; }
-
-    public boolean isSelectable(int position) {
-    	try{
-        	return mItems.get(position).isSelectable();
-        } catch (IndexOutOfBoundsException aioobe){
-        	return false;
-        }
+  public View getView(int position, View convertView, ViewGroup parent) {
+    ImportRowView row;
+    if (convertView == null) {
+      row = new ImportRowView(mCtx, mItems.get(position));
+      row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    } else {
+      row = (ImportRowView) convertView;
+      row.setFilename(mItems.get(position).getFilename());
+      row.setSize(mItems.get(position).getSize());
     }
-
-    public long getItemId(int position) {
-    	return position;
-    }
-    
-    public View getView(int position, View convertView, ViewGroup parent) {
-    	ImportRowView row;
-        if (convertView == null) {
-        	row = new ImportRowView(mCtx, mItems.get(position));
-    		row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-        } else {
-        	row = (ImportRowView) convertView;
-        	row.setFilename(mItems.get(position).getFilename());
-         	row.setSize(mItems.get(position).getSize());
-        }
-        return row;
-    }
- }
-
+    return row;
+  }
+}

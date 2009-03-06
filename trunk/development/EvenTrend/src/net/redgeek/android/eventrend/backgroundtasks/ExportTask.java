@@ -24,75 +24,81 @@ import java.io.Writer;
 
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 
-/** Exports the user's database to a file or mail.  Files are currently written
- * to a predefined directory on the sdcard with a predetermine (timestamp) filename.
- * Note that the actual mailing of the data is not done internally, but shelled out
- * to any other program that has it's intent filters set appropriately.
+/**
+ * Exports the user's database to a file or mail. Files are currently written to
+ * a predefined directory on the sdcard with a predetermine (timestamp)
+ * filename. Note that the actual mailing of the data is not done internally, but
+ * shelled out to any other program that has it's intent filters set
+ * appropriately.
  * 
- * <p>Note that since this is "backgroundtask", no UI operations may be performed.
+ * <p>
+ * Note that since this is "backgroundtask", no UI operations may be performed.
  * 
  * @author barclay
  */
-public class ExportTask {	
-	private EvenTrendDbAdapter mDbh;
+public class ExportTask {
+  private EvenTrendDbAdapter mDbh;
 
-	public String 				 mDirectory;
-	public String 				 mFilename;
-	public String				 mSubject = "";
-	public String				 mBody = "";
-	public boolean				 mToFile = true;
-	
-	public ExportTask() {}
-	public ExportTask(EvenTrendDbAdapter dbh) {
-		mDbh = dbh;
-	}
-	public ExportTask(EvenTrendDbAdapter dbh, String filename) {
-		mDbh = dbh;
-		mFilename = filename;
-	}
-	
-	public void setDbh(EvenTrendDbAdapter dbh) {
-		mDbh = dbh;
-	}
+  public String mDirectory;
+  public String mFilename;
+  public String mSubject = "";
+  public String mBody = "";
+  public boolean mToFile = true;
 
-	public void setFilename(String filename) {
-		mFilename = filename;
-	}
+  public ExportTask() {
+  }
 
-	public void setDirectory(String directory) {
-		mDirectory = directory;
-	}
+  public ExportTask(EvenTrendDbAdapter dbh) {
+    mDbh = dbh;
+  }
 
-	public void setSubject(String subject) {
-		mSubject = subject;
-	}
+  public ExportTask(EvenTrendDbAdapter dbh, String filename) {
+    mDbh = dbh;
+    mFilename = filename;
+  }
 
-	public void setToFile(boolean toFile) {
-		mToFile = toFile;
-	}
-	
-	public void doExport() throws IOException {
-		if (mToFile) {
-			exportToFile();
-		} else {
-			exportToMail();
-		}
-	}
+  public void setDbh(EvenTrendDbAdapter dbh) {
+    mDbh = dbh;
+  }
 
-	private void exportToMail() {
-        mBody = mDbh.flattenDB();
-	}
+  public void setFilename(String filename) {
+    mFilename = filename;
+  }
 
-	private void exportToFile() throws IOException {
-        mBody = mDbh.flattenDB();
+  public void setDirectory(String directory) {
+    mDirectory = directory;
+  }
 
-		File f = new File(mDirectory);
-		f.mkdirs();
-		f = new File(mFilename);
-        Writer output = null;
-        f.createNewFile();
-        output = new BufferedWriter(new FileWriter(f));
-        output.write(mBody);
-        output.close();        
-	}
+  public void setSubject(String subject) {
+    mSubject = subject;
+  }
+
+  public void setToFile(boolean toFile) {
+    mToFile = toFile;
+  }
+
+  public void doExport() throws IOException {
+    if (mToFile) {
+      exportToFile();
+    } else {
+      exportToMail();
+    }
+  }
+
+  private void exportToMail() {
+    mBody = mDbh.flattenDB();
+  }
+
+  private void exportToFile() throws IOException {
+    mBody = mDbh.flattenDB();
+
+    File f = new File(mDirectory);
+    f.mkdirs();
+    f = new File(mFilename);
+    Writer output = null;
+    f.createNewFile();
+    output = new BufferedWriter(new FileWriter(f));
+    output.write(mBody);
+    output.close();
+  }
 }

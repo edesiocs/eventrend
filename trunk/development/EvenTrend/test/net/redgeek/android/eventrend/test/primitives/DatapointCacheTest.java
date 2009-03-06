@@ -24,4 +24,3 @@ public class DatapointCacheTest extends TestCase {
   public void testConstructors() {
   }
 }
-
