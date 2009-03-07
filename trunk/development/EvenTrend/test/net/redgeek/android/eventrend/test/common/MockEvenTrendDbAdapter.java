@@ -14,7 +14,7 @@
  * the License.
  */
 
-package net.redgeek.android.eventrend.test.commonmocks;
+package net.redgeek.android.eventrend.test.common;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -29,22 +29,46 @@ import net.redgeek.android.eventrend.db.FormulaCacheDbTable.Item;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// TODO: make sure to call mCursor.setColumnMap with the correct map before returning
+// results
 public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
+  private HashMap<String, ArrayList<HashMap<String, String>>> mTables;
+  private HashMap<String, HashMap<Integer, String>> mColumnMap;
+  
   private MockCursor mCursor;
   private long mReturnValue;
 
   public MockEvenTrendDbAdapter() {
-    mCursor = new MockCursor();
+    initialize();
   }
 
   public MockEvenTrendDbAdapter(MockContext context) {
+    initialize();
+  }
+  
+  private void initialize() {
     mCursor = new MockCursor();
+    mTables = new HashMap<String, ArrayList<HashMap<String, String>>>();
+    mColumnMap = new HashMap<String, HashMap<Integer, String>>(); 
   }
 
-  public void setColumnMap(HashMap<Integer, String> columnMap) {
-    mCursor.setColumnMap(columnMap);
+  public void setColumnMap(String table, HashMap<Integer, String> columnMap) {
+    HashMap<Integer, String> map = new HashMap<Integer, String>(columnMap);
+    mColumnMap.put(table, map);
   }
 
+  public void addContent(String table, HashMap<String, String> row) {
+    ArrayList<HashMap<String, String>> rows;
+    rows = mTables.get(table);
+    if (rows == null) {
+      rows = new ArrayList<HashMap<String, String>>();
+    }
+    rows.add(row);
+  }
+  
+  
+  
+  
   public void setQueryResults(ArrayList<HashMap<String, String>> contents) {
     mCursor.setQueryResults(contents);
   }

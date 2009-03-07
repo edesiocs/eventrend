@@ -22,7 +22,7 @@ import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.test.commonmocks.MockTimeSeriesPainter;
+import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
 import net.redgeek.android.eventrend.util.DateUtil;
 
 import java.util.ArrayList;

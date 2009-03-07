@@ -14,16 +14,7 @@
  * the License.
  */
 
-package net.redgeek.android.eventrend.test.commonmocks;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.Map.Entry;
-
-import net.redgeek.android.eventrend.primitives.Datapoint;
+package net.redgeek.android.eventrend.test.common;
 
 import android.content.ContentResolver;
 import android.database.CharArrayBuffer;
@@ -32,6 +23,11 @@ import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.net.Uri;
 import android.os.Bundle;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 public class MockCursor implements Cursor {
   private HashMap<Integer, String> mColumnMap;
@@ -51,10 +47,9 @@ public class MockCursor implements Cursor {
     Iterator<Entry<Integer, String>> iterator = mColumnMap.entrySet()
         .iterator();
     while (iterator.hasNext()) {
-      HashMap.Entry<Integer, String> entry = (HashMap.Entry<Integer, String>) iterator
-          .next();
-      Integer i = (Integer) entry.getKey();
-      String s = (String) entry.getValue();
+      HashMap.Entry<Integer, String> entry = iterator.next();
+      Integer i = entry.getKey();
+      String s = entry.getValue();
       mReverseColumnMap.put(s, i);
     }
   }
