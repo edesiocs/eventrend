@@ -22,10 +22,8 @@ import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.test.commonmocks.MockCursor;
-import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendContext;
-import net.redgeek.android.eventrend.test.commonmocks.MockEvenTrendDbAdapter;
-import net.redgeek.android.eventrend.test.commonmocks.MockTimeSeriesPainter;
+import net.redgeek.android.eventrend.test.common.MockEvenTrendDbAdapter;
+import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
 
 import java.util.ArrayList;
 import java.util.HashMap;

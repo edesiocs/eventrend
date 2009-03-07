@@ -14,7 +14,7 @@
  * the License.
  */
 
-package net.redgeek.android.eventrend.test.commonmocks;
+package net.redgeek.android.eventrend.test.common;
 
 import android.test.mock.MockContext;
 
