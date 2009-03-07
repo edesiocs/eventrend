@@ -80,6 +80,10 @@ public class EntryDbTable {
     }
 
     public Row(Row r) {
+      set(r);
+    }
+
+    public void set(Row r) {
       setId(r.getId());
       setCategoryId(r.getCategoryId());
       setTimestamp(r.getTimestamp());
