@@ -41,8 +41,6 @@ public interface EvenTrendDbAdapter {
 
   public CategoryDbTable.Row fetchCategory(long rowId);
 
-  public Cursor fetchCategoryCursor(long rowId);
-
   public CategoryDbTable.Row fetchCategory(String category);
 
   public long fetchCategoryId(String category);
@@ -93,25 +91,6 @@ public interface EvenTrendDbAdapter {
   public boolean updateEntry(EntryDbTable.Row entry);
 
   public Cursor fetchRecentCategoryEntries(long catId, int nItems);
-
-  // FormulaCache-focused Operations (currently unused)
-  public Cursor fetchAllFormulaCacheEntries();
-
-  public boolean deleteAllFormulaCacheEntries();
-
-  public long[] fetchFormulaDependents(long formulaId);
-
-  public long[] fetchCategoryDependents(long catId);
-
-  public long[] fetchCategoryDependees(long catId);
-
-  public void createFormulaCacheItem(FormulaCacheDbTable.Item item);
-
-  public boolean deleteFormulaDependent(long rowId);
-
-  public boolean deleteFormula(long catId);
-
-  public FormulaCacheDbTable.Item fetchFormulaCacheItem(long catId);
 
   public static class SqlAdapter implements EvenTrendDbAdapter {
     private static final String TAG = "EvenTrendDbAdapter";
@@ -281,13 +260,6 @@ public interface EvenTrendDbAdapter {
       }
       c.close();
       return row;
-    }
-
-    public Cursor fetchCategoryCursor(long rowId) {
-      return mDb.query(true, CategoryDbTable.TABLE_NAME,
-          CategoryDbTable.KEY_ALL, CategoryDbTable.KEY_ROWID + "=?",
-          new String[] { Long.valueOf(rowId).toString() }, null, null, null,
-          null);
     }
 
     public CategoryDbTable.Row fetchCategory(String category) {
@@ -557,107 +529,6 @@ public interface EvenTrendDbAdapter {
           "SELECT * FROM " + EntryDbTable.TABLE_NAME + " WHERE "
               + EntryDbTable.KEY_CATEGORY_ID + " = " + catId + " ORDER BY "
               + EntryDbTable.KEY_TIMESTAMP + " DESC LIMIT " + nItems, null);
-    }
-
-    //
-    // FormulaCache-focused Operations
-    //
-
-    public Cursor fetchAllFormulaCacheEntries() {
-      return mDb.query(FormulaCacheDbTable.TABLE_NAME,
-          FormulaCacheDbTable.KEY_ALL, null, null, null, null, null);
-    }
-
-    public boolean deleteAllFormulaCacheEntries() {
-      return mDb.delete(FormulaCacheDbTable.TABLE_NAME, null, null) > 0;
-    }
-
-    public long[] fetchFormulaDependents(long formulaId) {
-      long[] depIds = null;
-      Cursor c = mDb.query(true, FormulaCacheDbTable.TABLE_NAME,
-          new String[] { FormulaCacheDbTable.KEY_DEPENDENT_ID },
-          FormulaCacheDbTable.KEY_ROWID + "=" + formulaId, null, null, null,
-          null, null);
-      c.moveToFirst();
-      if (c.getCount() > 0) {
-        depIds = new long[c.getCount()];
-        for (int i = 0; i < c.getCount(); i++) {
-          depIds[i] = new Long(FormulaCacheDbTable.getDependentId(c));
-        }
-      }
-      return depIds;
-    }
-
-    public long[] fetchCategoryDependents(long catId) {
-      long[] depIds = null;
-      Cursor c = mDb.query(true, FormulaCacheDbTable.TABLE_NAME,
-          new String[] { FormulaCacheDbTable.KEY_DEPENDENT_ID },
-          FormulaCacheDbTable.KEY_CATEGORY_ID + "=" + catId, null, null, null,
-          null, null);
-      c.moveToFirst();
-      if (c.getCount() > 0) {
-        depIds = new long[c.getCount()];
-        for (int i = 0; i < c.getCount(); i++) {
-          depIds[i] = new Long(FormulaCacheDbTable.getDependentId(c));
-        }
-      }
-      return depIds;
-    }
-
-    public long[] fetchCategoryDependees(long catId) {
-      long[] depIds = null;
-      Cursor c = mDb.query(true, FormulaCacheDbTable.TABLE_NAME,
-          new String[] { FormulaCacheDbTable.KEY_CATEGORY_ID },
-          FormulaCacheDbTable.KEY_DEPENDENT_ID + "=" + catId, null, null, null,
-          null, null);
-      c.moveToFirst();
-      if (c.getCount() > 0) {
-        depIds = new long[c.getCount()];
-        for (int i = 0; i < c.getCount(); i++) {
-          depIds[i] = new Long(FormulaCacheDbTable.getDependentId(c));
-        }
-      }
-      return depIds;
-    }
-
-    public void createFormulaCacheItem(FormulaCacheDbTable.Item item) {
-      ContentValues args = new ContentValues();
-
-      args.put(FormulaCacheDbTable.KEY_CATEGORY_ID, item.getCategoryId());
-      for (int i = 0; i < item.getDependentIds().length; i++) {
-        args.put(FormulaCacheDbTable.KEY_DEPENDENT_ID,
-            item.getDependentIds()[i]);
-        mDb.insert(FormulaCacheDbTable.TABLE_NAME, null, args);
-      }
-      return;
-    }
-
-    public boolean deleteFormulaDependent(long rowId) {
-      return mDb.delete(FormulaCacheDbTable.TABLE_NAME,
-          FormulaCacheDbTable.KEY_ROWID + "=" + rowId, null) > 0;
-    }
-
-    public boolean deleteFormula(long catId) {
-      return mDb.delete(FormulaCacheDbTable.TABLE_NAME,
-          FormulaCacheDbTable.KEY_CATEGORY_ID + "=" + catId, null) > 0;
-    }
-
-    public FormulaCacheDbTable.Item fetchFormulaCacheItem(long catId) {
-      FormulaCacheDbTable.Item item = null;
-      Cursor c = mDb.query(true, FormulaCacheDbTable.TABLE_NAME,
-          EntryDbTable.KEY_ALL, EntryDbTable.KEY_CATEGORY_ID + "=?",
-          new String[] { Long.valueOf(catId).toString() }, null, null, null,
-          null);
-      c.moveToFirst();
-      if (c.getCount() > 0) {
-        item = new FormulaCacheDbTable.Item();
-        item.setCategoryId(catId);
-        for (int i = 0; i < c.getCount(); i++) {
-          item.addDependentId(FormulaCacheDbTable.getDependentId(c));
-        }
-      }
-      c.close();
-      return item;
     }
   }
 }

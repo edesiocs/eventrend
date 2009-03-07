@@ -265,6 +265,14 @@ public class CategoryDbTable {
     }
 
     public Row(Row r) {
+      set(r);
+    }
+
+    public Row(Cursor c) {
+      populateFromCursor(c);
+    }
+    
+    public void set(Row r) {
       mId = r.mId;
       mGroupName = new String(r.mGroupName);
       mCategoryName = new String(r.mCategoryName);
@@ -283,10 +291,6 @@ public class CategoryDbTable {
       mZeroFill = r.mZeroFill;
       mSynthetic = r.mSynthetic;
       mFormula = new String(r.mFormula);
-    }
-
-    public Row(Cursor c) {
-      populateFromCursor(c);
     }
 
     public void populateFromCursor(Cursor c) {
