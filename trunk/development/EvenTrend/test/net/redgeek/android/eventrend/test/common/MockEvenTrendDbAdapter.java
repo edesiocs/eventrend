@@ -38,8 +38,6 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   private HashMap<String, ArrayList<HashMap<String, String>>> mTables;
   private HashMap<String, HashMap<Integer, String>> mColumnMap;
   
-  private long mReturnValue;
-
   public MockEvenTrendDbAdapter() {
     initialize();
   }
@@ -63,6 +61,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     rows = mTables.get(table);
     if (rows == null) {
       rows = new ArrayList<HashMap<String, String>>();
+      mTables.put(table, rows);
     }
     rows.add(row);
   }
@@ -667,13 +666,13 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     row.setTrendState(map.get(CategoryDbTable.KEY_TREND_STATE));
     row.setInterpolation(map.get(CategoryDbTable.KEY_INTERPOLATION));
     if (map.get(CategoryDbTable.KEY_ZEROFILL).equals("0"))
-      row.setZeroFill(true);
-    else
       row.setZeroFill(false);
-    if (map.get(CategoryDbTable.KEY_SYNTHETIC).equals("0"))
-      row.setSynthetic(true);
     else
+      row.setZeroFill(true);
+    if (map.get(CategoryDbTable.KEY_SYNTHETIC).equals("0"))
       row.setSynthetic(false);
+    else
+      row.setSynthetic(true);
     row.setFormula(map.get(CategoryDbTable.KEY_FORMULA));
     return row;
   }
