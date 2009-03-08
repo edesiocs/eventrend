@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 
+<database>
 <table name="entries">
   <row>
     <column name="_id">1</column>
@@ -9,4 +10,4 @@
     <column name="n_entries">5</column>
   </row>
 </table>
-  
+</database>  

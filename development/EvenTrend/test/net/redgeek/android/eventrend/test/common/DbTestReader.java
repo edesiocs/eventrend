@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventrend.test.common;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
@@ -41,21 +42,36 @@ public class DbTestReader extends DefaultHandler {
   private String  mValue;
   private Integer mIndex;
 
-  public DbTestReader(MockEvenTrendDbAdapter dbh) throws SAXException {
+  public DbTestReader(MockEvenTrendDbAdapter dbh) {
     super();
     mDbh = dbh;
     mColumnMap = new HashMap<Integer, String>();
     mIndex = new Integer(0);
 
-    mXmlReader = XMLReaderFactory.createXMLReader();
+    try {
+      mXmlReader = XMLReaderFactory.createXMLReader();
+    } catch (SAXException e) {
+      e.printStackTrace();
+    }
     mXmlReader.setContentHandler(this);
     mXmlReader.setErrorHandler(this);
   }
-
-  public void populateFromFile(String filename) throws IOException,
-      SAXException {
-    FileReader fr = new FileReader(filename);
-    mXmlReader.parse(new InputSource(fr));
+  
+  public void populateFromFile(String filename) {
+    FileReader fr;
+    try {
+      fr = new FileReader(filename);
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+      return;
+    }
+    try {
+      mXmlReader.parse(new InputSource(fr));
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (SAXException e) {
+      e.printStackTrace();
+    }
   }
 
   @Override
