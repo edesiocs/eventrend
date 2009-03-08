@@ -477,7 +477,7 @@ public class TimeSeriesCollector {
     return list.get(0);
   }
 
-  public void updateCategoryTrend(long catId) {
+  public synchronized void updateCategoryTrend(long catId) {
     String trendStr = "trend_unknown";
     float stdDev = 0.0f;
     float lastTrend = 0.0f;
