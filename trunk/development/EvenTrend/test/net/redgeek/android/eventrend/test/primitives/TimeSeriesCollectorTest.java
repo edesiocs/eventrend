@@ -135,6 +135,57 @@ public class TimeSeriesCollectorTest extends TestCase {
         .getCategoryName());
   }
 
+  public void testUpdateTimeSeriesData() {
+    TimeSeriesCollector tsc;
+
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("tsc_category_with_2entries.xml"));
+    tsc = newTSC(dbh);
+
+    tsc.updateTimeSeriesMeta(true);
+    
+    // no series enabled, nothing should happen
+    tsc.updateTimeSeriesData(1000, 2000, false);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
+        
+    tsc.setSeriesEnabled(1, true);
+
+    // enabled, but no flush
+    tsc.updateTimeSeriesData(1000, 2000, false);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+
+    reader.populateFromFile(makeFilePath("tsc_category_with_3entries.xml"));
+
+    // ensure the old values are the same and didn't pick up the new value
+    // outside the range
+    tsc.updateTimeSeriesData(1000, 2000, false);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+
+    // pick up the new value and ensure the old values are the same
+    tsc.updateTimeSeriesData(1000, 3000, false);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+
+    // flush the cache and re-read everything
+    tsc.updateTimeSeriesData(1000, 3000, true);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+  }
+
   public void testLocking() {
 
   }

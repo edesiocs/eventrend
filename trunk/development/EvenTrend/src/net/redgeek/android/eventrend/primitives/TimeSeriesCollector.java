@@ -188,9 +188,7 @@ public class TimeSeriesCollector {
     if (flushCache == true)
       mDatapointCache.refresh(catId);
 
-    if (mDatapointCache.isCategoryCacheValid(catId) == true) {
-      gatherSeries(start, end);
-    }
+    gatherSeries(start, end);
     unlock();
   }
 
