@@ -127,8 +127,8 @@ public class TimeSeriesCollectorTest extends TestCase {
     HashMap<String, String> res2 = newCategoryMap(cat2);
     results.add(res1);
     results.add(res2);
-    dbh.setColumnMap(catCols);
-    dbh.setQueryResults(results);
+//    dbh.setColumnMap(catCols);
+//    dbh.setQueryResults(results);
 
     // initial: 2 categories
     tsc.updateTimeSeriesMeta(true);
@@ -161,8 +161,8 @@ public class TimeSeriesCollectorTest extends TestCase {
     cat3.setCategoryName("cat3");
     HashMap<String, String> res3 = newCategoryMap(cat3);
     results.add(res3);
-    dbh.setColumnMap(catCols);
-    dbh.setQueryResults(results);
+//    dbh.setColumnMap(catCols);
+//    dbh.setQueryResults(results);
 
     tsc.updateTimeSeriesMeta(false);
     assertEquals(3, tsc.getAllSeries().size());

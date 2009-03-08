@@ -16,6 +16,12 @@
 
 package net.redgeek.android.eventrend.test.common;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -23,25 +29,25 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-
 // Very, very simple xml handler, intended only for testing.
 public class DbTestReader extends DefaultHandler {
   private MockEvenTrendDbAdapter mDbh;
   private XMLReader mXmlReader;
+  private HashMap<Integer, String> mColumnMap;
 
   private HashMap<String, String> mRow;
-  private String mTable;
-  private String mField;
-  private String mValue;
+  private String  mTable;
+  private String  mField;
+  private String  mValue;
+  private Integer mIndex;
 
   public DbTestReader(MockEvenTrendDbAdapter dbh) throws SAXException {
     super();
     mDbh = dbh;
+    mColumnMap = new HashMap<Integer, String>();
+    mIndex = new Integer(0);
 
-    XMLReader mXmlReader = XMLReaderFactory.createXMLReader();
+    mXmlReader = XMLReaderFactory.createXMLReader();
     mXmlReader.setContentHandler(this);
     mXmlReader.setErrorHandler(this);
   }
@@ -69,24 +75,36 @@ public class DbTestReader extends DefaultHandler {
       mTable = atts.getValue("name");
     } else if (qName.equals("row")) {
       mRow = new HashMap<String, String>();
-    } else {
-      mField = new String(qName);
+    } else if (qName.equals("column")) {
+      mField = atts.getValue("name");
     }
   }
 
   @Override
   public void endElement(String uri, String name, String qName) {
     if (qName.equals("table")) {
-      // nothing
+      mDbh.setColumnMap(mTable, mColumnMap);
     } else if (qName.equals("row")) {
       mDbh.addContent(mTable, mRow);
-    } else {
+    } else if (qName.equals("column")) {
+      Integer i = null;
+      Iterator<Map.Entry<Integer, String>> iterator = mColumnMap.entrySet().iterator();
+      while(iterator.hasNext()) {
+        Map.Entry<Integer, String> entry = iterator.next();
+        String value = entry.getValue();
+        if (value.equals(mField))
+          i = entry.getKey();
+      }
+      if (i == null) {
+        mIndex++;
+        mColumnMap.put(new Integer(mIndex), mField);        
+      }
       mRow.put(mField, mValue);
     }
   }
 
   @Override
   public void characters(char ch[], int start, int length) {
-    mValue = new String(ch);
+    mValue = new String(ch, start, length);
   }
 }
