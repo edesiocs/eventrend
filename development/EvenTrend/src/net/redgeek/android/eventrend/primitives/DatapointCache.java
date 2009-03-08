@@ -158,7 +158,7 @@ public class DatapointCache {
       // TODO: fix to guarantee this, instead of hoping -- and do it with a
       // miminum
       // of sql queries.
-      long quarter = (milliEnd = milliStart) / 4;
+      long quarter = (milliEnd - milliStart) / 4;
       milliStart -= quarter * 2;
       milliEnd += quarter;
     } else {
@@ -202,10 +202,8 @@ public class DatapointCache {
     long query2Start = -1;
     long query2End = -1;
 
-    if (milliStart > milliEnd) {
-      Log.v("datacache", "populateRangeFromDb(): invalid args, returning");
+    if (milliStart > milliEnd)
       return;
-    }
 
     // SQL ops are the expensive thing, so see if we can minimize or obviate the
     // query
@@ -215,14 +213,9 @@ public class DatapointCache {
     // the pre
     // and post.
     if (catCache.isValid() == true) {
-      Log.v("datacache", "populateRangeFromDb(): cache is valid");
-      if (milliStart >= catCache.getStart() && milliEnd <= catCache.getEnd()) {
-        Log.v("datacache", "populateRangeFromDb(): have range, returning");
+      if (milliStart >= catCache.getStart() && milliEnd <= catCache.getEnd())
         return;
-      }
     }
-
-    Log.v("datacache", "populateRangeFromDb(): going to db");
 
     if (catCache.isValid() == false) {
       query1Start = milliStart;
