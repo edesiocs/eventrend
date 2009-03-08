@@ -604,7 +604,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return true;
   }
   
-  private HashMap<String, String> categoryRowToHashMap(CategoryDbTable.Row row) {
+  public HashMap<String, String> categoryRowToHashMap(CategoryDbTable.Row row) {
     HashMap<String, String> map = new HashMap<String, String>();
     map.put(CategoryDbTable.KEY_ROWID, Long.toString(row.getId()));
     map.put(CategoryDbTable.KEY_GROUP_NAME, row.getGroupName());
@@ -635,7 +635,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return map;
   }
 
-  private HashMap<String, String> entryRowToHashMap(EntryDbTable.Row row) {
+  public HashMap<String, String> entryRowToHashMap(EntryDbTable.Row row) {
     HashMap<String, String> map = new HashMap<String, String>();
     map.put(EntryDbTable.KEY_ROWID, Long.toString(row.getId()));
     map.put(EntryDbTable.KEY_CATEGORY_ID, Long.toString(row.getCategoryId()));
@@ -645,7 +645,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return map;
   }
   
-  private CategoryDbTable.Row hashMapToCategoryRow(HashMap<String, String> map) {
+  public CategoryDbTable.Row hashMapToCategoryRow(HashMap<String, String> map) {
     if (map == null)
       return null;
     
@@ -677,7 +677,7 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return row;
   }
 
-  private EntryDbTable.Row hashMapToEntryRow(HashMap<String, String> map) {
+  public EntryDbTable.Row hashMapToEntryRow(HashMap<String, String> map) {
     if (map == null)
       return null;
 

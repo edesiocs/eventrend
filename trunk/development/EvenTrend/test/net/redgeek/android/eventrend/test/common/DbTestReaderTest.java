@@ -75,4 +75,60 @@ public class DbTestReaderTest extends TestCase {
     assertEquals(4.0f, row.getValue());
     assertEquals(5, row.getNEntries());
   }
+
+  public void testPopulateMultipleEntries() throws Exception {
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("two_entries.xml"));
+    
+    EntryDbTable.Row row = dbh.fetchEntry(1);
+    assertEquals(1, row.getId());
+    assertEquals(2, row.getCategoryId());
+    assertEquals(1000, row.getTimestamp());
+    assertEquals(4.0f, row.getValue());
+    assertEquals(5, row.getNEntries());
+
+    row = dbh.fetchEntry(2);
+    assertEquals(2, row.getId());
+    assertEquals(2, row.getCategoryId());
+    assertEquals(2000, row.getTimestamp());
+    assertEquals(2.0f, row.getValue());
+    assertEquals(2, row.getNEntries());
+  }
+
+  public void testPopulateMultipleTables() throws Exception {
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("two_tables.xml"));
+    
+    CategoryDbTable.Row row = dbh.fetchCategory(1);
+    
+    assertEquals(1, row.getId());
+    assertEquals("GroupName", row.getGroupName());
+    assertEquals("CategoryName", row.getCategoryName());
+    assertEquals(1.0f, row.getDefaultValue());
+    assertEquals(2.0f, row.getLastValue());
+    assertEquals(3.0f, row.getLastTrend());
+    assertEquals(4.0f, row.getIncrement());
+    assertEquals(5.0f, row.getGoal());
+    assertEquals("#4499cc", row.getColor());
+    assertEquals("Average", row.getType());
+    assertEquals(1000, row.getPeriodMs());
+    assertEquals(2, row.getRank());
+    assertEquals(3, row.getPeriodEntries());
+    assertEquals("trend_flat", row.getTrendState());
+    assertEquals("Linear", row.getInterpolation());
+    assertEquals("Linear", row.getInterpolation());
+    assertEquals(true, row.getZeroFill());
+    assertEquals(true, row.getSynthetic());
+    assertEquals("(series \"one\" + series \"two\")", row.getFormula());
+
+    EntryDbTable.Row ent = dbh.fetchEntry(1);
+    assertEquals(1, ent.getId());
+    assertEquals(2, ent.getCategoryId());
+    assertEquals(1000, ent.getTimestamp());
+    assertEquals(4.0f, ent.getValue());
+    assertEquals(5, ent.getNEntries());
+  }
+
 }

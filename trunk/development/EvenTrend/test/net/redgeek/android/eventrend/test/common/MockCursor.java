@@ -59,9 +59,7 @@ public class MockCursor implements Cursor {
   }
 
   public void close() {
-    mColumnMap.clear();
-    mReverseColumnMap.clear();
-    mContents.clear();
+    mCursor = null;
     return;
   }
 
