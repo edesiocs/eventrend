@@ -18,8 +18,7 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import junit.framework.TestCase;
 
-// Note that several tests use equality comparison on float, which could be 
-// dangerous in general, but should be safe for such small predefined values.
+// Need test to check for cache holes
 public class DatapointCacheTest extends TestCase {
   public void testConstructors() {
   }

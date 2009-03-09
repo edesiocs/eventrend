@@ -454,11 +454,12 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
       }
     }
 
+    // need to return these in reverse chronological to match the sql adapter
     int i = 0;
     Iterator<Long> iterator = ordered.keySet().iterator();
     while (iterator.hasNext() && i < items) {
       row = ordered.get(iterator.next());
-      result.add(0, row);
+      result.add(row);
       i++;
     }
     

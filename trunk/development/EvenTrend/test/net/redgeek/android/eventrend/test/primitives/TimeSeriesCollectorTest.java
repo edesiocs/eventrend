@@ -260,6 +260,137 @@ public class TimeSeriesCollectorTest extends TestCase {
     assertEquals(20.0f, tsc.getVisibleFirstDatapoint().mValue.y);
     assertEquals(20.0f, tsc.getVisibleLastDatapoint().mValue.y);    
   }
+  
+  public void testGatherLatest() {
+    TimeSeriesCollector tsc;
+
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("tsc_category_with_5entries.xml"));
+    tsc = newTSC(dbh);
+
+    tsc.updateTimeSeriesMeta(true);
+    
+    // no series enabled, but gatherLatestDatapoints should ignore isEnabled()
+    tsc.gatherLatestDatapoints(1, 10);
+    assertNotNull(tsc.getSeriesById(1).getDatapoints());
+    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapoint());
+    assertNull(tsc.getVisibleLastDatapoint());
+ 
+    // reset, enabled one (so getVisible*Datapoint() is returns a value)
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+
+    // no datapoints
+    tsc.gatherLatestDatapoints(1, 0);
+    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapoint());
+    assertNull(tsc.getVisibleLastDatapoint());
+
+    // latest one
+    tsc.gatherLatestDatapoints(1, 1);
+    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+
+    // latest two, old last visible is 5000ms, make sure 4000ms is pulled in
+    tsc.gatherLatestDatapoints(1, 2);
+    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(40.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+        
+    // latest five
+    tsc.gatherLatestDatapoints(1, 5);
+    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+
+    // latest ten, only five to gather
+    tsc.gatherLatestDatapoints(1, 10);
+    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+
+    // reset, pull in two datapoints, then add some points to the DB, and make
+    // sure that the new points are pulled when:
+    //   (1) the new points don't overlap the old range
+    //   (2) the new points overlap and end in the old range
+    //   (3) the new points extend past the old range
+
+    // case (1)
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+    tsc.updateTimeSeriesData(1000, 2000, false);
+    tsc.gatherLatestDatapoints(1, 2);
+    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(40.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+
+    // case (2)
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+    tsc.updateTimeSeriesData(1000, 3000, false);
+    tsc.gatherLatestDatapoints(1, 3);
+    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(30.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+
+    // case (3)
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+    tsc.updateTimeSeriesData(2000, 3000, false);
+    tsc.gatherLatestDatapoints(1, 5);
+    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+  }
 
   public void testLocking() {
 

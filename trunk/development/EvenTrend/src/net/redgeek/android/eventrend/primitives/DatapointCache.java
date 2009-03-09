@@ -99,10 +99,17 @@ public class DatapointCache {
   }
 
   public synchronized void populateLatest(long catId, int nItems) {
+    ArrayList<Datapoint> append = new ArrayList<Datapoint>();
     CategoryDatapointCache catCache;
     catCache = mCache.get(Long.valueOf(catId));
     if (catCache == null)
       return;
+
+    boolean initialized = catCache.isValid();
+    long oldStart = catCache.getStart();
+    long oldEnd = catCache.getEnd();
+    boolean overlap = false;
+    long lastEntryTS = Long.MAX_VALUE;
 
     Cursor c = mDbh.fetchRecentCategoryEntries(catId, nItems);
     int count = c.getCount();
@@ -111,24 +118,20 @@ public class DatapointCache {
       return;
     }
 
-    boolean overlap = false;
-    boolean initialized = catCache.isValid();
-    long oldEnd = catCache.getEnd();
-    long lastEntryTS = Long.MAX_VALUE;
-
-    // these come in reverse chronological order
     EntryDbTable.Row entry = new EntryDbTable.Row();
-    c.moveToLast();
-    for (int i = count - 1; i >= 0; i--) {
+    c.moveToFirst();
+    for (int i = 0; i < count; i++) {
       entry.populateFromCursor(c);
       if (entry.getTimestamp() < lastEntryTS)
         lastEntryTS = entry.getTimestamp();
-      if (entry.getTimestamp() <= oldEnd) {
+      if (entry.getTimestamp() <= oldEnd && entry.getTimestamp() >= oldStart)
         overlap = true;
-        break;
-      }
-      catCache.addDatapoint(new Datapoint(entry));
-      c.moveToPrevious();
+      else
+        // we can't append the datapoints directly to the cache here, since that
+        // may create a hole (and the caches are expected to be contiguous., so
+        // save the datapoints away and add them after we fetch the hole
+        append.add(new Datapoint(entry));
+      c.moveToNext();
     }
     c.close();
 
@@ -136,6 +139,9 @@ public class DatapointCache {
       // Fill in any hole between the old cache and the recent data
       populateRangeFromDb(catCache, oldEnd + 1, lastEntryTS - 1);
     }
+
+    for (int i = 0; i < append.size(); i++)
+      catCache.addDatapoint(append.get(i));
 
     return;
   }
