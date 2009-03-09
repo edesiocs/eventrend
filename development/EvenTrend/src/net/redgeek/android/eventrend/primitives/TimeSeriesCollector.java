@@ -486,6 +486,9 @@ public class TimeSeriesCollector {
     if (ts == null)
       return;
 
+    if (ts.getDbRow().getSynthetic() == true)
+      return;
+
     lastTrend = ts.getTrendStats().mTrendPrev;
     newTrend = ts.getTrendStats().mTrend;
     stdDev = ts.getValueStats().mStdDev;
