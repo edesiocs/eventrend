@@ -365,7 +365,7 @@ public class TimeSeriesCollector {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
       if (ts != null && ts.isEnabled() == true) {
-        Datapoint d = ts.getFirstVisible();
+        Datapoint d = ts.getLastVisible();
         if (last == null)
           last = d;
         else if (d.mMillis > last.mMillis)
