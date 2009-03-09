@@ -546,12 +546,19 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   }
 
   public boolean updateCategory(CategoryDbTable.Row category) {
-    CategoryDbTable.Row row = fetchCategory(category.getId());
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
+      if (id == category.getId()) {
+        HashMap<String, String> map = categoryRowToHashMap(category);
+        rows.remove(i);
+        rows.add(i, map);
+        return true;
+      }
+    }
 
-    row.set(category);
-    return true;
+    return false;
   }
 
   public boolean updateCategory(long id, ContentValues args) {
@@ -560,40 +567,60 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   }
 
   public boolean updateCategoryLastValue(long rowId, float value) {
-    CategoryDbTable.Row row = fetchCategory(rowId);
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
+      if (id == rowId) {
+        rows.get(i).put(CategoryDbTable.KEY_LAST_VALUE, Float.toString(value));
+        return true;
+      }
+    }
 
-    row.setLastValue(value);
-    return true;
+    return false;
   }
 
   public boolean updateCategoryPeriodEntries(long rowId, int items) {
-    CategoryDbTable.Row row = fetchCategory(rowId);
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
+      if (id == rowId) {
+        rows.get(i).put(CategoryDbTable.KEY_PERIOD_ENTRIES, Integer.toString(items));
+        return true;
+      }
+    }
 
-    row.setPeriodEntries(items);
-    return true;
+    return false;
   }
 
   public boolean updateCategoryRank(long rowId, int rank) {
-    CategoryDbTable.Row row = fetchCategory(rowId);
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
+      if (id == rowId) {
+        rows.get(i).put(CategoryDbTable.KEY_RANK, Integer.toString(rank));
+        return true;
+      }
+    }
 
-    row.setRank(rank);
-    return true;
+    return false;
   }
 
   public boolean updateCategoryTrend(long catId, String trendStr, float newTrend) {
-    CategoryDbTable.Row row = fetchCategory(catId);
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
+      if (id == catId) {
+        rows.get(i).put(CategoryDbTable.KEY_LAST_TREND, Float.toString(newTrend));
+        rows.get(i).put(CategoryDbTable.KEY_TREND_STATE, trendStr);
+        return true;
+      }
+    }
 
-    row.setTrendState(trendStr);
-    row.setLastTrend(newTrend);
-    return true;
+    return false;
   }
 
   public boolean updateEntry(EntryDbTable.Row entry) {

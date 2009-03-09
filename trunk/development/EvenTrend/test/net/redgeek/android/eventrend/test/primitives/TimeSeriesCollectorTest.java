@@ -391,9 +391,159 @@ public class TimeSeriesCollectorTest extends TestCase {
     assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
     assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
   }
+  
+  public void testGatherSeries() {
+    TimeSeriesCollector tsc;
+
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
+    tsc = newTSC(dbh);
+
+    tsc.updateTimeSeriesMeta(true);
+
+    // one non-synthetic series enabled:
+    tsc.setSeriesEnabled(1, true);
+    tsc.gatherSeries(900, 1100);
+    assertEquals(3, tsc.getAllSeries().size());
+    assertEquals(1, tsc.getAllEnabledSeries().size());
+    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(0, tsc.getSeriesById(2).getDatapoints().size());
+    assertEquals(0, tsc.getSeriesById(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
+    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(1000, tsc.getSeriesById(1).getDatapoints().get(0).mMillis);
+    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(1000, tsc.getLastDatapoint(1).mMillis);
+
+    // one synthetic series enabled, dependents not enabled
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(3, true);
+    tsc.gatherSeries(900, 1100);
+    assertEquals(3, tsc.getAllSeries().size());
+    assertEquals(1, tsc.getAllEnabledSeries().size());
+    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(1, tsc.getSeriesById(2).getDatapoints().size());
+    assertEquals(1, tsc.getSeriesById(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
+    assertEquals(110.0f, tsc.getVisibleFirstDatapoint().mValue.y);
+    assertEquals(1000, tsc.getSeriesById(3).getDatapoints().get(0).mMillis);
+    assertEquals(110.0f, tsc.getSeriesById(3).getDatapoints().get(0).mValue.y);
+    assertEquals(10.0f, tsc.getLastDatapoint(1).mValue.y);
+    assertEquals(100.0f, tsc.getLastDatapoint(2).mValue.y);
+    assertNull(tsc.getLastDatapoint(3));
+
+    // all enabled, query entire range
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+    tsc.setSeriesEnabled(2, true);
+    tsc.setSeriesEnabled(3, true);
+    tsc.gatherSeries(500, 6000);
+    assertEquals(3, tsc.getAllSeries().size());
+    assertEquals(3, tsc.getAllEnabledSeries().size());
+    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(5, tsc.getSeriesById(2).getDatapoints().size());
+    assertEquals(5, tsc.getSeriesById(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
+    assertEquals(5000, tsc.getVisibleLastDatapoint().mMillis);
+    assertEquals(50.0f, tsc.getLastDatapoint(1).mValue.y);
+    assertEquals(500.0f, tsc.getLastDatapoint(2).mValue.y);
+    assertNull(tsc.getLastDatapoint(3));
+
+    // all enabled, query middle of range
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    tsc.setSeriesEnabled(1, true);
+    tsc.setSeriesEnabled(2, true);
+    tsc.setSeriesEnabled(3, true);
+    tsc.gatherSeries(2000, 4000);
+    assertEquals(3, tsc.getAllSeries().size());
+    assertEquals(3, tsc.getAllEnabledSeries().size());
+    assertEquals(4, tsc.getSeriesById(1).getDatapoints().size());
+    assertEquals(4, tsc.getSeriesById(2).getDatapoints().size());
+    assertEquals(4, tsc.getSeriesById(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapoint());
+    assertNotNull(tsc.getVisibleLastDatapoint());
+    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
+    assertEquals(2000, tsc.getVisibleFirstDatapoint().mMillis);
+    assertEquals(4000, tsc.getVisibleLastDatapoint().mMillis);
+    assertEquals(40.0f, tsc.getLastDatapoint(1).mValue.y);
+    assertEquals(400.0f, tsc.getLastDatapoint(2).mValue.y);
+    assertNull(tsc.getLastDatapoint(3));
+
+    // TODO: need more tests here, short on coverage
+  }
+  
+  public void testUpdateCategoryTrend() {
+    TimeSeriesCollector tsc;
+
+    MockEvenTrendDbAdapter dbh = new MockEvenTrendDbAdapter();
+    DbTestReader reader = new DbTestReader(dbh);
+    reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
+    tsc = newTSC(dbh);
+
+    tsc.updateTimeSeriesMeta(true);
+    // should not need to enabled any series
+
+    // cat 1 should update, cat 3 as well, but not cat 2
+    assertEquals("trend_unknown", dbh.fetchCategory(1).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(1).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(2).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(2).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(3).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(3).getLastTrend());    
+    tsc.updateCategoryTrend(1);
+    assertFalse("trend_unknown".equals(dbh.fetchCategory(1).getTrendState()));
+    assertFalse(3.0f == dbh.fetchCategory(1).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(2).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(2).getLastTrend());    
+    assertFalse("trend_unknown".equals(dbh.fetchCategory(3).getTrendState()));
+    assertFalse(3.0f == dbh.fetchCategory(3).getLastTrend());    
+    
+    // cat 2 and 3 should update
+    tsc.updateCategoryTrend(2);
+    assertFalse("trend_unknown".equals(dbh.fetchCategory(1).getTrendState()));
+    assertFalse(3.0f == dbh.fetchCategory(1).getLastTrend());    
+    assertFalse("trend_unknown".equals(dbh.fetchCategory(2).getTrendState()));
+    assertFalse(3.0f == dbh.fetchCategory(2).getLastTrend());    
+    assertFalse("trend_unknown".equals(dbh.fetchCategory(3).getTrendState()));
+    assertFalse(3.0f == dbh.fetchCategory(3).getLastTrend());    
+
+    // updating cat 3 should be a nop, since it's trend is only calculated when
+    // it's dependents' trends are updated
+    reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
+    tsc.clearSeries();
+    tsc.updateTimeSeriesMeta(true);
+    assertEquals("trend_unknown", dbh.fetchCategory(1).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(1).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(2).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(2).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(3).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(3).getLastTrend());    
+    tsc.updateCategoryTrend(3);
+    assertEquals("trend_unknown", dbh.fetchCategory(1).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(1).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(2).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(2).getLastTrend());    
+    assertEquals("trend_unknown", dbh.fetchCategory(3).getTrendState());
+    assertEquals(3.0f, dbh.fetchCategory(3).getLastTrend());    
+
+    // TODO: need more tests here, short on coverage
+  }
 
   public void testLocking() {
-
+    // TODO
   }
 
   private String makeFilePath(String filename) {
