@@ -73,6 +73,9 @@ public class CubicInterpolator implements TimeSeriesInterpolator {
   public Float interpolateX(Tuple first, Tuple second, float atY) {
     if (first.equals(second) == true)
       return first.x;
+    if (first.x == second.x)
+      return null;
+
     float slope = (second.y - first.y) / (second.x - first.x);
     return new Float(first.x + (slope * (atY - first.y)));
   }
@@ -80,6 +83,9 @@ public class CubicInterpolator implements TimeSeriesInterpolator {
   public Float interpolateY(Tuple first, Tuple second, float atX) {
     if (first.equals(second) == true)
       return first.y;
+    if (first.x == second.x)
+      return null;
+
     float slope = (second.y - first.y) / (second.x - first.x);
     return new Float(first.y + (slope * (atX - first.x)));
   }
