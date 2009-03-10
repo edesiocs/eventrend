@@ -2,10 +2,10 @@
 <launchConfiguration type="com.android.ide.eclipse.adt.debug.LaunchConfigType">
 <intAttribute key="com.android.ide.eclipse.adt.action" value="0"/>
 <stringAttribute key="com.android.ide.eclipse.adt.activity" value="net.redgeek.android.eventrend.InputActivity"/>
-<stringAttribute key="com.android.ide.eclipse.adt.commandline" value=""/>
+<stringAttribute key="com.android.ide.eclipse.adt.commandline" value="-sdcard /home/barclay/workspace/android_sdcard"/>
 <intAttribute key="com.android.ide.eclipse.adt.delay" value="0"/>
 <booleanAttribute key="com.android.ide.eclipse.adt.nobootanim" value="false"/>
-<stringAttribute key="com.android.ide.eclipse.adt.skin" value="HVGA"/>
+<stringAttribute key="com.android.ide.eclipse.adt.skin" value="HVGA-L"/>
 <intAttribute key="com.android.ide.eclipse.adt.speed" value="0"/>
 <booleanAttribute key="com.android.ide.eclipse.adt.target" value="true"/>
 <booleanAttribute key="com.android.ide.eclipse.adt.wipedata" value="false"/>

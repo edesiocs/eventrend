@@ -129,10 +129,9 @@ public class CategoryDbTable {
       + " float not null, " + KEY_GOAL + " float not null, " + KEY_COLOR
       + " text not null, " + KEY_TYPE + " text not null, " + KEY_PERIOD_MS
       + " int not null, " + KEY_RANK + " integer not null, "
-      + KEY_TREND_STATE
-      + " text not null, " + KEY_INTERPOLATION + " text not null, "
-      + KEY_ZEROFILL + " byte not null, " + KEY_SYNTHETIC + " byte not null, "
-      + KEY_FORMULA + " text not null);";
+      + KEY_TREND_STATE + " text not null, " + KEY_INTERPOLATION 
+      + " text not null, " + KEY_ZEROFILL + " byte not null, " 
+      + KEY_SYNTHETIC + " byte not null, " + KEY_FORMULA + " text not null);";
 
   public static long mapPeriodToMs(String period) {
     for (int i = 0; i < KEY_PERIODS.length; i++) {
