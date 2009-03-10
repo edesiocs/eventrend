@@ -429,8 +429,6 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   protected void onResume() {
-    Debug.startMethodTracing("graph");
-
     getPrefs();
     mTSC.setHistory(mHistory);
     mGraphView.getGraph().setDecimals(mDecimals);
@@ -441,7 +439,6 @@ public class GraphActivity extends EvenTrendActivity {
   
   @Override
   protected void onPause() {
-    Debug.stopMethodTracing();
     super.onPause();
   }
 }
