@@ -55,8 +55,6 @@ public class DataCollectionTask {
   }
 
   public void doCollection() {
-    Log.v("DataCollectionTask", "doCollection(" + mStartMS + ", " + mEndMS
-        + ")");
     mTSC.gatherSeries(mStartMS, mEndMS);
   }
 }
