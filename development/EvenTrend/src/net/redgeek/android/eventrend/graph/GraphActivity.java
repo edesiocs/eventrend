@@ -314,7 +314,7 @@ public class GraphActivity extends EvenTrendActivity {
       case MENU_GRAPH_CORRELATE_ID:
         LinearMatrixCorrelator c = new LinearMatrixCorrelator();
         mCorrelator.setCorrelator(c);
-        mCorrelator.setTimeSeries(mTSC.getAllSeries());
+        mCorrelator.setTimeSeries(mTSC.getAllEnabledSeries());
         GUITaskQueue.getInstance().addTask(mProgress, this);
         return true;
       case MENU_GRAPH_SNAP_TO_PERIOD_ID:
