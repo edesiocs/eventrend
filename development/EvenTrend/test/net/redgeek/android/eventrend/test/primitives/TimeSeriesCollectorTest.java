@@ -29,7 +29,7 @@ import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-// TODO: implement
+// TODO: add tests that use aggregation
 public class TimeSeriesCollectorTest extends TestCase {
   private TimeSeriesCollector newTSC(MockEvenTrendDbAdapter dbh) {
     MockTimeSeriesPainter painter = new MockTimeSeriesPainter();
@@ -43,6 +43,19 @@ public class TimeSeriesCollectorTest extends TestCase {
     tsc.setInterpolators(interpolators);
 
     return tsc;
+  }
+  
+  private String makeFilePath(String filename) {
+    String sep = System.getProperty("file.separator");
+    String path = System.getProperty("user.dir");
+    String[] subdir = new String[] { "test", "net", "redgeek", "android",
+        "eventrend", "test", "primitives", "dbtestdata" };
+
+    for (int i = 0; i < subdir.length; i++) {
+      path += sep + subdir[i];
+    }
+    path += sep + filename;
+    return path;
   }
 
   public void testConstructor() {
@@ -544,18 +557,5 @@ public class TimeSeriesCollectorTest extends TestCase {
 
   public void testLocking() {
     // TODO
-  }
-
-  private String makeFilePath(String filename) {
-    String sep = System.getProperty("file.separator");
-    String path = System.getProperty("user.dir");
-    String[] subdir = new String[] { "test", "net", "redgeek", "android",
-        "eventrend", "test", "primitives", "dbtestdata" };
-
-    for (int i = 0; i < subdir.length; i++) {
-      path += sep + subdir[i];
-    }
-    path += sep + filename;
-    return path;
   }
 }

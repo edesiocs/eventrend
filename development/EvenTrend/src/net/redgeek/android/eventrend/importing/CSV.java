@@ -107,9 +107,6 @@ public class CSV {
       else if (CategoryDbTable.EXPORTABLE[i].equals(CategoryDbTable.KEY_RANK))
         buffer.append(row.getRank());
       else if (CategoryDbTable.EXPORTABLE[i]
-          .equals(CategoryDbTable.KEY_PERIOD_ENTRIES))
-        buffer.append(row.getPeriodEntries());
-      else if (CategoryDbTable.EXPORTABLE[i]
           .equals(CategoryDbTable.KEY_TREND_STATE))
         buffer.append(row.getTrendState());
       else if (CategoryDbTable.EXPORTABLE[i]

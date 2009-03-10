@@ -580,20 +580,6 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return false;
   }
 
-  public boolean updateCategoryPeriodEntries(long rowId, int items) {
-    ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
-    
-    for (int i = 0; i < rows.size(); i++) {
-      long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
-      if (id == rowId) {
-        rows.get(i).put(CategoryDbTable.KEY_PERIOD_ENTRIES, Integer.toString(items));
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   public boolean updateCategoryRank(long rowId, int rank) {
     ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
     
@@ -624,12 +610,19 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
   }
 
   public boolean updateEntry(EntryDbTable.Row entry) {
-    EntryDbTable.Row row = fetchEntry(entry.getId());
-    if (row == null)
-      return false;    
+    ArrayList<HashMap<String, String>> rows = mTables.get(EntryDbTable.TABLE_NAME);
+    
+    for (int i = 0; i < rows.size(); i++) {
+      long id = Long.parseLong(rows.get(i).get(EntryDbTable.KEY_ROWID));
+      if (id == entry.getId()) {
+        HashMap<String, String> map = entryRowToHashMap(entry);
+        rows.remove(i);
+        rows.add(i, map);
+        return true;
+      }
+    }
 
-    row.set(entry);
-    return true;
+    return false;
   }
   
   public HashMap<String, String> categoryRowToHashMap(CategoryDbTable.Row row) {
@@ -647,8 +640,6 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     map.put(CategoryDbTable.KEY_TYPE, row.getType());
     map.put(CategoryDbTable.KEY_PERIOD_MS, Long.toString(row.getPeriodMs()));
     map.put(CategoryDbTable.KEY_RANK, Integer.toString(row.getRank()));
-    map.put(CategoryDbTable.KEY_PERIOD_ENTRIES, Integer.toString(row
-        .getPeriodEntries()));
     map.put(CategoryDbTable.KEY_TREND_STATE, row.getTrendState());
     map.put(CategoryDbTable.KEY_INTERPOLATION, row.getInterpolation());
     if (row.getZeroFill() == true)
@@ -690,7 +681,6 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     row.setType(map.get(CategoryDbTable.KEY_TYPE));
     row.setPeriodMs(Long.valueOf(map.get(CategoryDbTable.KEY_PERIOD_MS)));
     row.setRank(Integer.valueOf(map.get(CategoryDbTable.KEY_RANK)));
-    row.setPeriodEntries(Integer.valueOf(map.get(CategoryDbTable.KEY_PERIOD_ENTRIES)));
     row.setTrendState(map.get(CategoryDbTable.KEY_TREND_STATE));
     row.setInterpolation(map.get(CategoryDbTable.KEY_INTERPOLATION));
     if (map.get(CategoryDbTable.KEY_ZEROFILL).equals("0"))

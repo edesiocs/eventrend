@@ -55,8 +55,6 @@ public interface EvenTrendDbAdapter {
 
   public boolean updateCategoryLastValue(long rowId, float value);
 
-  public boolean updateCategoryPeriodEntries(long rowId, int nItems);
-
   public boolean updateCategoryTrend(long catId, String trendStr, float newTrend);
 
   // Entry-focused Operations
@@ -213,7 +211,6 @@ public interface EvenTrendDbAdapter {
       args.put(CategoryDbTable.KEY_COLOR, category.getColor());
       args.put(CategoryDbTable.KEY_PERIOD_MS, category.getPeriodMs());
       args.put(CategoryDbTable.KEY_RANK, category.getRank());
-      args.put(CategoryDbTable.KEY_PERIOD_ENTRIES, category.getPeriodEntries());
       args.put(CategoryDbTable.KEY_TREND_STATE, category.getTrendState());
       args.put(CategoryDbTable.KEY_INTERPOLATION, category.getInterpolation());
       args.put(CategoryDbTable.KEY_ZEROFILL, category.getZeroFill());
@@ -319,7 +316,6 @@ public interface EvenTrendDbAdapter {
       args.put(CategoryDbTable.KEY_TYPE, category.getType());
       args.put(CategoryDbTable.KEY_COLOR, category.getColor());
       args.put(CategoryDbTable.KEY_PERIOD_MS, category.getPeriodMs());
-      args.put(CategoryDbTable.KEY_PERIOD_ENTRIES, category.getPeriodEntries());
       args.put(CategoryDbTable.KEY_TREND_STATE, category.getTrendState());
       args.put(CategoryDbTable.KEY_INTERPOLATION, category.getInterpolation());
       args.put(CategoryDbTable.KEY_ZEROFILL, category.getZeroFill());
@@ -349,14 +345,6 @@ public interface EvenTrendDbAdapter {
     public boolean updateCategoryLastValue(long rowId, float value) {
       ContentValues args = new ContentValues();
       args.put(CategoryDbTable.KEY_LAST_VALUE, value);
-
-      return mDb.update(CategoryDbTable.TABLE_NAME, args,
-          CategoryDbTable.KEY_ROWID + "=" + rowId, null) > 0;
-    }
-
-    public boolean updateCategoryPeriodEntries(long rowId, int nItems) {
-      ContentValues args = new ContentValues();
-      args.put(CategoryDbTable.KEY_PERIOD_ENTRIES, nItems);
 
       return mDb.update(CategoryDbTable.TABLE_NAME, args,
           CategoryDbTable.KEY_ROWID + "=" + rowId, null) > 0;

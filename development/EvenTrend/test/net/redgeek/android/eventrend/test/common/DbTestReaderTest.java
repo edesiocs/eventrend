@@ -53,7 +53,6 @@ public class DbTestReaderTest extends TestCase {
     assertEquals("Average", row.getType());
     assertEquals(1000, row.getPeriodMs());
     assertEquals(2, row.getRank());
-    assertEquals(3, row.getPeriodEntries());
     assertEquals("trend_flat", row.getTrendState());
     assertEquals("Linear", row.getInterpolation());
     assertEquals("Linear", row.getInterpolation());
@@ -115,7 +114,6 @@ public class DbTestReaderTest extends TestCase {
     assertEquals("Average", row.getType());
     assertEquals(1000, row.getPeriodMs());
     assertEquals(2, row.getRank());
-    assertEquals(3, row.getPeriodEntries());
     assertEquals("trend_flat", row.getTrendState());
     assertEquals("Linear", row.getInterpolation());
     assertEquals("Linear", row.getInterpolation());

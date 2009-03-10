@@ -1,5 +1,6 @@
 TODO:
 	Input:
+	  zerofill after adding, so NEntries is correct
 		**** fix periodic hangs in add 
 		fix category re-ordering
 	Graph

@@ -50,7 +50,6 @@ public class CategoryDbTableTest extends TestCase {
     map.put(CategoryDbTable.KEY_TYPE, "Average");
     map.put(CategoryDbTable.KEY_PERIOD_MS, "16");
     map.put(CategoryDbTable.KEY_RANK, "17");
-    map.put(CategoryDbTable.KEY_PERIOD_ENTRIES, "18");
     map.put(CategoryDbTable.KEY_TREND_STATE, "trend_state_bogus");
     map.put(CategoryDbTable.KEY_INTERPOLATION, "Linear");
     map.put(CategoryDbTable.KEY_ZEROFILL, "1");
@@ -79,7 +78,6 @@ public class CategoryDbTableTest extends TestCase {
     assertEquals("Average", row.getType());
     assertEquals(16, row.getPeriodMs());
     assertEquals(17, row.getRank());
-    assertEquals(18, row.getPeriodEntries());
     assertEquals("trend_state_bogus", row.getTrendState());
     assertEquals("Linear", row.getInterpolation());
     assertEquals(true, row.getZeroFill());
@@ -101,7 +99,6 @@ public class CategoryDbTableTest extends TestCase {
     assertEquals("Average", copy.getType());
     assertEquals(16, copy.getPeriodMs());
     assertEquals(17, copy.getRank());
-    assertEquals(18, copy.getPeriodEntries());
     assertEquals("trend_state_bogus", copy.getTrendState());
     assertEquals("Linear", copy.getInterpolation());
     assertEquals(true, copy.getZeroFill());

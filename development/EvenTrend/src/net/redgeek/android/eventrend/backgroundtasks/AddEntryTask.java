@@ -81,7 +81,7 @@ public class AddEntryTask {
     entryTScal.setTimeInMillis(timestamp);
 
     if (periodInMs > 0) {
-      UpdateRecentDataTask updater = new UpdateRecentDataTask(mTSC);
+      UpdateRecentDataTask updater = new UpdateRecentDataTask(mTSC, mHistory);
       updater.setZerofill(true);
       updater.setUpdateTrend(false);
       updater.fillCategory(category.getId());
@@ -99,14 +99,13 @@ public class AddEntryTask {
 
       mLastAddId = mTSC.getDbh().createEntry(entry);
       mLastAddValue = value;
+      mLastAddOldValue = 0.0f;
       mLastAddTimestamp = timestamp;
       mLastAddUpdate = false;
 
-      mTSC.updateTimeSeriesData(category.getId(), false);
     } else {
       lastTScal = Calendar.getInstance();
       lastTScal.setTimeInMillis(entry.getTimestamp());
-      int periodEntries = category.getPeriodEntries();
 
       if ((periodInMs == DateUtil.YEAR_MS && DateUtil.inSameYear(entryTScal,
           lastTScal))
@@ -143,9 +142,6 @@ public class AddEntryTask {
       mLastAddUpdate = true;
 
       mTSC.getDbh().updateEntry(entry);
-      mTSC.getDbh().updateCategoryPeriodEntries(category.getId(),
-          periodEntries + 1);
-      mTSC.updateTimeSeriesData(category.getId(), false);
     }
 
     mTSC.updateCategoryTrend(category.getId());
