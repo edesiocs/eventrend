@@ -123,14 +123,17 @@ public interface TimeSeriesPainter {
 
       // we don't have to draw all the point preceding the first visible on,
       // just the last of them, up until one after the last visible
+      ArrayList<Datapoint> datapoints = ts.getDatapoints();
+      datapointsSize = datapoints.size();
+      
       int offset = ts.getVisiblePreLastIdx();
       if (offset < 0 || offset == Integer.MAX_VALUE)
         offset = 0;
+      int end = ts.getVisiblePostFirstIdx();
+      if (end < 0 || end == Integer.MAX_VALUE)
+        end = datapointsSize - 1;
 
-      ArrayList<Datapoint> datapoints = ts.getDatapoints();
-      datapointsSize = datapoints.size();
-      for (int i = offset; i < datapointsSize
-          && i <= ts.getVisiblePostFirstIdx(); i++) {
+      for (int i = offset; i < datapointsSize && i <= end; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
           second = thisPoint.mValueScreen;
@@ -165,15 +168,18 @@ public interface TimeSeriesPainter {
 
       // we don't have to draw all the point preceding the first visible on,
       // just the last of them, up until one after the last visible
+      ArrayList<Datapoint> datapoints = ts.getDatapoints();
+      datapointsSize = datapoints.size();
+      
       int offset = ts.getVisiblePreLastIdx();
       if (offset < 0 || offset == Integer.MAX_VALUE)
         offset = 0;
+      int end = ts.getVisiblePostFirstIdx();
+      if (end < 0 || end == Integer.MAX_VALUE)
+        end = datapointsSize - 1;
 
       mTrend.rewind();
-      ArrayList<Datapoint> datapoints = ts.getDatapoints();
-      datapointsSize = datapoints.size();
-      for (int i = offset; i < datapointsSize
-          && i <= ts.getVisiblePostFirstIdx(); i++) {
+      for (int i = offset; i < datapointsSize && i <= end; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
           second = thisPoint.mTrendScreen;
