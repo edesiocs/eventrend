@@ -99,7 +99,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private String mInterp;
   private String mGroupName;
   private long mPeriodMs;
-  private int mPeriodEntries;
   private int mRank;
 
   private Paint mPickerPaint;
@@ -399,7 +398,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mInterp = mRow.getInterpolation();
       mRank = mRow.getRank();
       mPeriodMs = mRow.getPeriodMs();
-      mPeriodEntries = mRow.getPeriodEntries();
       mPeriod = CategoryDbTable.mapMsToPeriod(mPeriodMs);
       mPeriodSpinner.setSelection(CategoryDbTable.mapMsToIndex(mPeriodMs));
 
@@ -465,7 +463,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mRow.setGoal(Float.valueOf(mGoalText.getText().toString()).floatValue());
       mRow.setColor(mColorStr);
       mRow.setPeriodMs(mPeriodMs);
-      mRow.setPeriodEntries(mPeriodEntries);
       mRow.setInterpolation(mInterp);
       mRow.setZeroFill(mZeroFillCheck.isChecked());
       mRow.setSynthetic(mSyntheticCheck.isChecked());

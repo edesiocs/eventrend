@@ -209,7 +209,7 @@ public class InputActivity extends EvenTrendActivity {
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
     mTSC.updateTimeSeriesMeta(true);
 
-    mDataUpdater = new UpdateRecentDataTask(mTSC);
+    mDataUpdater = new UpdateRecentDataTask(mTSC, mHistory);
     // mDataUpdater.setZerofill(true);
     // mDataUpdater.setUpdateTrend(true);
     // GUITaskQueue.getInstance().addTask(mProgress, this);
@@ -227,7 +227,7 @@ public class InputActivity extends EvenTrendActivity {
           setTimestampNow();
         if (newHour != mOldHour) {
           mOldHour = newHour;
-          mDataUpdater = new UpdateRecentDataTask(mTSC);
+          mDataUpdater = new UpdateRecentDataTask(mTSC, mHistory);
           mDataUpdater.setZerofill(true);
           mDataUpdater.setUpdateTrend(true);
           GUITaskQueue.getInstance().addTask(mProgress, (GUITask) getCtx());

@@ -385,6 +385,8 @@ public class TimeSeriesCollector {
     waitForLock();
     mDatapointCache.populateLatest(catId, history);
     TimeSeries ts = getSeriesById(catId);
+    if (ts == null)
+      return;
 
     if (ts.getDbRow().getSynthetic() == false) {
       ts.clearSeries();

@@ -48,13 +48,15 @@ import net.redgeek.android.eventrend.util.DateUtil.Period;
 public class UpdateRecentDataTask {
   private TimeSeriesCollector mTSC;
   private Calendar mCal;
+  private int     mHistory;
 
   private boolean mZerofill;
   private boolean mUpdateTrend;
 
-  public UpdateRecentDataTask(TimeSeriesCollector tsc) {
+  public UpdateRecentDataTask(TimeSeriesCollector tsc, int history) {
     mTSC = tsc;
     mCal = Calendar.getInstance();
+    mHistory = history;
     mZerofill = false;
     mUpdateTrend = false;
   }
@@ -69,18 +71,18 @@ public class UpdateRecentDataTask {
 
   public void fillAllCategories() {
     for (int i = 0; i < mTSC.numSeries(); i++) {
-      fillCategoryFromCursor(mTSC.getSeries(i).getDbRow().getId(), mZerofill,
+      fillCategory(mTSC.getSeries(i).getDbRow().getId(), mZerofill,
           mUpdateTrend);
     }
     return;
   }
 
   public void fillCategory(long catId) {
-    fillCategoryFromCursor(catId, mZerofill, mUpdateTrend);
+    fillCategory(catId, mZerofill, mUpdateTrend);
     return;
   }
 
-  private void fillCategoryFromCursor(long catId, boolean zerofill,
+  private void fillCategory(long catId, boolean zerofill,
       boolean updateTrend) {
     EntryDbTable.Row entry = new EntryDbTable.Row();
 
@@ -94,6 +96,7 @@ public class UpdateRecentDataTask {
     if (ts.getDbRow().getZeroFill() == false)
       return;
 
+    mTSC.gatherLatestDatapoints(catId, mHistory);
     Datapoint d = mTSC.getLastDatapoint(catId);
     if (d == null)
       return;
@@ -130,7 +133,6 @@ public class UpdateRecentDataTask {
       entry.setValue(0.0f);
       entry.setNEntries(0);
       mTSC.getDbh().createEntry(entry);
-      mTSC.updateTimeSeriesData(catId, false);
     }
 
     if (updateTrend == true)

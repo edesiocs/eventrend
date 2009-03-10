@@ -43,7 +43,6 @@ public class CategoryDbTable {
   public static final String KEY_TYPE = "type";
   public static final String KEY_PERIOD_MS = "period_in_ms";
   public static final String KEY_RANK = "rank";
-  public static final String KEY_PERIOD_ENTRIES = "period_entries";
   public static final String KEY_TREND_STATE = "trend_state";
   public static final String KEY_INTERPOLATION = "interpolation";
   public static final String KEY_ZEROFILL = "zerofill";
@@ -114,7 +113,7 @@ public class CategoryDbTable {
   public static final String[] KEY_ALL = { KEY_ROWID, KEY_GROUP_NAME,
       KEY_CATEGORY_NAME, KEY_DEFAULT_VALUE, KEY_LAST_VALUE, KEY_LAST_TREND,
       KEY_INCREMENT, KEY_GOAL, KEY_COLOR, KEY_TYPE, KEY_PERIOD_MS, KEY_RANK,
-      KEY_PERIOD_ENTRIES, KEY_TREND_STATE, KEY_INTERPOLATION, KEY_ZEROFILL,
+      KEY_TREND_STATE, KEY_INTERPOLATION, KEY_ZEROFILL,
       KEY_SYNTHETIC, KEY_FORMULA };
 
   public static final String[] EXPORTABLE = { KEY_GROUP_NAME,
@@ -130,7 +129,7 @@ public class CategoryDbTable {
       + " float not null, " + KEY_GOAL + " float not null, " + KEY_COLOR
       + " text not null, " + KEY_TYPE + " text not null, " + KEY_PERIOD_MS
       + " int not null, " + KEY_RANK + " integer not null, "
-      + KEY_PERIOD_ENTRIES + " int not null, " + KEY_TREND_STATE
+      + KEY_TREND_STATE
       + " text not null, " + KEY_INTERPOLATION + " text not null, "
       + KEY_ZEROFILL + " byte not null, " + KEY_SYNTHETIC + " byte not null, "
       + KEY_FORMULA + " text not null);";
@@ -217,10 +216,6 @@ public class CategoryDbTable {
     return c.getInt(c.getColumnIndexOrThrow(KEY_RANK));
   }
 
-  public static int getPeriodEntries(Cursor c) {
-    return c.getInt(c.getColumnIndexOrThrow(KEY_PERIOD_ENTRIES));
-  }
-
   public static String getTrendState(Cursor c) {
     return c.getString(c.getColumnIndexOrThrow(KEY_TREND_STATE));
   }
@@ -254,7 +249,6 @@ public class CategoryDbTable {
     private String mColor = "#000000";
     private long mPeriodMs = 0;
     private int mRank = 0;
-    private int mPeriodEntries = 0;
     private String mTrendState = KEY_TREND_UNKNOWN;
     private String mInterpolation = KEY_INTERP_LINEAR;
     private boolean mZeroFill = false;
@@ -285,7 +279,6 @@ public class CategoryDbTable {
       mColor = new String(r.mColor);
       mPeriodMs = r.mPeriodMs;
       mRank = r.mRank;
-      mPeriodEntries = r.mPeriodEntries;
       mTrendState = new String(r.mTrendState);
       mInterpolation = new String(r.mInterpolation);
       mZeroFill = r.mZeroFill;
@@ -309,7 +302,6 @@ public class CategoryDbTable {
       mColor = c.getString(c.getColumnIndexOrThrow(KEY_COLOR));
       mPeriodMs = c.getLong(c.getColumnIndexOrThrow(KEY_PERIOD_MS));
       mRank = c.getInt(c.getColumnIndexOrThrow(KEY_RANK));
-      mPeriodEntries = c.getInt(c.getColumnIndexOrThrow(KEY_PERIOD_ENTRIES));
       mTrendState = c.getString(c.getColumnIndexOrThrow(KEY_TREND_STATE));
       mInterpolation = c.getString(c.getColumnIndexOrThrow(KEY_INTERPOLATION));
       setZeroFill(c.getInt(c.getColumnIndexOrThrow(KEY_ZEROFILL)));
@@ -412,14 +404,6 @@ public class CategoryDbTable {
 
     public void setRank(int rank) {
       mRank = rank;
-    }
-
-    public int getPeriodEntries() {
-      return mPeriodEntries;
-    }
-
-    public void setPeriodEntries(int periodEntries) {
-      mPeriodEntries = periodEntries;
     }
 
     public String getTrendState() {
