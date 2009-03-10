@@ -19,6 +19,7 @@ package net.redgeek.android.eventrend.primitives;
 import android.database.Cursor;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
@@ -380,7 +381,7 @@ public class TimeSeriesCollector {
     mDatapointCache.clearCache();
     clearSeries();
   }
-
+  
   public synchronized void gatherLatestDatapoints(long catId, int history) {
     waitForLock();
     mDatapointCache.populateLatest(catId, history);
@@ -391,9 +392,17 @@ public class TimeSeriesCollector {
     if (ts.getDbRow().getSynthetic() == false) {
       ts.clearSeries();
 
-      ArrayList<Datapoint> l = mDatapointCache.getLast(ts.getDbRow().getId(),
-          history);
-      if (l != null) {
+      EntryDbTable.Row entry = mDbh.fetchLastCategoryEntry(catId);
+      if (entry != null) {      
+        ArrayList<Datapoint> l = mDatapointCache.getLast(catId, history);
+        if (l == null || l.size() < 1 
+            || entry.getTimestamp() > l.get(0).mMillis
+            || entry.getValue() != l.get(0).mValue.y) {
+          mDatapointCache.clearCache(catId);
+          mDatapointCache.populateLatest(catId, history);
+          l = mDatapointCache.getLast(catId, history);
+        }
+        
         l = aggregateDatapoints(l, ts.getDbRow().getType());
         ts.setDatapoints(null, l, null);
       }

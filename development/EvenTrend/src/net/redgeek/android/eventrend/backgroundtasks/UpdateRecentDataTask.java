@@ -129,6 +129,7 @@ public class UpdateRecentDataTask {
         mCal.add(Calendar.YEAR, 1);
       }
 
+      entry.setCategoryId(catId);
       entry.setTimestamp(mCal.getTimeInMillis());
       entry.setValue(0.0f);
       entry.setNEntries(0);
