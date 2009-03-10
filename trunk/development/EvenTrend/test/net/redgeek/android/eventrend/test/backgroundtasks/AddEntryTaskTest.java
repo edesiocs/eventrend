@@ -159,26 +159,26 @@ public class AddEntryTaskTest extends TestCase {
     assertEquals(0.0f, entry.getValue());
     assertEquals(base_ms + (add_ms - (base_ms % add_ms)), entry.getTimestamp());
     assertEquals(1, entry.getCategoryId());
-    assertEquals(1, entry.getNEntries());
+    assertEquals(0, entry.getNEntries());
     entry = dbh.fetchEntry(3);
     assertNotNull(entry);
     assertEquals(9.0f, entry.getValue());
-    assertEquals(base_ms, entry.getTimestamp());
+    assertEquals(base_ms + (add_ms - (base_ms % add_ms)) + -add_ms, entry.getTimestamp());
     assertEquals(1, entry.getCategoryId());
     assertEquals(1, entry.getNEntries());
     // check the timeseries has been updated
     assertNotNull(tsc.getSeries(0).getDatapoints());
     assertEquals(3, tsc.getSeries(0).getDatapoints().size());
-    assertEquals(base_ms, tsc.getSeries(0).getDatapoints().get(0).mMillis);
+    assertEquals(base_ms + (2 * add_ms), tsc.getSeries(0).getDatapoints().get(0).mMillis);
     assertEquals(1.0f, tsc.getSeries(0).getDatapoints().get(0).mValue.y);
     assertEquals(base_ms + (add_ms - (base_ms % add_ms)), tsc.getSeries(0).getDatapoints().get(1).mMillis);
     assertEquals(0.0f, tsc.getSeries(0).getDatapoints().get(1).mValue.y);
-    assertEquals(base_ms, tsc.getSeries(0).getDatapoints().get(2).mMillis);
+    assertEquals(base_ms + (add_ms - (base_ms % add_ms)) + -add_ms, tsc.getSeries(0).getDatapoints().get(2).mMillis);
     assertEquals(9.0f, tsc.getSeries(0).getDatapoints().get(2).mValue.y);
     // check to "last add" fields
     assertEquals(3, addTask.mLastAddId);
     assertEquals(9.0f, addTask.mLastAddValue);
-    assertEquals(1000L + + DateUtil.mapPeriodToLong(Period.HOUR), addTask.mLastAddTimestamp);
-    assertFalse(addTask.mLastAddUpdate);
+    assertEquals(base_ms, addTask.mLastAddTimestamp);
+    assertTrue(addTask.mLastAddUpdate);
   }
 }
