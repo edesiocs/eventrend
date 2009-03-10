@@ -375,7 +375,7 @@ public class CalendarPlotMonth {
       ms = mDates.getCalendar().getTimeInMillis();
       for (int s = 0; s < mTSC.numSeries(); s++) {
         ts = (TimeSeries) mTSC.getSeries(s);
-        if (mTSC.isSeriesEnabled(ts.getDbRow().getId()) == false)
+        if (ts == null || mTSC.isSeriesEnabled(ts.getDbRow().getId()) == false)
           continue;
 
         current = ts.findPostNeighbor(ms);
