@@ -432,7 +432,7 @@ public class TimeSeriesCollector {
       has_data = false;
 
       TimeSeries ts = mSeries.get(i);
-      if (ts.getDbRow().getSynthetic())
+      if (ts == null || ts.getDbRow().getSynthetic())
         continue;
 
       if (ts.isEnabled() == false) {
@@ -547,7 +547,7 @@ public class TimeSeriesCollector {
   private void generateSynthetics() {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries synth = mSeries.get(i);
-      if (synth.getDbRow().getSynthetic() == false
+      if (synth == null || synth.getDbRow().getSynthetic() == false
           || synth.isEnabled() == false)
         continue;
 
