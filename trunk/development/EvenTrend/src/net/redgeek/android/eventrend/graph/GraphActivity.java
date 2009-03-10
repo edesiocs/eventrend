@@ -38,6 +38,7 @@ import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Debug;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -134,7 +135,7 @@ public class GraphActivity extends EvenTrendActivity {
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
-    mTSC.updateTimeSeriesMeta(true);
+    mTSC.updateTimeSeriesMetaLocking(true);
 
     mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
     if (mSeriesEnabled != null) {
@@ -286,6 +287,7 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   public void onFailure(Throwable t) {
+    mTSC.unlock();
   }
 
   @Override
@@ -427,11 +429,19 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   protected void onResume() {
+    Debug.startMethodTracing("graph");
+
     getPrefs();
     mTSC.setHistory(mHistory);
     mGraphView.getGraph().setDecimals(mDecimals);
     mGraphView.setColorScheme();
     graph();
     super.onResume();
+  }
+  
+  @Override
+  protected void onPause() {
+    Debug.stopMethodTracing();
+    super.onPause();
   }
 }

@@ -117,7 +117,7 @@ public class CalendarActivity extends EvenTrendActivity {
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
-    mTSC.updateTimeSeriesMeta(true);
+    mTSC.updateTimeSeriesMetaLocking(true);
 
     mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
     if (mSeriesEnabled != null) {
@@ -402,7 +402,7 @@ public class CalendarActivity extends EvenTrendActivity {
   @Override
   protected void onResume() {
     getPrefs();
-    mTSC.updateTimeSeriesMeta(false);
+    mTSC.updateTimeSeriesMetaLocking(false);
     mTSC.setHistory(mHistory);
     mCalendarView.setColorScheme();
     display();
@@ -413,7 +413,7 @@ public class CalendarActivity extends EvenTrendActivity {
     Builder b = new AlertDialog.Builder(getCtx());
     EvenTrendDbAdapter dbh = ((CalendarActivity) getCtx()).getDbh();
     CategoryDbTable.Row cat = dbh.fetchCategory(catId);
-    TimeSeries ts = mTSC.getSeriesById(catId);
+    TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
 
     int decimals = Preferences.getDecimalPlaces(getCtx());
 

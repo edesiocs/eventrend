@@ -17,6 +17,7 @@
 package net.redgeek.android.eventrend.primitives;
 
 import android.database.Cursor;
+import android.util.Log;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EntryDbTable;
@@ -33,6 +34,7 @@ import net.redgeek.android.eventrend.util.Number.TrendState;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -97,7 +99,7 @@ public class TimeSeriesCollector {
     return mDbh;
   }
 
-  public void updateTimeSeriesMeta(boolean disableByDefault) {
+  public void updateTimeSeriesMetaLocking(boolean disableByDefault) {
     waitForLock();
     Cursor c = mDbh.fetchAllCategories();
     c.moveToFirst();
@@ -118,8 +120,8 @@ public class TimeSeriesCollector {
     unlock();
   }
 
-  public void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
-    TimeSeries ts = getSeriesById(row.getId());
+  private void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
+    TimeSeries ts = getSeriesByIdNonlocking(row.getId());
 
     if (ts == null) {
       if (mDefaultPainter == null) {
@@ -144,25 +146,10 @@ public class TimeSeriesCollector {
     }
 
     if (disable)
-      setSeriesEnabled(row.getId(), false);
+      ts.setEnabled(false);
 
     setDependents(ts);
     setDependees(ts);
-  }
-
-  public void updateTimeSeriesStats(long catId) {
-    TimeSeries ts = getSeriesById(catId);
-    if (ts == null)
-      return;
-
-    ts.recalcStatsAndBounds(mSmoothing, mHistory);
-  }
-
-  public void updateTimeSeriesStats(TimeSeries ts) {
-    if (ts == null)
-      return;
-
-    ts.recalcStatsAndBounds(mSmoothing, mHistory);
   }
 
   public void updateTimeSeriesData(boolean flushCache) {
@@ -174,23 +161,24 @@ public class TimeSeriesCollector {
       TimeSeries ts = mSeries.get(i);
       if (ts != null && ts.isEnabled() == true) {
         long catId = ts.getDbRow().getId();
-        updateTimeSeriesData(catId, start, end, flushCache);
+        updateTimeSeriesDataLocking(catId, start, end, flushCache);
       }
     }
   }
 
   public void updateTimeSeriesData(long catId, boolean flushCache) {
-    updateTimeSeriesData(catId, mQueryStart, mQueryEnd, flushCache);
+    updateTimeSeriesDataLocking(catId, mQueryStart, mQueryEnd, flushCache);
   }
 
-  public void updateTimeSeriesData(long catId, long start, long end,
+  private void updateTimeSeriesDataLocking(long catId, long start, long end,
       boolean flushCache) {
-    waitForLock();
-    if (flushCache == true)
+    if (flushCache == true) {
+      waitForLock();
       mDatapointCache.refresh(catId);
+      unlock();
+    }
 
-    gatherSeries(start, end);
-    unlock();
+    gatherSeriesLocking(start, end);
   }
 
   public void setSmoothing(float smoothing) {
@@ -215,14 +203,18 @@ public class TimeSeriesCollector {
     mInterpolators = list;
   }
 
-  public Boolean lock() {
-    return mLock.tryLock();
+  private void waitForLock() {
+    while (lock() == false) {
+    }
   }
 
-  public void waitForLock() {
-    while (mLock.tryLock() == false) {
+  public boolean lock() {
+    try {
+      return mLock.tryLock(1000L, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Log.v("tsc", "failed to gain lock: " + e.getStackTrace());
+      return false;
     }
-    return;
   }
 
   public void unlock() {
@@ -259,7 +251,7 @@ public class TimeSeriesCollector {
     return;
   }
 
-  public void clearSeries() {
+  public void clearSeriesLocking() {
     TimeSeries ts;
 
     waitForLock();
@@ -274,24 +266,28 @@ public class TimeSeriesCollector {
   }
 
   public boolean isSeriesEnabled(long catId) {
-    TimeSeries ts = getSeriesById(catId);
+    TimeSeries ts = getSeriesByIdLocking(catId);
     if (ts == null)
       return false;
     return ts.isEnabled();
   }
 
   public void setSeriesEnabled(long catId, boolean b) {
-    TimeSeries ts = getSeriesById(catId);
+    TimeSeries ts = getSeriesByIdLocking(catId);
     if (ts == null)
       return;
     ts.setEnabled(b);
   }
 
   public void toggleSeriesEnabled(long catId) {
-    if (isSeriesEnabled(catId))
-      setSeriesEnabled(catId, false);
+    waitForLock();
+    TimeSeries ts = getSeriesByIdNonlocking(catId);
+    
+    if (ts.isEnabled())
+      ts.setEnabled(false);
     else
-      setSeriesEnabled(catId, true);
+      ts.setEnabled(true);
+    unlock();
     return;
   }
 
@@ -303,21 +299,23 @@ public class TimeSeriesCollector {
     return mSeries.get(i);
   }
 
-  public TimeSeries getSeriesById(long catId) {
-    waitForLock();
+  private TimeSeries getSeriesByIdNonlocking(long catId) {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
-      if (ts != null && ts.getDbRow().getId() == catId) {
-        unlock();
+      if (ts != null && ts.getDbRow().getId() == catId)
         return ts;
-      }
     }
-    unlock();
     return null;
   }
 
-  public TimeSeries getSeriesByName(String name) {
+  public TimeSeries getSeriesByIdLocking(long catId) {
     waitForLock();
+    TimeSeries ts = getSeriesByIdNonlocking(catId);
+    unlock();
+    return ts;
+  }
+
+  public TimeSeries getSeriesByNameNonlocking(String name) {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
       if (ts != null && ts.getDbRow().getCategoryName().equals(name)) {
@@ -325,8 +323,14 @@ public class TimeSeriesCollector {
         return ts;
       }
     }
-    unlock();
     return null;
+  }
+
+  public TimeSeries getSeriesByNameLocking(String name) {
+    waitForLock();
+    TimeSeries ts = getSeriesByNameNonlocking(name);
+    unlock();
+    return ts;
   }
 
   public ArrayList<TimeSeries> getAllSeries() {
@@ -343,7 +347,7 @@ public class TimeSeriesCollector {
     return list;
   }
 
-  public Datapoint getVisibleFirstDatapoint() {
+  public Datapoint getVisibleFirstDatapointLocking() {
     Datapoint first = null;
     waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
@@ -360,7 +364,7 @@ public class TimeSeriesCollector {
     return first;
   }
 
-  public Datapoint getVisibleLastDatapoint() {
+  public Datapoint getVisibleLastDatapointLocking() {
     Datapoint last = null;
     waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
@@ -379,30 +383,32 @@ public class TimeSeriesCollector {
 
   public void clearCache() {
     mDatapointCache.clearCache();
-    clearSeries();
+    clearSeriesLocking();
   }
-  
-  public synchronized void gatherLatestDatapoints(long catId, int history) {
+
+  public synchronized void gatherLatestDatapointsLocking(long catId, int history) {
     waitForLock();
     mDatapointCache.populateLatest(catId, history);
-    TimeSeries ts = getSeriesById(catId);
-    if (ts == null)
+    TimeSeries ts = getSeriesByIdNonlocking(catId);
+    if (ts == null) {
+      unlock();
       return;
+    }
 
     if (ts.getDbRow().getSynthetic() == false) {
       ts.clearSeries();
 
       EntryDbTable.Row entry = mDbh.fetchLastCategoryEntry(catId);
-      if (entry != null) {      
+      if (entry != null) {
         ArrayList<Datapoint> l = mDatapointCache.getLast(catId, history);
-        if (l == null || l.size() < 1 
+        if (l == null || l.size() < 1
             || entry.getTimestamp() > l.get(0).mMillis
             || entry.getValue() != l.get(0).mValue.y) {
           mDatapointCache.clearCache(catId);
           mDatapointCache.populateLatest(catId, history);
           l = mDatapointCache.getLast(catId, history);
         }
-        
+
         l = aggregateDatapoints(l, ts.getDbRow().getType());
         ts.setDatapoints(null, l, null);
       }
@@ -411,7 +417,7 @@ public class TimeSeriesCollector {
     unlock();
   }
 
-  public synchronized void gatherSeries(long milliStart, long milliEnd) {
+  public synchronized void gatherSeriesLocking(long milliStart, long milliEnd) {
     ArrayList<Datapoint> pre, range, post;
     boolean has_data;
     long oldAggregationMs = mAggregationMs;
@@ -492,8 +498,8 @@ public class TimeSeriesCollector {
     float lastTrend = 0.0f;
     float newTrend = 0.0f;
 
-    gatherLatestDatapoints(catId, mHistory);
-    TimeSeries ts = getSeriesById(catId);
+    gatherLatestDatapointsLocking(catId, mHistory);
+    TimeSeries ts = getSeriesByIdLocking(catId);
     if (ts == null)
       return;
 
@@ -516,7 +522,7 @@ public class TimeSeriesCollector {
 
         for (int j = 0; j < dependee.getDependents().size(); j++) {
           TimeSeries tmp = dependee.getDependents().get(j);
-          gatherLatestDatapoints(tmp.getDbRow().getId(), mHistory);
+          gatherLatestDatapointsLocking(tmp.getDbRow().getId(), mHistory);
         }
 
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());

@@ -207,7 +207,7 @@ public class InputActivity extends EvenTrendActivity {
     mTSC.setSmoothing(mSmoothing);
     mTSC.setSensitivity(mSensitivity);
     mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
-    mTSC.updateTimeSeriesMeta(true);
+    mTSC.updateTimeSeriesMetaLocking(true);
 
     mDataUpdater = new UpdateRecentDataTask(mTSC, mHistory);
     // mDataUpdater.setZerofill(true);
@@ -388,7 +388,7 @@ public class InputActivity extends EvenTrendActivity {
     scheduleUpdateNow();
     getPrefs();
 
-    mTSC.updateTimeSeriesMeta(false);
+    mTSC.updateTimeSeriesMetaLocking(false);
     fillCategoryData(mFlipper.getDisplayedChild());
     setCurrentViews(false);
 
@@ -621,7 +621,7 @@ public class InputActivity extends EvenTrendActivity {
 
   private void editEntries() {
     Intent i = new Intent(this, EntryListActivity.class);
-    mTSC.clearSeries();
+    mTSC.clearSeriesLocking();
     startActivityForResult(i, ENTRY_LIST);
   }
 
@@ -749,7 +749,8 @@ public class InputActivity extends EvenTrendActivity {
     if (mTSC.numSeries() > 0) {
       for (int i = 0; i < mTSC.numSeries(); i++) {
         TimeSeries ts = mTSC.getSeries(i);
-        mTSC.setSeriesEnabled(ts.getDbRow().getId(), false);
+        if (ts != null)
+          mTSC.setSeriesEnabled(ts.getDbRow().getId(), false);
       }
 
       int childIndex = mFlipper.getDisplayedChild();

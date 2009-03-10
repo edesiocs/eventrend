@@ -70,10 +70,10 @@ public class TimeSeriesCollectorTest extends TestCase {
     assertEquals(0, tsc.getAllEnabledSeries().size());
     assertNull(tsc.getLastDatapoint(0));
     assertNull(tsc.getLastDatapoint(1));
-    assertNull(tsc.getSeriesById(1));
-    assertNull(tsc.getSeriesByName("foo"));
-    assertNull(tsc.getVisibleFirstDatapoint());
-    assertNull(tsc.getVisibleLastDatapoint());
+    assertNull(tsc.getSeriesByIdLocking(1));
+    assertNull(tsc.getSeriesByNameLocking("foo"));
+    assertNull(tsc.getVisibleFirstDatapointLocking());
+    assertNull(tsc.getVisibleLastDatapointLocking());
     assertFalse(tsc.getAutoAggregation());
     assertFalse(tsc.isSeriesEnabled(1));
   }
@@ -91,24 +91,24 @@ public class TimeSeriesCollectorTest extends TestCase {
     cat2 = dbh.fetchCategory(2);
 
     // initial: 2 categories
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
     assertEquals(2, tsc.getAllSeries().size());
-    assertNotNull(tsc.getSeriesById(1).getDbRow());
-    assertNotSame(tsc.getSeriesById(1), tsc.getSeries(1));
-    assertNotNull(tsc.getSeriesById(1).getDbRow());
-    assertEquals(cat1.getId(), tsc.getSeriesById(1).getDbRow().getId());
-    assertNotNull(tsc.getSeriesById(2).getDbRow());
-    assertEquals(cat2.getId(), tsc.getSeriesById(2).getDbRow().getId());
-    assertNotNull(tsc.getSeriesById(1).getInterpolator());
-    assertNotNull(tsc.getSeriesById(2).getInterpolator());
-    assertNotSame(tsc.getSeriesById(1), tsc.getSeriesById(2));
-    assertEquals(1, tsc.getSeriesById(1).getDependents().size());
-    assertEquals(0, tsc.getSeriesById(1).getDependees().size());
-    assertEquals(0, tsc.getSeriesById(2).getDependents().size());
-    assertEquals(1, tsc.getSeriesById(2).getDependees().size());
-    assertEquals(tsc.getSeriesById(2), tsc.getSeriesById(1).getDependents()
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDbRow());
+    assertNotSame(tsc.getSeriesByIdLocking(1), tsc.getSeries(1));
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDbRow());
+    assertEquals(cat1.getId(), tsc.getSeriesByIdLocking(1).getDbRow().getId());
+    assertNotNull(tsc.getSeriesByIdLocking(2).getDbRow());
+    assertEquals(cat2.getId(), tsc.getSeriesByIdLocking(2).getDbRow().getId());
+    assertNotNull(tsc.getSeriesByIdLocking(1).getInterpolator());
+    assertNotNull(tsc.getSeriesByIdLocking(2).getInterpolator());
+    assertNotSame(tsc.getSeriesByIdLocking(1), tsc.getSeriesByIdLocking(2));
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDependents().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDependees().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(2).getDependents().size());
+    assertEquals(1, tsc.getSeriesByIdLocking(2).getDependees().size());
+    assertEquals(tsc.getSeriesByIdLocking(2), tsc.getSeriesByIdLocking(1).getDependents()
         .get(0));
-    assertEquals(tsc.getSeriesById(1), tsc.getSeriesById(2).getDependees().get(
+    assertEquals(tsc.getSeriesByIdLocking(1), tsc.getSeriesByIdLocking(2).getDependees().get(
         0));
 
     // Note: these tests being to get quite state-based, hence not really
@@ -124,27 +124,27 @@ public class TimeSeriesCollectorTest extends TestCase {
     cat3.setCategoryName("cat 3");
     dbh.addContent("categories", dbh.categoryRowToHashMap(cat3));
 
-    tsc.updateTimeSeriesMeta(false);
+    tsc.updateTimeSeriesMetaLocking(false);
     assertEquals(3, tsc.getAllSeries().size());
-    assertEquals(cat1.getId(), tsc.getSeriesById(1).getDbRow().getId());
-    assertEquals(cat2.getId(), tsc.getSeriesById(2).getDbRow().getId());
-    assertEquals(cat3.getId(), tsc.getSeriesById(3).getDbRow().getId());
-    assertNotSame(tsc.getSeriesById(1), tsc.getSeriesById(2));
-    assertEquals(1, tsc.getSeriesById(1).getDependents().size());
-    assertEquals(0, tsc.getSeriesById(1).getDependees().size());
-    assertEquals(0, tsc.getSeriesById(2).getDependents().size());
-    assertEquals(1, tsc.getSeriesById(2).getDependees().size());
+    assertEquals(cat1.getId(), tsc.getSeriesByIdLocking(1).getDbRow().getId());
+    assertEquals(cat2.getId(), tsc.getSeriesByIdLocking(2).getDbRow().getId());
+    assertEquals(cat3.getId(), tsc.getSeriesByIdLocking(3).getDbRow().getId());
+    assertNotSame(tsc.getSeriesByIdLocking(1), tsc.getSeriesByIdLocking(2));
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDependents().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDependees().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(2).getDependents().size());
+    assertEquals(1, tsc.getSeriesByIdLocking(2).getDependees().size());
     assertTrue(tsc.isSeriesEnabled(1));
     assertTrue(tsc.isSeriesEnabled(2));
     assertFalse(tsc.isSeriesEnabled(3));
-    assertEquals("cat 1", tsc.getSeriesById(1).getDbRow().getCategoryName());
-    assertEquals("cat 2", tsc.getSeriesById(2).getDbRow().getCategoryName());
-    assertEquals("cat 3", tsc.getSeriesById(3).getDbRow().getCategoryName());
-    assertEquals("cat 1", tsc.getSeriesByName("cat 1").getDbRow()
+    assertEquals("cat 1", tsc.getSeriesByIdLocking(1).getDbRow().getCategoryName());
+    assertEquals("cat 2", tsc.getSeriesByIdLocking(2).getDbRow().getCategoryName());
+    assertEquals("cat 3", tsc.getSeriesByIdLocking(3).getDbRow().getCategoryName());
+    assertEquals("cat 1", tsc.getSeriesByNameLocking("cat 1").getDbRow()
         .getCategoryName());
-    assertEquals("cat 2", tsc.getSeriesByName("cat 2").getDbRow()
+    assertEquals("cat 2", tsc.getSeriesByNameLocking("cat 2").getDbRow()
         .getCategoryName());
-    assertEquals("cat 3", tsc.getSeriesByName("cat 3").getDbRow()
+    assertEquals("cat 3", tsc.getSeriesByNameLocking("cat 3").getDbRow()
         .getCategoryName());
   }
 
@@ -156,47 +156,47 @@ public class TimeSeriesCollectorTest extends TestCase {
     reader.populateFromFile(makeFilePath("tsc_category_with_2entries.xml"));
     tsc = newTSC(dbh);
 
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
     
     // no series enabled, nothing should happen
     tsc.updateTimeSeriesData(1000, 2000, false);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDatapoints().size());
         
     tsc.setSeriesEnabled(1, true);
 
     // enabled, but no flush
     tsc.updateTimeSeriesData(1000, 2000, false);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(2, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
 
     reader.populateFromFile(makeFilePath("tsc_category_with_3entries.xml"));
 
     // ensure the old values are the same and didn't pick up the new value
     // outside the range
     tsc.updateTimeSeriesData(1000, 2000, false);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(2, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
 
     // pick up the new value and ensure the old values are the same
     tsc.updateTimeSeriesData(1000, 3000, false);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(1.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(2.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(1.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(2.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
 
     // flush the cache and re-read everything
     tsc.updateTimeSeriesData(1000, 3000, true);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
   }
   
   public void testVisibility() {
@@ -207,71 +207,71 @@ public class TimeSeriesCollectorTest extends TestCase {
     reader.populateFromFile(makeFilePath("tsc_category_with_3entries.xml"));
     tsc = newTSC(dbh);
 
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
     
     // no series enabled, nothing should happen
     tsc.updateTimeSeriesData(1000, 2000, false);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
-    assertNull(tsc.getVisibleFirstDatapoint());
-    assertNull(tsc.getVisibleLastDatapoint());
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapointLocking());
+    assertNull(tsc.getVisibleLastDatapointLocking());
     
     tsc.setSeriesEnabled(1, true);
 
     // no data within query range
     tsc.updateTimeSeriesData(100, 200, false);
-    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
-    assertNull(tsc.getVisibleFirstDatapoint());
-    assertNull(tsc.getVisibleLastDatapoint());
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapointLocking());
+    assertNull(tsc.getVisibleLastDatapointLocking());
 
     // one datapoint within range
     tsc.updateTimeSeriesData(100, 1000, false);
-    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
 
     // two datapoints within range
     tsc.updateTimeSeriesData(1000, 2000, false);
-    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    assertEquals(2, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
     
     // three datapoints within range
     tsc.updateTimeSeriesData(1000, 3000, false);
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
     
     // three datapoints gathered (from cache), but only 2 within range
     tsc.updateTimeSeriesData(1001, 3000, false);
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(20.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(30.0f, tsc.getVisibleLastDatapoint().mValue.y);
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(20.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(30.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
 
     // three datapoints gathered (from cache), but only 1 within range
     tsc.updateTimeSeriesData(1001, 2999, false);
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(20.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(20.0f, tsc.getVisibleLastDatapoint().mValue.y);    
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(20.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(20.0f, tsc.getVisibleLastDatapointLocking().mValue.y);    
   }
   
   public void testGatherLatest() {
@@ -282,72 +282,72 @@ public class TimeSeriesCollectorTest extends TestCase {
     reader.populateFromFile(makeFilePath("tsc_category_with_5entries.xml"));
     tsc = newTSC(dbh);
 
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
     
     // no series enabled, but gatherLatestDatapoints should ignore isEnabled()
-    tsc.gatherLatestDatapoints(1, 10);
-    assertNotNull(tsc.getSeriesById(1).getDatapoints());
-    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
-    assertNull(tsc.getVisibleFirstDatapoint());
-    assertNull(tsc.getVisibleLastDatapoint());
+    tsc.gatherLatestDatapointsLocking(1, 10);
+    assertNotNull(tsc.getSeriesByIdLocking(1).getDatapoints());
+    assertEquals(5, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapointLocking());
+    assertNull(tsc.getVisibleLastDatapointLocking());
  
     // reset, enabled one (so getVisible*Datapoint() is returns a value)
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
 
     // no datapoints
-    tsc.gatherLatestDatapoints(1, 0);
-    assertEquals(0, tsc.getSeriesById(1).getDatapoints().size());
-    assertNull(tsc.getVisibleFirstDatapoint());
-    assertNull(tsc.getVisibleLastDatapoint());
+    tsc.gatherLatestDatapointsLocking(1, 0);
+    assertEquals(0, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNull(tsc.getVisibleFirstDatapointLocking());
+    assertNull(tsc.getVisibleLastDatapointLocking());
 
     // latest one
-    tsc.gatherLatestDatapoints(1, 1);
-    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 1);
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
 
     // latest two, old last visible is 5000ms, make sure 4000ms is pulled in
-    tsc.gatherLatestDatapoints(1, 2);
-    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(40.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 2);
+    assertEquals(2, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(40.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
         
     // latest five
-    tsc.gatherLatestDatapoints(1, 5);
-    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 5);
+    assertEquals(5, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(4).mValue.y);
 
     // latest ten, only five to gather
-    tsc.gatherLatestDatapoints(1, 10);
-    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 10);
+    assertEquals(5, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(4).mValue.y);
 
     // reset, pull in two datapoints, then add some points to the DB, and make
     // sure that the new points are pulled when:
@@ -356,53 +356,53 @@ public class TimeSeriesCollectorTest extends TestCase {
     //   (3) the new points extend past the old range
 
     // case (1)
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
     tsc.updateTimeSeriesData(1000, 2000, false);
-    tsc.gatherLatestDatapoints(1, 2);
-    assertEquals(2, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(40.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 2);
+    assertEquals(2, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(40.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
 
     // case (2)
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
     tsc.updateTimeSeriesData(1000, 3000, false);
-    tsc.gatherLatestDatapoints(1, 3);
-    assertEquals(3, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(30.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 3);
+    assertEquals(3, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(30.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
 
     // case (3)
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
     tsc.updateTimeSeriesData(2000, 3000, false);
-    tsc.gatherLatestDatapoints(1, 5);
-    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
-    assertEquals(20.0f, tsc.getSeriesById(1).getDatapoints().get(1).mValue.y);
-    assertEquals(30.0f, tsc.getSeriesById(1).getDatapoints().get(2).mValue.y);
-    assertEquals(40.0f, tsc.getSeriesById(1).getDatapoints().get(3).mValue.y);
-    assertEquals(50.0f, tsc.getVisibleLastDatapoint().mValue.y);
-    assertEquals(50.0f, tsc.getSeriesById(1).getDatapoints().get(4).mValue.y);
+    tsc.gatherLatestDatapointsLocking(1, 5);
+    assertEquals(5, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
+    assertEquals(20.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(1).mValue.y);
+    assertEquals(30.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(2).mValue.y);
+    assertEquals(40.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(3).mValue.y);
+    assertEquals(50.0f, tsc.getVisibleLastDatapointLocking().mValue.y);
+    assertEquals(50.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(4).mValue.y);
   }
   
   public void testGatherSeries() {
@@ -413,84 +413,84 @@ public class TimeSeriesCollectorTest extends TestCase {
     reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
     tsc = newTSC(dbh);
 
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
 
     // one non-synthetic series enabled:
     tsc.setSeriesEnabled(1, true);
-    tsc.gatherSeries(900, 1100);
+    tsc.gatherSeriesLocking(900, 1100);
     assertEquals(3, tsc.getAllSeries().size());
     assertEquals(1, tsc.getAllEnabledSeries().size());
-    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(0, tsc.getSeriesById(2).getDatapoints().size());
-    assertEquals(0, tsc.getSeriesById(3).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
-    assertEquals(10.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(1000, tsc.getSeriesById(1).getDatapoints().get(0).mMillis);
-    assertEquals(10.0f, tsc.getSeriesById(1).getDatapoints().get(0).mValue.y);
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(2).getDatapoints().size());
+    assertEquals(0, tsc.getSeriesByIdLocking(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(1000, tsc.getVisibleFirstDatapointLocking().mMillis);
+    assertEquals(10.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(1000, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mMillis);
+    assertEquals(10.0f, tsc.getSeriesByIdLocking(1).getDatapoints().get(0).mValue.y);
     assertEquals(1000, tsc.getLastDatapoint(1).mMillis);
 
     // one synthetic series enabled, dependents not enabled
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(3, true);
-    tsc.gatherSeries(900, 1100);
+    tsc.gatherSeriesLocking(900, 1100);
     assertEquals(3, tsc.getAllSeries().size());
     assertEquals(1, tsc.getAllEnabledSeries().size());
-    assertEquals(1, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(1, tsc.getSeriesById(2).getDatapoints().size());
-    assertEquals(1, tsc.getSeriesById(3).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
-    assertEquals(110.0f, tsc.getVisibleFirstDatapoint().mValue.y);
-    assertEquals(1000, tsc.getSeriesById(3).getDatapoints().get(0).mMillis);
-    assertEquals(110.0f, tsc.getSeriesById(3).getDatapoints().get(0).mValue.y);
+    assertEquals(1, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(1, tsc.getSeriesByIdLocking(2).getDatapoints().size());
+    assertEquals(1, tsc.getSeriesByIdLocking(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(1000, tsc.getVisibleFirstDatapointLocking().mMillis);
+    assertEquals(110.0f, tsc.getVisibleFirstDatapointLocking().mValue.y);
+    assertEquals(1000, tsc.getSeriesByIdLocking(3).getDatapoints().get(0).mMillis);
+    assertEquals(110.0f, tsc.getSeriesByIdLocking(3).getDatapoints().get(0).mValue.y);
     assertEquals(10.0f, tsc.getLastDatapoint(1).mValue.y);
     assertEquals(100.0f, tsc.getLastDatapoint(2).mValue.y);
     assertNull(tsc.getLastDatapoint(3));
 
     // all enabled, query entire range
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
     tsc.setSeriesEnabled(2, true);
     tsc.setSeriesEnabled(3, true);
-    tsc.gatherSeries(500, 6000);
+    tsc.gatherSeriesLocking(500, 6000);
     assertEquals(3, tsc.getAllSeries().size());
     assertEquals(3, tsc.getAllEnabledSeries().size());
-    assertEquals(5, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(5, tsc.getSeriesById(2).getDatapoints().size());
-    assertEquals(5, tsc.getSeriesById(3).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(1000, tsc.getVisibleFirstDatapoint().mMillis);
-    assertEquals(5000, tsc.getVisibleLastDatapoint().mMillis);
+    assertEquals(5, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(5, tsc.getSeriesByIdLocking(2).getDatapoints().size());
+    assertEquals(5, tsc.getSeriesByIdLocking(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(1000, tsc.getVisibleFirstDatapointLocking().mMillis);
+    assertEquals(5000, tsc.getVisibleLastDatapointLocking().mMillis);
     assertEquals(50.0f, tsc.getLastDatapoint(1).mValue.y);
     assertEquals(500.0f, tsc.getLastDatapoint(2).mValue.y);
     assertNull(tsc.getLastDatapoint(3));
 
     // all enabled, query middle of range
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     tsc.setSeriesEnabled(1, true);
     tsc.setSeriesEnabled(2, true);
     tsc.setSeriesEnabled(3, true);
-    tsc.gatherSeries(2000, 4000);
+    tsc.gatherSeriesLocking(2000, 4000);
     assertEquals(3, tsc.getAllSeries().size());
     assertEquals(3, tsc.getAllEnabledSeries().size());
-    assertEquals(4, tsc.getSeriesById(1).getDatapoints().size());
-    assertEquals(4, tsc.getSeriesById(2).getDatapoints().size());
-    assertEquals(4, tsc.getSeriesById(3).getDatapoints().size());
-    assertNotNull(tsc.getVisibleFirstDatapoint());
-    assertNotNull(tsc.getVisibleLastDatapoint());
-    assertNotSame(tsc.getVisibleFirstDatapoint(), tsc.getVisibleLastDatapoint());
-    assertEquals(2000, tsc.getVisibleFirstDatapoint().mMillis);
-    assertEquals(4000, tsc.getVisibleLastDatapoint().mMillis);
+    assertEquals(4, tsc.getSeriesByIdLocking(1).getDatapoints().size());
+    assertEquals(4, tsc.getSeriesByIdLocking(2).getDatapoints().size());
+    assertEquals(4, tsc.getSeriesByIdLocking(3).getDatapoints().size());
+    assertNotNull(tsc.getVisibleFirstDatapointLocking());
+    assertNotNull(tsc.getVisibleLastDatapointLocking());
+    assertNotSame(tsc.getVisibleFirstDatapointLocking(), tsc.getVisibleLastDatapointLocking());
+    assertEquals(2000, tsc.getVisibleFirstDatapointLocking().mMillis);
+    assertEquals(4000, tsc.getVisibleLastDatapointLocking().mMillis);
     assertEquals(40.0f, tsc.getLastDatapoint(1).mValue.y);
     assertEquals(400.0f, tsc.getLastDatapoint(2).mValue.y);
     assertNull(tsc.getLastDatapoint(3));
@@ -506,7 +506,7 @@ public class TimeSeriesCollectorTest extends TestCase {
     reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
     tsc = newTSC(dbh);
 
-    tsc.updateTimeSeriesMeta(true);
+    tsc.updateTimeSeriesMetaLocking(true);
     // should not need to enabled any series
 
     // cat 1 should update, cat 3 as well, but not cat 2
@@ -536,8 +536,8 @@ public class TimeSeriesCollectorTest extends TestCase {
     // updating cat 3 should be a nop, since it's trend is only calculated when
     // it's dependents' trends are updated
     reader.populateFromFile(makeFilePath("tsc_3cats_5entries.xml"));
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(true);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(true);
     assertEquals("trend_unknown", dbh.fetchCategory(1).getTrendState());
     assertEquals(3.0f, dbh.fetchCategory(1).getLastTrend());    
     assertEquals("trend_unknown", dbh.fetchCategory(2).getTrendState());

@@ -92,11 +92,11 @@ public class UpdateRecentDataTask {
       return;
     }
 
-    TimeSeries ts = mTSC.getSeriesById(catId);
+    TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
     if (ts.getDbRow().getZeroFill() == false)
       return;
 
-    mTSC.gatherLatestDatapoints(catId, mHistory);
+    mTSC.gatherLatestDatapointsLocking(catId, mHistory);
     Datapoint d = mTSC.getLastDatapoint(catId);
     if (d == null)
       return;

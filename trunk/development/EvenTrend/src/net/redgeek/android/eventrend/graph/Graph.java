@@ -252,7 +252,8 @@ public class Graph {
         || mPlotSize.y <= 0)
       return;
 
-    mTSC.waitForLock();
+    if (mTSC.lock() == false)
+      return;
 
     TimeSeries ts = null;
     ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
@@ -480,7 +481,7 @@ public class Graph {
   private Dialog pointInfoDialog(Datapoint mSelected) {
     Builder b = new AlertDialog.Builder(mCtx);
 
-    TimeSeries ts = mTSC.getSeriesById(mSelected.mCatId);
+    TimeSeries ts = mTSC.getSeriesByIdLocking(mSelected.mCatId);
     int decimals = Preferences.getDecimalPlaces(mCtx);
 
     EvenTrendDbAdapter dbh = ((GraphActivity) mCtx).getDbh();
@@ -539,7 +540,7 @@ public class Graph {
     Builder b = new AlertDialog.Builder(mCtx);
     EvenTrendDbAdapter dbh = ((GraphActivity) mCtx).getDbh();
     CategoryDbTable.Row cat = dbh.fetchCategory(catId);
-    TimeSeries ts = mTSC.getSeriesById(catId);
+    TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
 
     int decimals = Preferences.getDecimalPlaces(mCtx);
 
