@@ -356,10 +356,6 @@ public class CalendarActivity extends EvenTrendActivity {
     startActivityForResult(i, GRAPH_VIEW);
   }
 
-  public EvenTrendDbAdapter getDbh() {
-    return getDbh();
-  }
-
   public ArrayList<Integer> getSeriesEnabledState() {
     return mSeriesEnabled;
   }
