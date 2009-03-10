@@ -180,7 +180,8 @@ public class CalendarPlot {
     if (mPlotSize.x <= 0 || mPlotSize.y <= 0)
       return;
 
-    mTSC.waitForLock();
+    if (mTSC.lock() == false)
+      return;
 
     canvas.translate(mPlotBorder.x / 2, mPlotBorder.y / 2);
     if (mSpan == Period.MONTH) {

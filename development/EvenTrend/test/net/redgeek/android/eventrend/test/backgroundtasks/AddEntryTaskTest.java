@@ -82,7 +82,7 @@ public class AddEntryTaskTest extends TestCase {
     
     // no zerofill (no aggregation)
     reader.populateFromFile(makeFilePath("addentry_nozerofill.xml"));
-    tsc.updateTimeSeriesMeta(false);
+    tsc.updateTimeSeriesMetaLocking(false);
     cat = dbh.fetchCategory(1);
     base_ms = System.currentTimeMillis();
     add_ms = DateUtil.mapPeriodToLong(Period.HOUR);
@@ -113,8 +113,8 @@ public class AddEntryTaskTest extends TestCase {
     
     // zerofill, 1h aggregation, new entry in aggregation period
     reader.populateFromFile(makeFilePath("addentry_zerofill_1h.xml"));
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(false);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(false);
     cat = dbh.fetchCategory(1);
     base_ms = System.currentTimeMillis();
     add_ms = -1000L;
@@ -144,8 +144,8 @@ public class AddEntryTaskTest extends TestCase {
     
     // zerofill, 1h aggregation, new entry past aggregation period
     reader.populateFromFile(makeFilePath("addentry_zerofill_1h.xml"));
-    tsc.clearSeries();
-    tsc.updateTimeSeriesMeta(false);
+    tsc.clearSeriesLocking();
+    tsc.updateTimeSeriesMetaLocking(false);
     cat = dbh.fetchCategory(1);
     base_ms = System.currentTimeMillis();
     add_ms = -DateUtil.mapPeriodToLong(Period.HOUR);

@@ -55,6 +55,6 @@ public class DataCollectionTask {
   }
 
   public void doCollection() {
-    mTSC.gatherSeries(mStartMS, mEndMS);
+    mTSC.gatherSeriesLocking(mStartMS, mEndMS);
   }
 }

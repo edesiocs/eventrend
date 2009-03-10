@@ -252,7 +252,7 @@ public class EntryEditActivity extends EvenTrendActivity {
         tsc.setSmoothing(mSmoothing);
         tsc.setSmoothing(mSensitivity);
         tsc.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
-        tsc.updateTimeSeriesMeta(true);
+        tsc.updateTimeSeriesMetaLocking(true);
         tsc.updateCategoryTrend(mCategoryId);
         setResult(RESULT_OK);
         getDbh().close();
@@ -447,7 +447,7 @@ public class EntryEditActivity extends EvenTrendActivity {
               tsc.setSensitivity(mSensitivity);
               tsc.setInterpolators(((EvenTrendActivity) getCtx())
                   .getInterpolators());
-              tsc.updateTimeSeriesMeta(true);
+              tsc.updateTimeSeriesMetaLocking(true);
               tsc.updateCategoryTrend(mCategoryId);
             }
             return;
@@ -462,7 +462,7 @@ public class EntryEditActivity extends EvenTrendActivity {
           tsc.setSensitivity(mSensitivity);
           tsc.setInterpolators(((EvenTrendActivity) getCtx())
               .getInterpolators());
-          tsc.updateTimeSeriesMeta(true);
+          tsc.updateTimeSeriesMetaLocking(true);
           tsc.updateCategoryTrend(mCategoryId);
         }
       }
