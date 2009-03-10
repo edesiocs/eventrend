@@ -46,6 +46,9 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
     result[0] = r1;
     if (first.equals(second) == true)
       return result;
+    if (first.x == second.x)
+      return null;
+
     r1.minus(first).divide(2.0f).plus(first);
     return result;
   }
@@ -53,6 +56,9 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
   public Float interpolateX(Tuple first, Tuple second, float atY) {
     if (first.equals(second) == true)
       return null;
+    if (first.x == second.x)
+      return null;
+
     float slope = (second.y - first.y) / (second.x - first.x);
     return new Float(first.x + (slope * (atY - first.y)));
   }
@@ -60,6 +66,9 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
   public Float interpolateY(Tuple first, Tuple second, float atX) {
     if (first.equals(second) == true)
       return null;
+    if (first.x == second.x)
+      return null;
+
     float slope = (second.y - first.y) / (second.x - first.x);
     return new Float(first.y + (slope * (atX - first.x)));
   }
