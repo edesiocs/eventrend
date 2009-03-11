@@ -267,7 +267,6 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void onFailure(Throwable t) {
-    mTSC.unlock();
   }
 
   public void updateData() {
