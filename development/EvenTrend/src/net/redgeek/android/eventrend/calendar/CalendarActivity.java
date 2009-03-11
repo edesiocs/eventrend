@@ -179,6 +179,8 @@ public class CalendarActivity extends EvenTrendActivity {
     mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
     mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new Long(2));
     mPeriodSpinner.setSelection(0);
+    mPeriodSpinner.setOnItemSelectedListener(mPeriodSpinnerListener);
+
 
     mProgress = new ProgressIndicator.Titlebar(getCtx());
 
@@ -211,10 +213,10 @@ public class CalendarActivity extends EvenTrendActivity {
         String period = ((TextView) v).getText().toString();
         if (period.equals(CategoryDbTable.KEY_PERIOD_YEAR)) {
           mCalendarView.getCalendar().setSpan(Period.YEAR);
-          mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.YEAR));
-        } else if (period.equals(CategoryDbTable.KEY_PERIOD_MONTH)) {
-          mCalendarView.getCalendar().setSpan(Period.YEAR);
           mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.MONTH));
+        } else if (period.equals(CategoryDbTable.KEY_PERIOD_MONTH)) {
+          mCalendarView.getCalendar().setSpan(Period.MONTH);
+          mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.DAY));
         }
         display();
         return;
