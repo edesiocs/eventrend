@@ -19,13 +19,21 @@ package net.redgeek.android.eventrend.synthetic;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.util.DynamicSpinner;
 import android.app.Dialog;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 public class FormulaEditorActivity extends EvenTrendActivity {
   private static final int FORMULA_HELP_MENU_ITEM = Menu.FIRST;
@@ -35,10 +43,18 @@ public class FormulaEditorActivity extends EvenTrendActivity {
 
   // UI elements
   private EditText mPage;
+  private DynamicSpinner mAddSeries;
+  private Spinner mAddOperator;
+  private Button mAddGroupButton;
+  private Button mClearButton;
   private Button mSaveButton;
   private Button mCancelButton;
 
   // Listeners
+  private Spinner.OnItemSelectedListener mAddSeriesListener;
+  private Spinner.OnItemSelectedListener mAddOperatorListener;
+  private View.OnClickListener mAddGroupListener;
+  private View.OnClickListener mClearListener;
   private View.OnClickListener mSaveListener;
   private View.OnClickListener mCancelListener;
 
@@ -75,7 +91,39 @@ public class FormulaEditorActivity extends EvenTrendActivity {
 
   private void setupUI() {
     setupListeners();
-
+    
+    LinearLayout addMenuLayout = (LinearLayout) findViewById(R.id.formula_add_series_layout);
+    
+    mAddSeries = new DynamicSpinner(getCtx());
+    mAddSeries.setPrompt("Insert Series");
+    addMenuLayout.addView(mAddSeries, new LinearLayout.LayoutParams(
+        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+    Cursor c = getDbh().fetchAllCategories();
+    c.moveToFirst();
+    for (int i = 0; i < c.getCount(); i++) {
+      long id = CategoryDbTable.getId(c);
+      String name = CategoryDbTable.getCategoryName(c);
+      mAddSeries.addSpinnerItem(name, new Long(id));
+      c.moveToNext();
+    }
+    c.close();
+    mAddSeries.setSelected(false);
+    mAddSeries.setOnItemSelectedListener(mAddSeriesListener);
+    
+    mAddOperator = (Spinner) findViewById(R.id.formula_operator_menu);
+    mAddOperator.setPrompt("Insert Operator");
+    ArrayAdapter adapter = ArrayAdapter.createFromResource(
+            this, R.array.formula_operators, android.R.layout.simple_spinner_item);
+    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    mAddOperator.setAdapter(adapter);
+    mAddOperator.setOnItemSelectedListener(mAddOperatorListener);
+    
+    mAddGroupButton = (Button) findViewById(R.id.formula_add_group);
+    mAddGroupButton.setOnClickListener(mAddGroupListener);    
+    
+    mClearButton = (Button) findViewById(R.id.formula_clear);
+    mClearButton.setOnClickListener(mClearListener);    
+    
     mSaveButton = (Button) findViewById(R.id.formula_save);
     mSaveButton.setOnClickListener(mSaveListener);
 
@@ -83,9 +131,58 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     mCancelButton.setOnClickListener(mCancelListener);
 
     mPage = (EditText) findViewById(R.id.formula_edit);
+    mPage.getText().clear();
   }
 
   private void setupListeners() {
+    mAddSeriesListener = new Spinner.OnItemSelectedListener() {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
+        int cursor = mPage.getSelectionStart();
+        String series = ((TextView) v).getText().toString();
+        // TODO: escape quotes
+        mPage.getText().insert(cursor, "series \"" + series + "\"");
+        return;
+      }
+
+      public void onNothingSelected(AdapterView arg0) {
+        return;
+      }
+    };
+
+    mAddOperatorListener = new Spinner.OnItemSelectedListener() {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
+        int cursor = mPage.getSelectionStart();
+        String operator = ((TextView) v).getText().toString();
+        if (operator.equals("prev value")) {
+          mPage.getText().insert(cursor, " previous value ");
+        } else if (operator.equals("prev time")) {
+          mPage.getText().insert(cursor, "previous timestamp ");
+        } else {
+          mPage.getText().insert(cursor, " " + operator + " ");
+        }
+        return;
+      }
+
+      public void onNothingSelected(AdapterView arg0) {
+        return;
+      }
+    };
+    
+    mAddGroupListener = new View.OnClickListener() {
+      public void onClick(View view) {
+        int cursor = mPage.getSelectionStart();
+        mPage.getText().insert(cursor, "( )");
+      }
+    };
+
+    mClearListener = new View.OnClickListener() {
+      public void onClick(View view) {
+        mPage.getText().clear();
+      }
+    };
+
     mSaveListener = new View.OnClickListener() {
       public void onClick(View view) {
         // TODO: try parsing, check result
