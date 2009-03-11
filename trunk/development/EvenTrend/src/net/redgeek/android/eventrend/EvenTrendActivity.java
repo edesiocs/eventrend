@@ -68,6 +68,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final String GRAPH_START_MS = "GraphStartMS";
   public static final String GRAPH_END_MS = "GraphEndMS";
   public static final String GRAPH_AGGREGATION = "GraphAggregation";
+  public static final String CALENDAR_PERIOD = "CalendarPeriod";
 
   private Context mCtx;
   private EvenTrendDbAdapter mDbh;
