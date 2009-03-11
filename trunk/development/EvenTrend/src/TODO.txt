@@ -2,7 +2,6 @@ TODO:
 	Input:
 	  don't zerofill final (current) period, so NEntries is correct
 	Graph
-	  * retain filtered series on orientation change
 		test re-plotting of graphs after edit
 	CalendarView:
 	  * help/info legend
