@@ -78,10 +78,12 @@ the color of the value in the box denotes the same for the value.  Click a week 
 graph of that week, click the month header to go to a graph of the month.
 </string>
 <string name="formula_help">
-Data Range info is only calculated over the highlighted portions of the display.  The color behind
-date indicates the trend going toward or away from the goal compared to the previous day, and
-the color of the value in the box denotes the same for the value.  Click a week to go to a
-graph of that week, click the month header to go to a graph of the month.
+Data Range info is only calculated over all the displayed data.  The solid color 
+at the top of the box indicates the trend going toward or away from the goal compared to the previous
+day, and the color of the value in the box denotes wether the trend was going toward or away from the
+goal compared to the previous day.  Brighter colors indicate a larger change, dimmer colors a smaller
+change, and gray indicates that the value was essentially flat (as determined by the sensitivity
+preferences.)
 </string>
 <string name="overview">
 EvenTrend is a program to track arbitrary data over time.  In short, you can create categories 
