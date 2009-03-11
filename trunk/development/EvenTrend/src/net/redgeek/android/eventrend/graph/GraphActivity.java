@@ -156,6 +156,13 @@ public class GraphActivity extends EvenTrendActivity {
       mStartMs = icicle.getLong(GRAPH_START_MS);
       mEndMs = icicle.getLong(GRAPH_END_MS);
       mAggregation = icicle.getLong(GRAPH_AGGREGATION);
+      mSeriesEnabled = icicle.getIntegerArrayList(VIEW_DEFAULT_CATIDS);
+      if (mSeriesEnabled != null) {
+        for (int i = 0; i < mSeriesEnabled.size(); i++) {
+          Integer j = mSeriesEnabled.get(i);
+          mTSC.setSeriesEnabled(j.longValue(), true);
+        }
+      }
     }
   }
 
@@ -419,7 +426,7 @@ public class GraphActivity extends EvenTrendActivity {
   @Override
   protected void onSaveInstanceState(Bundle outState) {
     if (mSeriesEnabled != null)
-      outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
+      outState.putIntegerArrayList(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
 
     outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
     outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());
