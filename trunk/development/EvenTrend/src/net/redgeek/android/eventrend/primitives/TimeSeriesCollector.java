@@ -212,7 +212,6 @@ public class TimeSeriesCollector {
     try {
       return mLock.tryLock(1000L, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
-      Log.v("tsc", "failed to gain lock: " + e.getStackTrace());
       return false;
     }
   }
