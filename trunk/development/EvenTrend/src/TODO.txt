@@ -3,8 +3,10 @@ TODO:
 	  don't zerofill final (current) period, so NEntries is correct
 		fix category re-ordering
 	Graph
+	  retain filtered series on orientation change
 		test re-plotting of graphs after edit
 	CalendarView:
+	  help/info legend
 		test re-plotting of calendars after edit
 		make it pretty
 		re-chart on prefs changes
