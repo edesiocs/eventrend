@@ -2,16 +2,18 @@ TODO:
 	Input:
 	  don't zerofill final (current) period, so NEntries is correct
 	CalendarView:
-	  * help/info legend
 	  set aggregation correctly when calling graph
 		Year/Month Views
 			add in animations on flings
-			* fix range info to only take into account the highlighted range
+			* fix range info to only take into account the highlighted range, update
+			  help to indicate this
 	Formula Editor:
 	  clean up interface
+	  escape quotes in series names
 	General:
     test re-plotting of graph
-		set various text-entry to numeric (and see if numeric does floats)
+		set various text-entry to numeric (and see if numeric does floats), use
+		   filters instead of onkey listeners
 		documentation
 		flush out tests, particularly WRT android libs (position?)
 			
