@@ -769,6 +769,7 @@ public class InputActivity extends EvenTrendActivity {
   // *** Animations ***//
   private void swapCategoryPositions(CategoryListAdapter cla, int higher,
       int lower) {
+    TimeSeries ts;
     CategoryRow above = (CategoryRow) cla.getItem(higher);
     CategoryRow below = (CategoryRow) cla.getItem(lower);
 
@@ -781,14 +782,20 @@ public class InputActivity extends EvenTrendActivity {
     getDbh().updateCategoryRank(above.getDbRow().getId(),
         above.getDbRow().getRank());
 
-    cla.swapItems(higher, lower);
-
+    ts = mTSC.getSeriesByIdLocking(above.getDbRow().getId());
+    if (ts != null)
+      ts.getDbRow().setRank(above.getDbRow().getRank());
+    ts = mTSC.getSeriesByIdLocking(below.getDbRow().getId());
+    if (ts != null)
+      ts.getDbRow().setRank(below.getDbRow().getRank());
+    
     CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(higher);
     CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(lower);
 
-    swapUpDown(top, bottom, getCtx());
+    swapUpDown(top, bottom, getCtx());    
+    fillCategoryData(mFlipper.getDisplayedChild());
   }
 
   public static void slideDown(ViewGroup group, Context ctx) {

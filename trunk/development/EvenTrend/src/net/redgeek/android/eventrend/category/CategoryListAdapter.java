@@ -37,6 +37,13 @@ public class CategoryListAdapter extends BaseAdapter {
   }
 
   public void addItem(CategoryRow it) {
+    for (int i = 0; i < mItems.size(); i++) {
+      CategoryRow inPlace = mItems.get(i);
+      if (it.compareTo(inPlace) < 0) {
+        mItems.add(i, it);
+        return;
+      }
+    }
     mItems.add(it);
   }
 
@@ -66,13 +73,6 @@ public class CategoryListAdapter extends BaseAdapter {
 
   public long getItemId(int position) {
     return position;
-  }
-
-  public void swapItems(int a, int b) {
-    CategoryRow objA = mItems.get(a);
-    CategoryRow objB = mItems.get(b);
-    mItems.remove(a);
-    mItems.add(a, objB);
   }
 
   public View getView(int position, View convertView, ViewGroup parent) {
