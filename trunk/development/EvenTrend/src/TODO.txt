@@ -1,14 +1,11 @@
 TODO:
 	Input:
-	  zerofill after adding, so NEntries is correct
-		**** fix periodic hangs in add 
+	  don't zerofill final (current) period, so NEntries is correct
 		fix category re-ordering
 	Graph
-		test re-ploting of graphs after edit
-		check to see why it's plotted twice on button toggle
+		test re-plotting of graphs after edit
 	CalendarView:
-		get plotting of synthetic series working
-		test re-ploting of calendars after edit
+		test re-plotting of calendars after edit
 		make it pretty
 		re-chart on prefs changes
 		MonthView
@@ -29,13 +26,12 @@ TODO:
 			
 Future Work:
 	EditList
-		change to fast scrolling list (as per demo)
+		change to fast scrolling list instead of paginated
 	Import/Export:
 		update trend on import
 		bluetooth sync'ing?
 		Twitter'ing significant events?
 		make an explicit (non-indeterminate) progressbar for import/export
-		make the parser proper
 		merge import
 	CategoryEdit:
 		fix color picker
@@ -47,8 +43,7 @@ Future Work:
 		initial X label is offset too far/missing sometimes
 		customizable status field
 		make popup arrows left/right to scroll one page to each side
-		make zoom show some zoom-out indicators
-		make timeseries not clear on update, but merge
+		make zoom show some zoom-out animation indication
 		move y axis to make space for number of digits (largest Y value + decimals)
 	EquationEditor:
 		make category not have to be saved first
@@ -57,12 +52,9 @@ Future Work:
 			write help menu
 	General:
 		add id's to everything so it can persist across saveinstancestate
-		change listview activities to scrollviews -- should get EditTexts in listviews to work correctly
 		predict time until goal
 		separate sensitivities for flat/little/big
-		auto check for updates
-		add last entry to category db, present on each row
-		period backups
+		periodic automated backups
 		change dialog/input layouts when in landscape
 		alert for future events/deviations?
 		combobox impl & prefs
@@ -72,5 +64,5 @@ Future Work:
 			# of items in recent items combobox
 			number of entries per page in editing
 			purge entries older than X
-			default amount of time to present
+			default amount of time to graph
 			

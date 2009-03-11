@@ -176,12 +176,8 @@ public class CalendarActivity extends EvenTrendActivity {
     mPeriodSpinner.setPrompt("View");
     mCalendarControls.addView(mPeriodSpinner, new LinearLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-    // mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_DAY, new
-    // Long(0));
-    mPeriodSpinner
-        .addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
-    // mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new
-    // Long(2));
+    mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
+    mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new Long(2));
     mPeriodSpinner.setSelection(0);
 
     mProgress = new ProgressIndicator.Titlebar(getCtx());

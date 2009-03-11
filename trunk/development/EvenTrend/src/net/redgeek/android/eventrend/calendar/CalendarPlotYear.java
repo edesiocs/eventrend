@@ -21,16 +21,24 @@ import java.util.Calendar;
 
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.calendar.CalendarPlot.PaintIndex;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 import net.redgeek.android.eventrend.util.Number.TrendState;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.RectF;
 
 public class CalendarPlotYear {
+  private static final int N_YEARS      = 5;
+  private static final int YEAR_PADDING = 5;
+  
   // UI elements
   private ArrayList<Paint> mPaints;
 
@@ -45,6 +53,8 @@ public class CalendarPlotYear {
 
   private Tuple mDimensions;
   private long mStartMS;
+  private long mFocusStart;
+  private long mFocusEnd;
 
   public CalendarPlotYear(Context context, TimeSeriesCollector tsc,
       ArrayList<Paint> paints, Tuple dimensions) {
@@ -72,8 +82,8 @@ public class CalendarPlotYear {
   }
 
   private void setCellSizes() {
-    mCellHeight = (mDimensions.y) / 6.0f;
-    mCellWidth = (mDimensions.x) / 7.0f;
+    mCellHeight = (mDimensions.y - YEAR_PADDING * (N_YEARS + 1)) / N_YEARS;
+    mCellWidth = (mDimensions.x) / 12.0f;
     mColorHeight = mCellHeight / mTSC.numSeries();
   }
 
@@ -84,17 +94,17 @@ public class CalendarPlotYear {
     if (mDimensions.x <= 0 || mDimensions.y <= 0)
       return;
 
-    // drawMonth(canvas);
+    drawYear(canvas);
 
     return;
   }
 
   private int positionToRow(int position) {
-    return position / 7;
+    return position / 12;
   }
 
   private int positionToColumn(int position) {
-    return position % 7;
+    return position % 12;
   }
 
   private Tuple getCellTopLeft(int position) {
@@ -131,25 +141,278 @@ public class CalendarPlotYear {
   }
 
   private int setStartTime() {
-    int focusMonth;
-
     Calendar cal = mDates.getCalendar();
     cal.setTimeInMillis(mStartMS);
-    DateUtil.setToPeriodStart(cal, Period.MONTH);
+    DateUtil.setToPeriodStart(cal, Period.YEAR);
     long ms = cal.getTimeInMillis();
     mDates.setBaseTime(ms);
 
-    int month = mDates.get(Calendar.MONTH);
-    int position = mDates.get(Calendar.DAY_OF_WEEK);
+    return mDates.get(Calendar.YEAR);
+  }
+  
+  private void drawYearMonthBackground(Canvas canvas, boolean focused,
+      int position, int month, float lastTrend, float thisTrend, float goal,
+      float stdDev) {
+    Paint p = null;
 
-    focusMonth = month;
+    Tuple topLeft = getCellTopLeft(position);
+    Tuple bottomRight = getCellBottomRight(position);
+    // RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x,
+    // bottomRight.y);
+    RectF cell = new RectF(topLeft.x, topLeft.y, topLeft.x + 20, topLeft.y + 18);
 
-    if (position == cal.getFirstDayOfWeek()) {
-      mDates.advance(Period.DAY, -7);
+    float unit = stdDev * mSensitivity;
+    float half = unit / 2;
+    float quarter = half / 2;
+
+    float delta = thisTrend - lastTrend;
+    float absDelta = Math.abs(delta);
+    if (absDelta > 0 && absDelta > quarter) {
+      if ((delta > 0 && goal > thisTrend) || (delta < 0 && goal < thisTrend)) {
+        if (delta > unit)
+          p = mPaints.get(PaintIndex.DATUM_GOOD4.ordinal());
+        else if (delta > half + quarter)
+          p = mPaints.get(PaintIndex.DATUM_GOOD3.ordinal());
+        else if (delta > half)
+          p = mPaints.get(PaintIndex.DATUM_GOOD2.ordinal());
+        else
+          // if (delta > quarter)
+          p = mPaints.get(PaintIndex.DATUM_GOOD1.ordinal());
+      } else {
+        if (delta > unit)
+          p = mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
+        else if (delta > half + quarter)
+          p = mPaints.get(PaintIndex.DATUM_BAD3.ordinal());
+        else if (delta > half)
+          p = mPaints.get(PaintIndex.DATUM_BAD2.ordinal());
+        else
+          // if (delta > quarter)
+          p = mPaints.get(PaintIndex.DATUM_BAD1.ordinal());
+      }
     } else {
-      mDates.advance(Period.DAY, -position + 1);
+      // even
+      if (Math.abs(thisTrend - goal) < half)
+        p = mPaints.get(PaintIndex.DATUM_EVEN_GOAL.ordinal());
+      else
+        p = null;
+      // p = mPaints.get(PaintIndex.DATUM_EVEN.ordinal());
     }
 
-    return focusMonth;
+    if (p != null) {
+      canvas.drawRect(cell, p);
+    }
+  }
+  
+  private void drawYearMonthValue(Canvas canvas, int position, float prevValue,
+      float thisValue, float goal, float stdDev) {
+    Paint p;
+    Tuple topLeft = getCellTopLeft(position);
+    Tuple bottomRight = getCellBottomRight(position);
+
+    float unit = stdDev * mSensitivity;
+    float half = unit / 2;
+    float quarter = half / 2;
+
+    float delta = thisValue - prevValue;
+    float absDelta = Math.abs(delta);
+    if (absDelta > 0 && absDelta > quarter) {
+      if ((delta > 0 && goal > thisValue) || (delta < 0 && goal < thisValue)) {
+        if (delta > unit)
+          p = mPaints.get(PaintIndex.DATUM_GOOD4.ordinal());
+        else if (delta > half + quarter)
+          p = mPaints.get(PaintIndex.DATUM_GOOD3.ordinal());
+        else if (delta > half)
+          p = mPaints.get(PaintIndex.DATUM_GOOD2.ordinal());
+        else
+          // if (delta > quarter)
+          p = mPaints.get(PaintIndex.DATUM_GOOD1.ordinal());
+      } else {
+        if (delta > unit)
+          p = mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
+        else if (delta > half + quarter)
+          p = mPaints.get(PaintIndex.DATUM_BAD3.ordinal());
+        else if (delta > half)
+          p = mPaints.get(PaintIndex.DATUM_BAD2.ordinal());
+        else
+          // if (delta > quarter)
+          p = mPaints.get(PaintIndex.DATUM_BAD1.ordinal());
+      }
+    } else {
+      // even
+      if (Math.abs(thisValue - goal) < half)
+        p = mPaints.get(PaintIndex.DATUM_EVEN_GOAL.ordinal());
+      else
+        p = mPaints.get(PaintIndex.DATUM_EVEN.ordinal());
+    }
+
+    // Paint p = mPaints.get(PaintIndex.VALUE.ordinal());
+    canvas.drawText("" + Number.Round(thisValue), topLeft.x + 3,
+        bottomRight.y - 4, p);
+  }
+
+  private void drawYearMonthBorder(Canvas canvas, boolean focused, int position,
+      int date) {
+    Tuple topLeft = getCellTopLeft(position);
+    Tuple bottomRight = getCellBottomRight(position);
+
+    Paint p;
+    if (focused == true) {
+      p = mPaints.get(PaintIndex.BORDER_SECONDARY.ordinal());
+      RectF cell = new RectF(topLeft.x, topLeft.y, topLeft.x + 20,
+          topLeft.y + 18);
+      canvas.drawRect(cell, p);
+
+      cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+      canvas.drawRect(cell, p);
+
+      p = mPaints.get(PaintIndex.LABEL.ordinal());
+      canvas.drawText("" + date, topLeft.x + 3, topLeft.y
+          + CalendarView.TEXT_HEIGHT + 3, p);
+
+    } else {
+      p = mPaints.get(PaintIndex.BORDER_SECONDARY.ordinal());
+      Path border = new Path();
+
+      border.moveTo(topLeft.x, topLeft.y + 18);
+      border.lineTo(topLeft.x + 20, topLeft.y + 18);
+      border.lineTo(topLeft.x + 20, topLeft.y);
+
+      if (position < 14) {
+        border.moveTo(topLeft.x, bottomRight.y);
+        border.lineTo(topLeft.x, topLeft.y);
+        border.lineTo(bottomRight.x, topLeft.y);
+        border.lineTo(bottomRight.x, bottomRight.y);
+
+      } else {
+        border.moveTo(topLeft.x, topLeft.y);
+        border.lineTo(topLeft.x, bottomRight.y);
+        border.lineTo(bottomRight.x, bottomRight.y);
+        border.lineTo(bottomRight.x, topLeft.y);
+      }
+      canvas.drawPath(border, p);
+      p = mPaints.get(PaintIndex.LABEL.ordinal());
+      canvas.drawText("" + date, topLeft.x + 3, topLeft.y
+          + CalendarView.TEXT_HEIGHT + 3, p);
+
+    }
+  }
+
+  private void drawFocusBorder(Canvas canvas, int firstPosition,
+      int lastPosition) {
+    Tuple start = new Tuple();
+    Tuple corner1, corner2;
+    int firstRow = positionToRow(firstPosition);
+    int firstCol = positionToColumn(firstPosition);
+    int lastRow = positionToRow(lastPosition);
+    int lastCol = positionToColumn(lastPosition);
+
+    Path border = new Path();
+
+    corner1 = getCellTopLeft(firstPosition);
+    corner2 = getCellBottomRight(firstPosition);
+    start.x = corner1.x;
+    start.y = corner2.y;
+
+    border.moveTo(start.x, start.y);
+    border.lineTo(corner1.x, corner1.y);
+
+    corner2 = getCellBottomRight(firstPosition - 1 + (7 - (firstPosition % 7)));
+    border.lineTo(corner2.x, corner1.y);
+
+    corner1 = getCellBottomRight(lastPosition - ((lastPosition + 1) % 7));
+    border.lineTo(corner2.x, corner1.y);
+
+    corner2 = getCellTopLeft(lastPosition - 6);
+    border.lineTo(corner2.x, corner1.y);
+
+    corner1 = getCellBottomRight(lastPosition);
+    border.lineTo(corner2.x, corner1.y);
+
+    corner2 = getCellTopLeft(lastPosition - (lastPosition % 7));
+    border.lineTo(corner2.x, corner1.y);
+
+    corner1 = getCellTopLeft(firstPosition + (7 - ((firstPosition - 1) % 7)));
+    border.lineTo(corner2.x, corner1.y);
+
+    border.lineTo(start.x, start.y);
+
+    Paint p = mPaints.get(PaintIndex.BORDER_PRIMARY.ordinal());
+    canvas.drawPath(border, p);
+    p = mPaints.get(PaintIndex.BORDER_HIGHLIGHT.ordinal());
+    canvas.drawPath(border, p);
+  }
+
+  private void drawYear(Canvas canvas) {
+    Calendar tmp = Calendar.getInstance();
+    TimeSeries ts;
+    Datapoint prev, current;
+    int focusYear;
+    int month;
+
+    focusYear = setStartTime();
+
+    Calendar cal = mDates.getCalendar();
+    long ms = cal.getTimeInMillis();
+
+    int position = 0;
+    for (int i = 0; i < 5; i++) {
+      month = mDates.get(Calendar.MONTH);
+
+      ms = mDates.getCalendar().getTimeInMillis();
+      for (int s = 0; s < mTSC.numSeries(); s++) {
+        ts = (TimeSeries) mTSC.getSeries(s);
+        if (ts == null || mTSC.isSeriesEnabled(ts.getDbRow().getId()) == false)
+          continue;
+
+        current = ts.findPostNeighbor(ms);
+        prev = ts.findPreNeighbor(ms - 1);
+
+        if (current != null && prev != null) {
+          if (focusYear == mDates.get(Calendar.YEAR)) {
+            drawYearMonthBackground(canvas, true, position, month, prev.mTrend.y,
+                current.mTrend.y, ts.getDbRow().getGoal(), current.mStdDev);
+          } else {
+            drawYearMonthBackground(canvas, false, position, month, prev.mTrend.y,
+                current.mTrend.y, ts.getDbRow().getGoal(), current.mStdDev);
+          }
+        }
+
+//        if (current != null) {
+//          float oldVal = current.mValue.y;
+//          if (prev != null)
+//            oldVal = prev.mValue.y;
+//
+//          tmp.setTimeInMillis(current.mMillis);
+//          if (month == tmp.get(Calendar.MONTH)) {
+//            drawYearMonthValue(canvas, position, oldVal, current.mValue.y, ts
+//                .getDbRow().getGoal(), current.mStdDev);
+//          }
+//        }
+      }
+
+//      if (focusYear == mDates.get(Calendar.YEAR)) {
+//        if (month == 0) {
+//          mFocusStart = ms;
+//        }
+//        if (month == 11) {
+//          mFocusEnd = ms + DateUtil.YEAR_MS - 1;
+//        }
+//
+//        drawYearMonthBorder(canvas, true, position, day);
+//      } else {
+//        drawYearMonthBorder(canvas, false, position, day);
+//      }
+//      mDates.advance(Period.MONTH, 1);
+    }
+
+//    drawFocusBorder(canvas, firstPosition, lastPosition);
+  }
+  
+  public long getFocusStart() {
+    return mFocusStart;
+  }
+
+  public long getFocusEnd() {
+    return mFocusEnd;
   }
 }
