@@ -38,7 +38,6 @@ public class CalendarPlot {
   private Paint mBorderHighlightPaint;
   private Paint mBackgroundPaint;
 
-  // private CalendarPlotDay mDayPlot;
   private CalendarPlotMonth mMonthPlot;
   private CalendarPlotYear mYearPlot;
 
@@ -119,7 +118,6 @@ public class CalendarPlot {
 
     setColorScheme();
 
-    // mDayPlot = new CalendarPlotDay(mTSC);
     mMonthPlot = new CalendarPlotMonth(mCtx, mTSC, mPaints, Tuple.minus(
         mPlotSize, mPlotBorder));
     mYearPlot = new CalendarPlotYear(mCtx, mTSC, mPaints, Tuple.minus(
@@ -188,14 +186,10 @@ public class CalendarPlot {
       mMonthPlot.setStart(mStartMS);
       mMonthPlot.plot(canvas);
     }
-    // else if (mSpan == Period.DAY) {
-    // mDayPlot.setStart(mStartMS);
-    // mDayPlot.plot(canvas);
-    // }
-    // else if (mSpan == Period.YEAR) {
-    // mYearPlot.setStart(mStartMS);
-    // mYearPlot.plot(canvas);
-    // }
+     else if (mSpan == Period.YEAR) {
+      mYearPlot.setStart(mStartMS);
+      mYearPlot.plot(canvas);
+    }
 
     mTSC.unlock();
 
@@ -206,12 +200,9 @@ public class CalendarPlot {
     if (mSpan == Period.MONTH) {
       return mMonthPlot.getFocusStart();
     }
-    // else if (mSpan == Period.DAY) {
-    // return mDayPlot.getFocusStart();
-    // }
-    // else if (mSpan == Period.YEAR) {
-    // return mYearPlot.getFocusStart();
-    // }
+    else if (mSpan == Period.YEAR) {
+      return mYearPlot.getFocusStart();
+    }
     return 0;
   }
 
@@ -219,12 +210,9 @@ public class CalendarPlot {
     if (mSpan == Period.MONTH) {
       return mMonthPlot.getFocusEnd();
     }
-    // else if (mSpan == Period.DAY) {
-    // return mDayPlot.getFocusEnd();
-    // }
-    // else if (mSpan == Period.YEAR) {
-    // return mYearPlot.getFocusEnd();
-    // }
+    else if (mSpan == Period.YEAR) {
+      return mYearPlot.getFocusEnd();
+    }
     return 0;
   }
 
