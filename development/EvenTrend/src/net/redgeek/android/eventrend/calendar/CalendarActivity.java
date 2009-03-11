@@ -90,6 +90,7 @@ public class CalendarActivity extends EvenTrendActivity {
   private float mSmoothing;
   private float mSensitivity;
   private int mDecimals;
+  private Period mPeriod;
 
   // Saved across orientation changes
   private long mStartMs;
@@ -130,9 +131,13 @@ public class CalendarActivity extends EvenTrendActivity {
 
     Calendar cal = Calendar.getInstance();
     mStartMs = getIntent().getLongExtra(GRAPH_START_MS, cal.getTimeInMillis());
+    long ms = getIntent().getLongExtra(CALENDAR_PERIOD, DateUtil.MONTH_MS);
+    mPeriod = DateUtil.mapLongToPeriod(ms);
 
     if (icicle != null) {
       mStartMs = icicle.getLong(GRAPH_START_MS);
+      ms = icicle.getLong(CALENDAR_PERIOD);
+      mPeriod = DateUtil.mapLongToPeriod(ms);
     }
   }
 
@@ -148,6 +153,7 @@ public class CalendarActivity extends EvenTrendActivity {
     mCalendarView.resetZoom();
     mCalendarView.setFadingEdgeLength(CalendarView.BORDER_Y * 2);
     mCalendarView.setVerticalFadingEdgeEnabled(true);
+    mCalendarView.setPeriod(mPeriod);
 
     mCalendarViewLayout = (LinearLayout) findViewById(R.id.calendar_plot);
     mCalendarViewLayout.addView(mCalendarView);
@@ -178,9 +184,11 @@ public class CalendarActivity extends EvenTrendActivity {
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
     mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_MONTH, new Long(1));
     mPeriodSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIOD_YEAR, new Long(2));
-    mPeriodSpinner.setSelection(0);
+    if (mPeriod == Period.MONTH)
+      mPeriodSpinner.setSelection(0);
+    else if(mPeriod == Period.YEAR)
+      mPeriodSpinner.setSelection(1);
     mPeriodSpinner.setOnItemSelectedListener(mPeriodSpinnerListener);
-
 
     mProgress = new ProgressIndicator.Titlebar(getCtx());
 
@@ -212,10 +220,12 @@ public class CalendarActivity extends EvenTrendActivity {
           long id) {
         String period = ((TextView) v).getText().toString();
         if (period.equals(CategoryDbTable.KEY_PERIOD_YEAR)) {
-          mCalendarView.setPeriod(Period.YEAR);
+          mPeriod = Period.YEAR;
+          mCalendarView.setPeriod(mPeriod);
           mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.MONTH));
         } else if (period.equals(CategoryDbTable.KEY_PERIOD_MONTH)) {
-          mCalendarView.setPeriod(Period.MONTH);
+          mPeriod = Period.MONTH;
+          mCalendarView.setPeriod(mPeriod);
           mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.DAY));
         }
         display();
@@ -392,8 +402,10 @@ public class CalendarActivity extends EvenTrendActivity {
     if (mSeriesEnabled != null)
       outState.putIntegerArrayList("defaultCatIds", mSeriesEnabled);
 
+    long periodMs = DateUtil.mapPeriodToLong(mPeriod);
     outState.putLong(GRAPH_START_MS, mCalendarView.getCalendar()
         .getCalendarStart());
+    outState.putLong(CALENDAR_PERIOD, periodMs);
     super.onSaveInstanceState(outState);
   }
 

@@ -460,7 +460,7 @@ public class Number {
      */
     public float getStandardDev() {
       int nValues = mValues.size();
-
+      
       float mean = 0.0f;
       float meanSqr = 0.0f;
       float variance = 0.0f;

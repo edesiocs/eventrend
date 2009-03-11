@@ -8,11 +8,9 @@ TODO:
 		test re-plotting of calendars after edit
 		make it pretty
 		re-chart on prefs changes
-		MonthView
+		Year/Month Views
 			add in animations on flings
 			fix range info to only take into account the highlighted range
-		YearView		
-			implement
 	Formula:
 		add menus for "insert term" && "insert op" && "()"
 	General:

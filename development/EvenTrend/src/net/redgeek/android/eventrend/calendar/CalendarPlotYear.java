@@ -82,7 +82,11 @@ public class CalendarPlotYear {
   }
 
   private void setCellSizes() {
-    mCellHeight = (mDimensions.y - YEAR_PADDING * (N_YEARS + 1)) / N_YEARS;
+    mCellHeight = (mDimensions.y 
+                    - (CalendarView.TEXT_HEIGHT + YEAR_PADDING)
+                    - (YEAR_PADDING * (N_YEARS + 1))
+                    - (CalendarView.TEXT_HEIGHT * (N_YEARS + 1)))
+                    / N_YEARS;
     mCellWidth = (mDimensions.x) / 12.0f;
     mColorHeight = mCellHeight / mTSC.numSeries();
   }
@@ -109,15 +113,21 @@ public class CalendarPlotYear {
 
   private Tuple getCellTopLeft(int position) {
     Tuple t = new Tuple();
+    int row = positionToRow(position);
     t.x = (positionToColumn(position) * mCellWidth);
-    t.y = (positionToRow(position) * mCellHeight);
+    t.y = (CalendarView.TEXT_HEIGHT * 2) + YEAR_PADDING;
+    t.y += (row * mCellHeight);
+    t.y += row * (YEAR_PADDING + CalendarView.TEXT_HEIGHT + YEAR_PADDING);
     return t;
   }
 
   private Tuple getCellBottomRight(int position) {
     Tuple t = new Tuple();
+    int row = positionToRow(position);
     t.x = (positionToColumn(position) * mCellWidth) + mCellWidth;
-    t.y = (positionToRow(position) * mCellHeight) + mCellHeight;
+    t.y = (CalendarView.TEXT_HEIGHT * 2) + YEAR_PADDING;
+    t.y += (row * mCellHeight) + mCellHeight;
+    t.y += row * (YEAR_PADDING + CalendarView.TEXT_HEIGHT + YEAR_PADDING);
     return t;
   }
 
@@ -141,13 +151,18 @@ public class CalendarPlotYear {
   }
 
   private int setStartTime() {
+    int focusYear;
+    
     Calendar cal = mDates.getCalendar();
     cal.setTimeInMillis(mStartMS);
     DateUtil.setToPeriodStart(cal, Period.YEAR);
+    focusYear = mDates.get(Calendar.YEAR);
+
     long ms = cal.getTimeInMillis();
     mDates.setBaseTime(ms);
-
-    return mDates.get(Calendar.YEAR);
+    mDates.advance(Period.YEAR, -2);
+    
+    return focusYear;
   }
   
   private void drawYearMonthBackground(Canvas canvas, boolean focused,
@@ -159,7 +174,8 @@ public class CalendarPlotYear {
     Tuple bottomRight = getCellBottomRight(position);
     // RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x,
     // bottomRight.y);
-    RectF cell = new RectF(topLeft.x, topLeft.y, topLeft.x + 20, topLeft.y + 18);
+    RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, topLeft.y + 
+        ((bottomRight.y - topLeft.y) / 3.0f));
 
     float unit = stdDev * mSensitivity;
     float half = unit / 2;
@@ -245,101 +261,63 @@ public class CalendarPlotYear {
         p = mPaints.get(PaintIndex.DATUM_EVEN.ordinal());
     }
 
+    int offset = 0;
+    if (mCellWidth < 40) {
+      if (position % 2 == 0)
+        offset = -CalendarView.TEXT_HEIGHT - 3;
+    }
+    
     // Paint p = mPaints.get(PaintIndex.VALUE.ordinal());
     canvas.drawText("" + Number.Round(thisValue), topLeft.x + 3,
-        bottomRight.y - 4, p);
+        bottomRight.y + offset - 4, p);
   }
 
   private void drawYearMonthBorder(Canvas canvas, boolean focused, int position,
-      int date) {
+      int month) {
     Tuple topLeft = getCellTopLeft(position);
     Tuple bottomRight = getCellBottomRight(position);
 
     Paint p;
     if (focused == true) {
       p = mPaints.get(PaintIndex.BORDER_SECONDARY.ordinal());
-      RectF cell = new RectF(topLeft.x, topLeft.y, topLeft.x + 20,
-          topLeft.y + 18);
+      RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
       canvas.drawRect(cell, p);
-
-      cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
-      canvas.drawRect(cell, p);
-
-      p = mPaints.get(PaintIndex.LABEL.ordinal());
-      canvas.drawText("" + date, topLeft.x + 3, topLeft.y
-          + CalendarView.TEXT_HEIGHT + 3, p);
-
     } else {
       p = mPaints.get(PaintIndex.BORDER_SECONDARY.ordinal());
-      Path border = new Path();
-
-      border.moveTo(topLeft.x, topLeft.y + 18);
-      border.lineTo(topLeft.x + 20, topLeft.y + 18);
-      border.lineTo(topLeft.x + 20, topLeft.y);
-
-      if (position < 14) {
-        border.moveTo(topLeft.x, bottomRight.y);
-        border.lineTo(topLeft.x, topLeft.y);
-        border.lineTo(bottomRight.x, topLeft.y);
-        border.lineTo(bottomRight.x, bottomRight.y);
-
-      } else {
-        border.moveTo(topLeft.x, topLeft.y);
-        border.lineTo(topLeft.x, bottomRight.y);
-        border.lineTo(bottomRight.x, bottomRight.y);
-        border.lineTo(bottomRight.x, topLeft.y);
-      }
-      canvas.drawPath(border, p);
-      p = mPaints.get(PaintIndex.LABEL.ordinal());
-      canvas.drawText("" + date, topLeft.x + 3, topLeft.y
-          + CalendarView.TEXT_HEIGHT + 3, p);
-
+      RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
+      canvas.drawRect(cell, p);
     }
   }
 
   private void drawFocusBorder(Canvas canvas, int firstPosition,
       int lastPosition) {
     Tuple start = new Tuple();
-    Tuple corner1, corner2;
-    int firstRow = positionToRow(firstPosition);
-    int firstCol = positionToColumn(firstPosition);
-    int lastRow = positionToRow(lastPosition);
-    int lastCol = positionToColumn(lastPosition);
+    Tuple topLeft = getCellTopLeft(firstPosition);
+    Tuple bottomRight = getCellBottomRight(lastPosition);
 
-    Path border = new Path();
-
-    corner1 = getCellTopLeft(firstPosition);
-    corner2 = getCellBottomRight(firstPosition);
-    start.x = corner1.x;
-    start.y = corner2.y;
-
-    border.moveTo(start.x, start.y);
-    border.lineTo(corner1.x, corner1.y);
-
-    corner2 = getCellBottomRight(firstPosition - 1 + (7 - (firstPosition % 7)));
-    border.lineTo(corner2.x, corner1.y);
-
-    corner1 = getCellBottomRight(lastPosition - ((lastPosition + 1) % 7));
-    border.lineTo(corner2.x, corner1.y);
-
-    corner2 = getCellTopLeft(lastPosition - 6);
-    border.lineTo(corner2.x, corner1.y);
-
-    corner1 = getCellBottomRight(lastPosition);
-    border.lineTo(corner2.x, corner1.y);
-
-    corner2 = getCellTopLeft(lastPosition - (lastPosition % 7));
-    border.lineTo(corner2.x, corner1.y);
-
-    corner1 = getCellTopLeft(firstPosition + (7 - ((firstPosition - 1) % 7)));
-    border.lineTo(corner2.x, corner1.y);
-
-    border.lineTo(start.x, start.y);
+    RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y);
 
     Paint p = mPaints.get(PaintIndex.BORDER_PRIMARY.ordinal());
-    canvas.drawPath(border, p);
+    canvas.drawRect(cell, p);
     p = mPaints.get(PaintIndex.BORDER_HIGHLIGHT.ordinal());
-    canvas.drawPath(border, p);
+    canvas.drawRect(cell, p);
+  }
+  
+  private void drawMonthHeader(Canvas canvas) {
+    Paint p = mPaints.get(PaintIndex.LABEL.ordinal());
+    for (int i = 0; i < 12; i++) {
+      Tuple topLeft = getCellTopLeft(i);
+      canvas.drawText(DateUtil.MONTHS[i], topLeft.x + 3, CalendarView.TEXT_HEIGHT - 3, p);
+    }
+  }
+
+  private void drawYearHeader(Canvas canvas, int position, int year) {
+    Paint p = mPaints.get(PaintIndex.LABEL.ordinal());
+    Tuple topLeft = getCellTopLeft(position);
+    Tuple bottomRight = getCellBottomRight(position + 11);
+    
+    canvas.drawText("" + year, topLeft.x + YEAR_PADDING + 3, topLeft.y
+        - 3, p);
   }
 
   private void drawYear(Canvas canvas) {
@@ -347,15 +325,20 @@ public class CalendarPlotYear {
     TimeSeries ts;
     Datapoint prev, current;
     int focusYear;
-    int month;
+    int month, year;
+    int firstPosition = 0;
+    int lastPosition = 0;
 
     focusYear = setStartTime();
 
     Calendar cal = mDates.getCalendar();
     long ms = cal.getTimeInMillis();
 
+    drawMonthHeader(canvas);
+
     int position = 0;
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < N_YEARS * 12; i++, position++) {
+      year = mDates.get(Calendar.YEAR);
       month = mDates.get(Calendar.MONTH);
 
       ms = mDates.getCalendar().getTimeInMillis();
@@ -377,35 +360,41 @@ public class CalendarPlotYear {
           }
         }
 
-//        if (current != null) {
-//          float oldVal = current.mValue.y;
-//          if (prev != null)
-//            oldVal = prev.mValue.y;
-//
-//          tmp.setTimeInMillis(current.mMillis);
-//          if (month == tmp.get(Calendar.MONTH)) {
-//            drawYearMonthValue(canvas, position, oldVal, current.mValue.y, ts
-//                .getDbRow().getGoal(), current.mStdDev);
-//          }
-//        }
+        if (current != null) {
+          float oldVal = current.mValue.y;
+          if (prev != null)
+            oldVal = prev.mValue.y;
+
+          tmp.setTimeInMillis(current.mMillis);
+          if (month == tmp.get(Calendar.MONTH) && year == tmp.get(Calendar.YEAR)) {
+            drawYearMonthValue(canvas, position, oldVal, current.mValue.y, ts
+                .getDbRow().getGoal(), current.mStdDev);
+          }
+        }
+      }
+      
+      if (month == 0) {
+        drawYearHeader(canvas, position, year);
       }
 
-//      if (focusYear == mDates.get(Calendar.YEAR)) {
-//        if (month == 0) {
-//          mFocusStart = ms;
-//        }
-//        if (month == 11) {
-//          mFocusEnd = ms + DateUtil.YEAR_MS - 1;
-//        }
-//
-//        drawYearMonthBorder(canvas, true, position, day);
-//      } else {
-//        drawYearMonthBorder(canvas, false, position, day);
-//      }
-//      mDates.advance(Period.MONTH, 1);
+      if (focusYear == mDates.get(Calendar.YEAR)) {
+        if (month == 0) {
+          firstPosition = position;
+          mFocusStart = ms;
+        }
+        if (month == 11) {
+          lastPosition = position;
+          mFocusEnd = ms + DateUtil.YEAR_MS - 1;
+        }
+
+        drawYearMonthBorder(canvas, true, position, month);
+      } else {
+        drawYearMonthBorder(canvas, false, position, month);
+      }
+      mDates.advance(Period.MONTH, 1);
     }
 
-//    drawFocusBorder(canvas, firstPosition, lastPosition);
+    drawFocusBorder(canvas, firstPosition, lastPosition);
   }
   
   public long getFocusStart() {
