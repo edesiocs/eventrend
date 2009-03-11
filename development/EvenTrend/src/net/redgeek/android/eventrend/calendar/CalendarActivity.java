@@ -212,10 +212,10 @@ public class CalendarActivity extends EvenTrendActivity {
           long id) {
         String period = ((TextView) v).getText().toString();
         if (period.equals(CategoryDbTable.KEY_PERIOD_YEAR)) {
-          mCalendarView.getCalendar().setSpan(Period.YEAR);
+          mCalendarView.setPeriod(Period.YEAR);
           mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.MONTH));
         } else if (period.equals(CategoryDbTable.KEY_PERIOD_MONTH)) {
-          mCalendarView.getCalendar().setSpan(Period.MONTH);
+          mCalendarView.setPeriod(Period.MONTH);
           mTSC.setAggregationMs(DateUtil.mapPeriodToLong(Period.DAY));
         }
         display();

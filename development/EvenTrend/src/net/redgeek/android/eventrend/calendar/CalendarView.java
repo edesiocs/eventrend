@@ -163,6 +163,11 @@ public class CalendarView extends View implements OnLongClickListener, GUITask {
 
     GUITaskQueue.getInstance().addTask(mProgress, this);
   }
+  
+  public void setPeriod(Period p) {
+    mPeriod = p;
+    getCalendar().setSpan(p);
+  }
 
   private void setStartEnd() {
     long displayStart = mCalendarPlot.getCalendarStart();
@@ -219,10 +224,6 @@ public class CalendarView extends View implements OnLongClickListener, GUITask {
     } else if (mPeriod == Period.MONTH) {
       mStatus.setText(DateUtil.MONTHS[c.get(Calendar.MONTH)] + " "
           + c.get(Calendar.YEAR));
-    } else if (mPeriod == Period.DAY) {
-      mStatus.setText(DateUtil.DAYS[c.get(Calendar.DAY_OF_WEEK)] + ", "
-          + DateUtil.MONTHS[c.get(Calendar.MONTH)] + " "
-          + c.get(Calendar.DAY_OF_MONTH) + " " + c.get(Calendar.YEAR));
     }
   }
 
