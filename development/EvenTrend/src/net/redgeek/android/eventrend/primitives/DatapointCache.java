@@ -255,7 +255,7 @@ public class DatapointCache {
     Cursor entries = mDbh.fetchCategoryEntriesRange(catCache.getCategoryId(),
         start, end);
 
-    if (entries.getCount() > 0) {
+    if (entries != null && entries.getCount() > 0) {
       entries.moveToFirst();
       for (int j = 0; j < entries.getCount(); j++) {
         entry.populateFromCursor(entries);

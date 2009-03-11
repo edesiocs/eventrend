@@ -93,8 +93,16 @@ public class CategoryDatapointCache {
 
   public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {
     ArrayList<Datapoint> range = new ArrayList<Datapoint>();
-    SortedMap<Long, Datapoint> map = mCache.subMap(Long.valueOf(msStart), Long
-        .valueOf(msEnd + 1));
+    SortedMap<Long, Datapoint> map;
+
+    if (msStart > msEnd)
+      return range;
+    
+    try {
+      map = mCache.subMap(Long.valueOf(msStart), Long.valueOf(msEnd + 1));
+    } catch (NullPointerException e) {
+      return range;
+    }
 
     Iterator<Datapoint> iterator = map.values().iterator();
     while (iterator.hasNext()) {
@@ -108,9 +116,18 @@ public class CategoryDatapointCache {
 
   public ArrayList<Datapoint> getDataBefore(int number, long ms) {
     ArrayList<Datapoint> pre = new ArrayList<Datapoint>();
-    SortedMap<Long, Datapoint> range = mCache.headMap(Long.valueOf(ms));
-    SortedMap<Long, Datapoint> reverse = new TreeMap<Long, Datapoint>(
-        java.util.Collections.reverseOrder());
+    SortedMap<Long, Datapoint> range;
+    SortedMap<Long, Datapoint> reverse;
+    
+    try {
+      range = mCache.headMap(Long.valueOf(ms));
+    } catch (NullPointerException e) {
+      return pre;
+    } catch (IllegalArgumentException e) {
+      return pre;
+    }
+    
+    reverse = new TreeMap<Long, Datapoint>(java.util.Collections.reverseOrder());
     reverse.putAll(range);
 
     Iterator<Datapoint> iterator = reverse.values().iterator();
@@ -127,9 +144,17 @@ public class CategoryDatapointCache {
 
   public ArrayList<Datapoint> getDataAfter(int number, long ms) {
     ArrayList<Datapoint> post = new ArrayList<Datapoint>();
-    SortedMap<Long, Datapoint> range = mCache.tailMap(Long.valueOf(ms) + 1);
-    Iterator<Datapoint> iterator = range.values().iterator();
+    SortedMap<Long, Datapoint> range;
 
+    try {
+      range = mCache.tailMap(Long.valueOf(ms) + 1);
+    } catch (NullPointerException e) {
+      return post;
+    } catch (IllegalArgumentException e) {
+      return post;
+    }
+
+    Iterator<Datapoint> iterator = range.values().iterator();
     for (int i = 0; i < number && iterator.hasNext();) {
       Datapoint d = iterator.next();
       if (d != null) {

@@ -145,7 +145,6 @@ public class CalendarView extends View implements OnLongClickListener, GUITask {
   }
 
   public void onFailure(Throwable t) {
-    mTSC.unlock();
   }
 
   public void resetZoom() {

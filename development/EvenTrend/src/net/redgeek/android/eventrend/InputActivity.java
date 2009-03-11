@@ -227,7 +227,6 @@ public class InputActivity extends EvenTrendActivity {
           setTimestampNow();
         if (newHour != mOldHour) {
           mOldHour = newHour;
-          mDataUpdater = new UpdateRecentDataTask(mTSC, mHistory);
           mDataUpdater.setZerofill(true);
           mDataUpdater.setUpdateTrend(true);
           GUITaskQueue.getInstance().addTask(mProgress, (GUITask) getCtx());
