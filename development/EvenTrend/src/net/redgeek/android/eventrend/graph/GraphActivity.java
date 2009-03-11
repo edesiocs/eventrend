@@ -351,6 +351,14 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private void calendarView() {
+    mSeriesEnabled.clear();
+    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
+    for (int j = 0; j < series.size(); j++) {
+      TimeSeries ts = series.get(j);
+      if (ts != null)
+        mSeriesEnabled.add(new Integer((int) ts.getDbRow().getId()));
+    }
+    
     Intent i = new Intent(this, CalendarActivity.class);
     i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
     i.putExtra(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
@@ -425,9 +433,15 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    if (mSeriesEnabled != null)
-      outState.putIntegerArrayList(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
+    mSeriesEnabled.clear();
+    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
+    for (int j = 0; j < series.size(); j++) {
+      TimeSeries ts = series.get(j);
+      if (ts != null)
+        mSeriesEnabled.add(new Integer((int) ts.getDbRow().getId()));
+    }
 
+    outState.putIntegerArrayList(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
     outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
     outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());
     outState.putLong(GRAPH_AGGREGATION, mAggregation);
