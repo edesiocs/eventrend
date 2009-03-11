@@ -9,6 +9,25 @@
 		android:gravity="top|left" android:scrollbars="vertical"
 		android:singleLine="false" android:layout_gravity="top|left"></EditText>
 
+  <LinearLayout android:layout_height="wrap_content"
+    android:layout_width="fill_parent" android:orientation="horizontal">
+
+    <Button android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="()"
+      android:id="@+id/formula_add_group" android:layout_gravity="left|center_vertical">
+    </Button>
+    <LinearLayout android:layout_height="wrap_content"
+      android:layout_width="wrap_content" android:orientation="horizontal"
+      android:id="@+id/formula_add_series_layout">
+    </LinearLayout>
+    <Spinner android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/formula_operator_menu">
+    </Spinner>    
+    <Button android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:text="Clear"
+      android:id="@+id/formula_clear" android:layout_gravity="left|center_vertical">
+    </Button>
+  </LinearLayout>
+
 	<LinearLayout android:layout_height="wrap_content"
 		android:layout_width="fill_parent" android:orientation="horizontal">
 
