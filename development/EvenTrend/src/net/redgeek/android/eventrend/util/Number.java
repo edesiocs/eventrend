@@ -17,6 +17,9 @@
 package net.redgeek.android.eventrend.util;
 
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 
@@ -407,11 +410,11 @@ public class Number {
 
   /**
    * Class for keeping track of the Standard Deviation over the last X values.
-   * Not thread safe.
    * 
    * @author barclay
    */
   public static class WindowedStdDev {
+    private Lock mLock;
     private ArrayList<Float> mValues;
     private int mHistory;
 
@@ -421,6 +424,7 @@ public class Number {
     public WindowedStdDev(int history) {
       mHistory = history;
       mValues = new ArrayList<Float>(mHistory);
+      mLock = new ReentrantLock();
     }
 
     /**
@@ -431,11 +435,34 @@ public class Number {
      *          source.
      */
     public WindowedStdDev(WindowedStdDev source) {
+      source.waitForLock();
       mHistory = source.mHistory;
       mValues = new ArrayList<Float>(mHistory);
       for (int i = 0; i < source.mValues.size(); i++) {
-        mValues.add(new Float(source.mValues.get(i)));
+        try {
+          mValues.add(new Float(source.mValues.get(i)));          
+        } catch(IndexOutOfBoundsException e) {
+          break;
+        }
       }
+      source.unlock();
+    }
+
+    public void waitForLock() {
+      while (lock() == false) {
+      }
+    }
+
+    public boolean lock() {
+      try {
+        return mLock.tryLock(250L, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        return false;
+      }
+    }
+
+    public void unlock() {
+      mLock.unlock();
     }
 
     /**
@@ -445,10 +472,16 @@ public class Number {
      *          The value to update the statistics with.
      */
     public void update(float val) {
+      waitForLock();
       mValues.add(new Float(val));
-      if (mValues.size() > mHistory)
-        mValues.remove(0);
-
+      if (mValues.size() > mHistory) {
+        try {
+          mValues.remove(0);
+        } catch(IndexOutOfBoundsException e) {
+          // nothing
+        }
+      }
+      unlock();
       return;
     }
 
@@ -459,21 +492,27 @@ public class Number {
      *          The value to update the statistics with.
      */
     public float getStandardDev() {
-      int nValues = mValues.size();
-      
       float mean = 0.0f;
       float meanSqr = 0.0f;
       float variance = 0.0f;
       float delta = 0.0f;
       float val = 0.0f;
 
-      for (int i = 0; i < nValues; i++) {
-        val = mValues.get(i);
-        delta = val - mean;
-        mean = mean + delta / (i + 1);
-        meanSqr = meanSqr + delta * (val - mean);
-      }
+      waitForLock();
 
+      int nValues = mValues.size();
+      for (int i = 0; i < nValues; i++) {
+        try {
+          val = mValues.get(i);
+          delta = val - mean;
+          mean = mean + delta / (i + 1);
+          meanSqr = meanSqr + delta * (val - mean);
+        } catch(IndexOutOfBoundsException e) {
+          break;
+        }
+      }
+      unlock();
+      
       variance = meanSqr / nValues;
       return (float) Math.sqrt(variance);
     }
