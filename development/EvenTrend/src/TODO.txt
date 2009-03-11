@@ -1,0 +1,76 @@
+TODO:
+	Input:
+	  zerofill after adding, so NEntries is correct
+		**** fix periodic hangs in add 
+		fix category re-ordering
+	Graph
+		test re-ploting of graphs after edit
+		check to see why it's plotted twice on button toggle
+	CalendarView:
+		get plotting of synthetic series working
+		test re-ploting of calendars after edit
+		make it pretty
+		re-chart on prefs changes
+		MonthView
+			add in animations on flings
+			fix range info to only take into account the highlighted range
+		YearView		
+			implement
+	Formula:
+		add menus for "insert term" && "insert op" && "()"
+	General:
+	    on upgrade:  export to CSV before DB alters/drops
+		set various text-entry to numeric (and see if numeric does floats)
+		move calendar views to plugins
+		fix locking on data collection/plotting
+		documentation
+		performance improvements
+		flush out unittests, particularly WRT android libs (e.g., position)
+			
+Future Work:
+	EditList
+		change to fast scrolling list (as per demo)
+	Import/Export:
+		update trend on import
+		bluetooth sync'ing?
+		Twitter'ing significant events?
+		make an explicit (non-indeterminate) progressbar for import/export
+		make the parser proper
+		merge import
+	CategoryEdit:
+		fix color picker
+		per-category interface (combobox, +/-, slider) prefs
+	InputEntry:
+		sliders w/ named values?
+		last value / default value pref
+	Graph:
+		initial X label is offset too far/missing sometimes
+		customizable status field
+		make popup arrows left/right to scroll one page to each side
+		make zoom show some zoom-out indicators
+		make timeseries not clear on update, but merge
+		move y axis to make space for number of digits (largest Y value + decimals)
+	EquationEditor:
+		make category not have to be saved first
+		UI
+			highlight bad term, tell what was being expected
+			write help menu
+	General:
+		add id's to everything so it can persist across saveinstancestate
+		change listview activities to scrollviews -- should get EditTexts in listviews to work correctly
+		predict time until goal
+		separate sensitivities for flat/little/big
+		auto check for updates
+		add last entry to category db, present on each row
+		period backups
+		change dialog/input layouts when in landscape
+		alert for future events/deviations?
+		combobox impl & prefs
+		implement prefs
+			import/export dir
+			combobox or +/- prefs
+			# of items in recent items combobox
+			number of entries per page in editing
+			purge entries older than X
+			default amount of time to present
+			
