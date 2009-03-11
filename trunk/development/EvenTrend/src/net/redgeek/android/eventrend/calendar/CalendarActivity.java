@@ -360,7 +360,10 @@ public class CalendarActivity extends EvenTrendActivity {
     i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
     i.putExtra(GRAPH_START_MS, mCalendarView.getCalendar().getFocusStart());
     i.putExtra(GRAPH_END_MS, mCalendarView.getCalendar().getFocusEnd());
-    i.putExtra(GRAPH_AGGREGATION, DateUtil.DAY_MS);
+    if (mPeriod == Period.YEAR)
+      i.putExtra(GRAPH_AGGREGATION, DateUtil.MONTH_MS);
+    else if (mPeriod == Period.MONTH)
+      i.putExtra(GRAPH_AGGREGATION, DateUtil.DAY_MS);
     startActivityForResult(i, GRAPH_VIEW);
   }
 
