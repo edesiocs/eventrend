@@ -175,9 +175,9 @@ public class CalendarView extends View implements OnLongClickListener, GUITask {
       DateUtil.setToPeriodStart(cal, Period.YEAR);
       displayStart = cal.getTimeInMillis();
       mDates.setBaseTime(displayStart);
-      mDates.advance(Period.YEAR, -7);
+      mDates.advance(Period.YEAR, -3);
       collectionStart = cal.getTimeInMillis();
-      collectionEnd = collectionStart + DateUtil.YEAR_MS * 8;
+      collectionEnd = collectionStart + DateUtil.YEAR_MS * 5;
     } else if (mPeriod == Period.MONTH) {
       DateUtil.setToPeriodStart(cal, Period.MONTH);
       displayStart = cal.getTimeInMillis();
@@ -208,8 +208,6 @@ public class CalendarView extends View implements OnLongClickListener, GUITask {
     mTSC.setSmoothing(Preferences.getSmoothingConstant(mCtx));
     mTSC.setAutoAggregationOffset(-2);
 
-    // Useful debugging: uncomment the following, and comment out the
-    // addTask() below -- this makes the data collection run synchronously.
     mCollector.setSpan(collectionStart, collectionEnd);
   }
 
