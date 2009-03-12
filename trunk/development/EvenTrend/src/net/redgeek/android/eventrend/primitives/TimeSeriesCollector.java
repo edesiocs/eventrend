@@ -447,26 +447,41 @@ public class TimeSeriesCollector {
       mDatapointCache.populateRange(ts.getDbRow().getId(), mCollectionStart,
           mCollectionEnd, mAggregationMs);
 
+//      pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory,
+//          mCollectionStart);
+//      if (pre != null && pre.size() > 0) {
+//        has_data = true;
+//        pre = aggregateDatapoints(pre, ts.getDbRow().getType());
+//      }
+//
+//      range = mDatapointCache.getDataInRange(ts.getDbRow().getId(),
+//          mCollectionStart, mCollectionEnd);
+//      if (range != null && range.size() > 0) {
+//        has_data = true;
+//        range = aggregateDatapoints(range, ts.getDbRow().getType());
+//      }
+//
+//      post = mDatapointCache.getDataAfter(ts.getDbRow().getId(), 1,
+//          mCollectionEnd);
+//      if (post != null && range.size() > 0) {
+//        has_data = true;
+//        post = aggregateDatapoints(post, ts.getDbRow().getType());
+//      }
+
       pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory,
           mCollectionStart);
-      if (pre != null && pre.size() > 0) {
+      if (pre != null && pre.size() > 0)
         has_data = true;
-        pre = aggregateDatapoints(pre, ts.getDbRow().getType());
-      }
 
       range = mDatapointCache.getDataInRange(ts.getDbRow().getId(),
           mCollectionStart, mCollectionEnd);
-      if (range != null && range.size() > 0) {
+      if (range != null && range.size() > 0)
         has_data = true;
-        range = aggregateDatapoints(range, ts.getDbRow().getType());
-      }
 
       post = mDatapointCache.getDataAfter(ts.getDbRow().getId(), 1,
           mCollectionEnd);
-      if (post != null && range.size() > 0) {
+      if (post != null && range.size() > 0)
         has_data = true;
-        post = aggregateDatapoints(post, ts.getDbRow().getType());
-      }
 
       if (has_data == true)
         ts.setDatapoints(pre, range, post, true);
@@ -474,10 +489,10 @@ public class TimeSeriesCollector {
 
     generateSynthetics();
     
-//    ArrayList<TimeSeries> enabledSeries = getAllEnabledSeries();
-//    for (int i = 0; i < enabledSeries.size(); i++) {
-//      aggregateDatapoints(enabledSeries.get(i));
-//    }
+    ArrayList<TimeSeries> enabledSeries = getAllEnabledSeries();
+    for (int i = 0; i < enabledSeries.size(); i++) {
+      aggregateDatapoints(enabledSeries.get(i));
+    }
 
     mAggregationMs = oldAggregationMs;
 
@@ -601,28 +616,33 @@ public class TimeSeriesCollector {
     synth.setDatapoints(pre, visible, post, true);
   }
 
-//  private void aggregateDatapoints(TimeSeries ts) {
-//    ArrayList<Datapoint> pre;
-//    ArrayList<Datapoint> range;
-//    ArrayList<Datapoint> post;
-//
-//    pre = aggregateDatapoints(ts.getVisiblePre(), ts.getDbRow().getType());
-//    range = aggregateDatapoints(ts.getVisible(), ts.getDbRow().getType());
-//    post = aggregateDatapoints(ts.getVisiblePost(), ts.getDbRow().getType());
-//    ts.setDatapoints(pre, range, post, true);
-//    
-//    return;
-//  }
+  private void aggregateDatapoints(TimeSeries ts) {
+    ArrayList<Datapoint> pre;
+    ArrayList<Datapoint> range;
+    ArrayList<Datapoint> post;
 
-  private ArrayList<Datapoint> aggregateDatapoints(ArrayList<Datapoint> list,
+    pre = aggregateDatapoints(ts.getVisiblePre(), ts.getDbRow().getType());
+    range = aggregateDatapoints(ts.getVisible(), ts.getDbRow().getType());
+    post = aggregateDatapoints(ts.getVisiblePost(), ts.getDbRow().getType());
+    ts.setDatapoints(pre, range, post, true);
+    
+    return;
+  }
+
+  private ArrayList<Datapoint> aggregateDatapoints(List<Datapoint> list,
       String type) {
     Datapoint accumulator = null;
     Datapoint d = null;
 
-    if (mAggregationMs == 0)
-      return list;
-
     ArrayList<Datapoint> newList = new ArrayList<Datapoint>();
+
+    if (list == null)
+      return newList;
+    
+    if (mAggregationMs == 0) {
+      newList.addAll(list);
+      return newList;
+    }
 
     for (int i = 0; i < list.size(); i++) {
       d = list.get(i);
