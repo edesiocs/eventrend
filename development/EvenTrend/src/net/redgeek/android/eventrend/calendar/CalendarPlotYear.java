@@ -36,7 +36,6 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 public class CalendarPlotYear {
-  private static final int N_YEARS      = 5;
   private static final int YEAR_PADDING = 5;
   
   // UI elements
@@ -50,6 +49,7 @@ public class CalendarPlotYear {
   private float mCellWidth;
   private float mCellHeight;
   private float mColorHeight;
+  private int mNYears = 5;
 
   private Tuple mDimensions;
   private long mStartMS;
@@ -74,6 +74,10 @@ public class CalendarPlotYear {
 
   public void setDimensions(Tuple dimensions) {
     mDimensions.set(dimensions);
+    if (mDimensions.y > mDimensions.x)
+      mNYears = 3;
+    else
+      mNYears = 5;
     setCellSizes();
   }
 
@@ -84,9 +88,9 @@ public class CalendarPlotYear {
   private void setCellSizes() {
     mCellHeight = (mDimensions.y 
                     - (CalendarView.TEXT_HEIGHT + YEAR_PADDING)
-                    - (YEAR_PADDING * (N_YEARS + 1))
-                    - (CalendarView.TEXT_HEIGHT * (N_YEARS + 1)))
-                    / N_YEARS;
+                    - (YEAR_PADDING * (mNYears + 1))
+                    - (CalendarView.TEXT_HEIGHT * (mNYears + 1)))
+                    / mNYears;
     mCellWidth = (mDimensions.x) / 12.0f;
     mColorHeight = mCellHeight / mTSC.numSeries();
   }
@@ -174,8 +178,14 @@ public class CalendarPlotYear {
     Tuple bottomRight = getCellBottomRight(position);
     // RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x,
     // bottomRight.y);
-    RectF cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, topLeft.y + 
-        ((bottomRight.y - topLeft.y) / 3.0f));
+    RectF cell;
+    if (mNYears == 5) {
+      cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, topLeft.y + 
+          ((bottomRight.y - topLeft.y) / 3.0f));
+    } else {
+      cell = new RectF(topLeft.x, topLeft.y, bottomRight.x, topLeft.y + 
+          ((bottomRight.y - topLeft.y) / 2.0f));      
+    }
 
     float unit = stdDev * mSensitivity;
     float half = unit / 2;
@@ -337,7 +347,7 @@ public class CalendarPlotYear {
     drawMonthHeader(canvas);
 
     int position = 0;
-    for (int i = 0; i < N_YEARS * 12; i++, position++) {
+    for (int i = 0; i < mNYears * 12; i++, position++) {
       year = mDates.get(Calendar.YEAR);
       month = mDates.get(Calendar.MONTH);
 
