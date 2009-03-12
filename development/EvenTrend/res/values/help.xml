@@ -72,18 +72,36 @@ want to ignore the period instead of recording a weight of 0.  Note that this op
 if the type is "Sum" and the aggregation period is not "None."
 </string>
 <string name="calendar_overview">
-Data Range info is only calculated over the highlighted portions of the display.  The color behind
-date indicates the trend going toward or away from the goal compared to the previous day, and
-the color of the value in the box denotes the same for the value.  Click a week to go to a
-graph of that week, click the month header to go to a graph of the month.
-</string>
-<string name="formula_help">
 Data Range info is only calculated over all the displayed data.  The solid color 
 at the top of the box indicates the trend going toward or away from the goal compared to the previous
 day, and the color of the value in the box denotes wether the trend was going toward or away from the
 goal compared to the previous day.  Brighter colors indicate a larger change, dimmer colors a smaller
 change, and gray indicates that the value was essentially flat (as determined by the sensitivity
 preferences.)
+</string>
+<string name="formula_help">
+Note:  formulas may be considered an advanced feature of this program.
+
+Formulas may be constructed of binary operations only, that is, of the form \'x operator y\', and
+must evaluate to a series of values.  For example, \'series "water" + series "beers"\' and 
+\'40 - series "work hours"\' both evaluate to a sequence, while \'4 + 5\' does not.  A series must
+consist of the word \'series\' followed by whitespace and the name of the category to use in double
+quotes, as in the examples presented above.
+
+There is no implicit 
+grouping, so instead of attempting to calculate \'x + y + z\', the following should be used:  
+\'(x + y) + z\' or \'x + (y + z)\'.  The following operations are supported:  \'+\', \'-\', \'*\', \'/\', and 
+\'previous\'.  The last operator deserves special comment:  it returns the difference of each value or 
+timestamp in the series with the one preceding it.  For example, if the series were called \'weight\', 
+and the values [150, 153, 147] had been entered over time, the equation \'series "weight" previous value\'
+would evaluate to [0, 3, -6].  If each datum in the series was entered precisely 1 day apart,
+the equation \'series "weight" previous value\' would yield [0, 86400000, 86400000] - this is because
+the timestamp of each entry is measured in milliseconds.  Because of this, some helpful constants
+are provided:  \'minute\', \'hour\', \'am/pm\', \'day\', \'week\', \'month\', \'quarter\', and \'year\', which are
+defined as the average number of milliseconds in each periods' time.  So, in order to calculate 
+how many hours between weighings, the following may be used: 
+\'(series "weight" previous timestamp) / hour\'.
+\n
 </string>
 <string name="overview">
 EvenTrend is a program to track arbitrary data over time.  In short, you can create categories 

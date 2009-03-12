@@ -435,6 +435,7 @@ public class Number {
      *          source.
      */
     public WindowedStdDev(WindowedStdDev source) {
+      mLock = new ReentrantLock();
       source.waitForLock();
       mHistory = source.mHistory;
       mValues = new ArrayList<Float>(mHistory);

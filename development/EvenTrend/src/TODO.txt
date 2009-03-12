@@ -8,7 +8,6 @@ TODO:
 			* fix range info to only take into account the highlighted range, update
 			  help to indicate this
 	Formula Editor:
-	  clean up interface
 	  escape quotes in series names
 	General:
     test re-plotting of graph

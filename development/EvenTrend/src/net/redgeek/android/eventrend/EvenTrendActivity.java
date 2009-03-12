@@ -63,12 +63,13 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final int FORMULA_EDIT = 10;
 
   public static final String CATEGORY_ID = "CategoryId";
-  public static final String FORMULA = "FORMULA";
+  public static final String FORMULA = "Formula";
   public static final String VIEW_DEFAULT_CATIDS = "ViewIdsDefault";
   public static final String GRAPH_START_MS = "GraphStartMS";
   public static final String GRAPH_END_MS = "GraphEndMS";
   public static final String GRAPH_AGGREGATION = "GraphAggregation";
   public static final String CALENDAR_PERIOD = "CalendarPeriod";
+  public static final String FORMULA_TEXT = "FormulaText";
 
   private Context mCtx;
   private EvenTrendDbAdapter mDbh;
