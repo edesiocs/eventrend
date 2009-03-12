@@ -81,7 +81,7 @@ public class TimeSeriesTest extends TestCase {
     TimeSeries ts = newDefaultTimeSeries();
 
     // (null) (null) (null)
-    ts.setDatapoints(null, null, null);
+    ts.setDatapoints(null, null, null, true);
     assertEquals(0, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
     assertEquals(Float.MIN_VALUE, ts.getVisibleValueMax());
@@ -95,7 +95,7 @@ public class TimeSeriesTest extends TestCase {
     // (d1) (null) (null)
     lpre.clear();
     lpre.add(d1);
-    ts.setDatapoints(lpre, null, null);
+    ts.setDatapoints(lpre, null, null, true);
 
     assertEquals(1, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -113,7 +113,7 @@ public class TimeSeriesTest extends TestCase {
     lpre.clear();
     lpre.add(d1);
     lpre.add(d2);
-    ts.setDatapoints(lpre, null, null);
+    ts.setDatapoints(lpre, null, null, true);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -133,7 +133,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.clear();
     lpre.add(d1);
     lrange.add(d2);
-    ts.setDatapoints(lpre, lrange, null);
+    ts.setDatapoints(lpre, lrange, null, true);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen
@@ -154,7 +154,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.clear();
     lrange.add(d1);
     lrange.add(d2);
-    ts.setDatapoints(null, lrange, null);
+    ts.setDatapoints(null, lrange, null, true);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -175,7 +175,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lrange.add(d2);
     lrange.add(d3);
-    ts.setDatapoints(null, lrange, null);
+    ts.setDatapoints(null, lrange, null, true);
 
     assertEquals(3, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -197,7 +197,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lpost.clear();
     lpost.add(d2);
-    ts.setDatapoints(null, lrange, lpost);
+    ts.setDatapoints(null, lrange, lpost, true);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -219,7 +219,7 @@ public class TimeSeriesTest extends TestCase {
     lpost.clear();
     lpost.add(d1);
     lpost.add(d2);
-    ts.setDatapoints(null, null, lpost);
+    ts.setDatapoints(null, null, lpost, true);
 
     assertEquals(2, ts.getDatapoints().size());
     assertEquals(Float.MAX_VALUE, ts.getVisibleValueMin());
@@ -241,7 +241,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d2);
     lpost.clear();
     lpost.add(d3);
-    ts.setDatapoints(lpre, lrange, lpost);
+    ts.setDatapoints(lpre, lrange, lpost, true);
 
     assertEquals(3, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin()); // due to offscreen
@@ -268,7 +268,7 @@ public class TimeSeriesTest extends TestCase {
     lrange.add(d1);
     lrange.add(d3);
     lrange.add(d2);
-    ts.setDatapoints(null, lrange, null);
+    ts.setDatapoints(null, lrange, null, true);
 
     assertEquals(3, ts.getDatapoints().size());
     assertEquals(1.0f, ts.getVisibleValueMin());
@@ -297,7 +297,7 @@ public class TimeSeriesTest extends TestCase {
 
     // 1-item list
     range.add(d1);
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -320,7 +320,7 @@ public class TimeSeriesTest extends TestCase {
 
     // 2-item list
     range.add(d2);
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -357,7 +357,7 @@ public class TimeSeriesTest extends TestCase {
 
     // 3-item list
     range.add(d3);
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
 
     result = ts.findPreNeighbor(0);
     assertNull(result);
@@ -427,7 +427,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d2);
     range.add(d3);
 
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
     result = ts.findPreNeighbor(99);
     assertNull(result);
     result = ts.findPostNeighbor(99);
@@ -601,7 +601,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
     return ts;
   }
 
@@ -731,7 +731,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
     ts.setInterpolator(i);
     return ts;
   }
@@ -747,7 +747,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
     ts.setInterpolator(i);
     return ts;
   }
@@ -763,7 +763,7 @@ public class TimeSeriesTest extends TestCase {
     range.add(d3);
 
     TimeSeries ts = newDefaultTimeSeries();
-    ts.setDatapoints(null, range, null);
+    ts.setDatapoints(null, range, null, true);
     ts.setInterpolator(i);
     return ts;
   }

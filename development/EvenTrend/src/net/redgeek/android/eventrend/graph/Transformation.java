@@ -76,8 +76,9 @@ public class Transformation {
 
   private void updateScale() {
     mScale.set(mPlotSize);
-    if (mVirtualSize.x == 0 || mVirtualSize.y == 0)
-      mScale.set(0.0f, 0.0f);
+    if (mVirtualSize.x == 0 || mVirtualSize.y == 0
+        || mVirtualSize.y < (Float.MIN_VALUE * 10))
+      mScale.set(1.0f, 1.0f);
     else
       mScale.divide(mVirtualSize);
   }

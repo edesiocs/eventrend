@@ -338,7 +338,7 @@ public final class TimeSeries {
   }
 
   public void setDatapoints(ArrayList<Datapoint> pre,
-      ArrayList<Datapoint> range, ArrayList<Datapoint> post) {
+      ArrayList<Datapoint> range, ArrayList<Datapoint> post, boolean recalc) {
 
     clearSeries();
     if (pre != null && pre.size() > 0) {
@@ -356,7 +356,8 @@ public final class TimeSeries {
       mVisiblePostLastIdx = mVisiblePostFirstIdx + post.size() - 1;
       mDatapoints.addAll(post);
     }
-    calcStatsAndBounds();
+    if (recalc == true)
+      calcStatsAndBounds();
     return;
   }
 
@@ -464,26 +465,50 @@ public final class TimeSeries {
   }
 
   public List<Datapoint> getVisiblePre() {
+    List<Datapoint> view = null;
     if (mVisiblePreFirstIdx != Integer.MIN_VALUE
-        && mVisiblePreLastIdx != Integer.MAX_VALUE)
-      return mDatapoints.subList(mVisiblePreFirstIdx, mVisiblePreLastIdx + 1);
-    return null;
+        && mVisiblePreLastIdx != Integer.MAX_VALUE) {
+      try {
+        view = mDatapoints.subList(mVisiblePreFirstIdx, mVisiblePreLastIdx + 1);
+      } catch(IndexOutOfBoundsException e) {
+        // nothing
+      } catch(IllegalArgumentException e) {
+        // nothing
+      }
+    }
+    return view;
   }
 
   public List<Datapoint> getVisible() {
+    List<Datapoint> view = null;
     if (mVisibleFirstIdx != Integer.MIN_VALUE
-        && mVisibleLastIdx != Integer.MAX_VALUE)
-      return mDatapoints.subList(mVisibleFirstIdx, mVisibleLastIdx + 1);
-    return null;
+        && mVisibleLastIdx != Integer.MAX_VALUE) {
+      try {
+        view = mDatapoints.subList(mVisibleFirstIdx, mVisibleLastIdx + 1);
+      } catch(IndexOutOfBoundsException e) {        
+        // nothing
+      } catch(IllegalArgumentException e) {
+        // nothing
+      }
+    }
+    return view;
   }
 
   public List<Datapoint> getVisiblePost() {
+    List<Datapoint> view = null;
     if (mVisiblePostFirstIdx != Integer.MIN_VALUE
-        && mVisiblePostLastIdx != Integer.MAX_VALUE)
-      return mDatapoints.subList(mVisiblePostFirstIdx, mVisiblePostLastIdx + 1);
-    return null;
+        && mVisiblePostLastIdx != Integer.MAX_VALUE) {
+      try {
+        view =mDatapoints.subList(mVisiblePostFirstIdx, mVisiblePostLastIdx + 1);
+      } catch(IndexOutOfBoundsException e) {
+        // nothing
+      } catch(IllegalArgumentException e) {
+        // nothing
+      }
+    }
+    return view;
   }
-
+  
   public Datapoint findPreNeighbor(long timestamp) {
     return findNeighbor(timestamp, true);
   }
@@ -759,7 +784,7 @@ public final class TimeSeries {
       }
     }
 
-    setDatapoints(pre, range, post);
+    setDatapoints(pre, range, post, true);
   }
 
   public void timeseriesPlus(TimeSeries ts) {
@@ -797,7 +822,7 @@ public final class TimeSeries {
   public void drawMarker(Canvas canvas, Tuple start, Tuple end) {
     mPainter.drawMarker(canvas, start, end);
   }
-
+  
   private void interpolateBoundsToOffscreen() {
     int nDatapoints;
     Datapoint d1 = null;

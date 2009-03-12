@@ -72,6 +72,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   public static final int ZOOM_CTRL_HIDE_MS = 3000;
   public static final int ZOOM_CTRL_LINES_MS = 200;
 
+  public static final float MINIMUM_DELTA = 0.00001f;
+  
   // UI elements
   private ZoomControls mZoomControls;
   private Graph mGraph;
