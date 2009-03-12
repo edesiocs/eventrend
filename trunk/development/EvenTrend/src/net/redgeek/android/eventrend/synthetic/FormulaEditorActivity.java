@@ -45,6 +45,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   private EditText mPage;
   private DynamicSpinner mAddSeries;
   private Spinner mAddOperator;
+  private DynamicSpinner mAddConstant;
   private Button mAddGroupButton;
   private Button mClearButton;
   private Button mSaveButton;
@@ -53,6 +54,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   // Listeners
   private Spinner.OnItemSelectedListener mAddSeriesListener;
   private Spinner.OnItemSelectedListener mAddOperatorListener;
+  private Spinner.OnItemSelectedListener mAddConstantListener;
   private View.OnClickListener mAddGroupListener;
   private View.OnClickListener mClearListener;
   private View.OnClickListener mSaveListener;
@@ -62,6 +64,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   private Formula mFormula;
   private long mCatId;
   private boolean mSave;
+  private String mText;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -74,14 +77,20 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   }
 
   private void setupData(Bundle icicle) {
+    mText = new String("");
     mCatId = -1;
     if (icicle != null) {
       mCatId = icicle.getLong(CATEGORY_ID);
+      if (icicle.getString(FORMULA_TEXT) != null)
+        mText = new String(icicle.getString(FORMULA_TEXT));
     }
     if (mCatId < 0) {
       Bundle extras = getIntent().getExtras();
       if (extras != null) {
         mCatId = extras.getLong(CATEGORY_ID);
+        if (mText.equals(""))
+          if (extras.getString(FORMULA_TEXT) != null)
+            mText = new String(extras.getString(FORMULA_TEXT));
       }
     }
 
@@ -95,9 +104,10 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     LinearLayout addMenuLayout = (LinearLayout) findViewById(R.id.formula_add_series_layout);
     
     mAddSeries = new DynamicSpinner(getCtx());
-    mAddSeries.setPrompt("Insert Series");
+    mAddSeries.setPrompt("Insert Category");
     addMenuLayout.addView(mAddSeries, new LinearLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+    mAddSeries.addSpinnerItem("(Series)", new Long(0));
     Cursor c = getDbh().fetchAllCategories();
     c.moveToFirst();
     for (int i = 0; i < c.getCount(); i++) {
@@ -118,9 +128,24 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     mAddOperator.setAdapter(adapter);
     mAddOperator.setOnItemSelectedListener(mAddOperatorListener);
     
+    mAddConstant = new DynamicSpinner(getCtx());
+    mAddConstant.setPrompt("Insert Contant");
+    LinearLayout addConstantLayout = (LinearLayout) findViewById(R.id.formula_add_constant_layout);
+    addConstantLayout.addView(mAddConstant,
+        new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
+            LayoutParams.WRAP_CONTENT));
+    mAddConstant.addSpinnerItem("(Constant)", new Long(0));
+    for (int i = 0; i < CategoryDbTable.KEY_PERIODS.length; i++) {
+      if (CategoryDbTable.KEY_PERIODS[i].equals("None") == false) {
+        mAddConstant.addSpinnerItem(CategoryDbTable.KEY_PERIODS[i],
+            new Long(i));
+      }
+    }
+    mAddConstant.setOnItemSelectedListener(mAddConstantListener);
+
     mAddGroupButton = (Button) findViewById(R.id.formula_add_group);
     mAddGroupButton.setOnClickListener(mAddGroupListener);    
-    
+
     mClearButton = (Button) findViewById(R.id.formula_clear);
     mClearButton.setOnClickListener(mClearListener);    
     
@@ -131,17 +156,20 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     mCancelButton.setOnClickListener(mCancelListener);
 
     mPage = (EditText) findViewById(R.id.formula_edit);
-    mPage.getText().clear();
+    mPage.setText(mText);
   }
 
   private void setupListeners() {
     mAddSeriesListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        int cursor = mPage.getSelectionStart();
-        String series = ((TextView) v).getText().toString();
-        // TODO: escape quotes
-        mPage.getText().insert(cursor, "series \"" + series + "\"");
+        if (position != 0) {
+          int cursor = mPage.getSelectionStart();
+          String series = ((TextView) v).getText().toString();
+          // TODO: escape quotes
+          mPage.getText().insert(cursor, "series \"" + series + "\"");
+        }
+        mAddSeries.setSelection(0);
         return;
       }
 
@@ -153,15 +181,30 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     mAddOperatorListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        int cursor = mPage.getSelectionStart();
-        String operator = ((TextView) v).getText().toString();
-        if (operator.equals("prev value")) {
-          mPage.getText().insert(cursor, " previous value ");
-        } else if (operator.equals("prev time")) {
-          mPage.getText().insert(cursor, "previous timestamp ");
-        } else {
+        if (position != 0) {
+          int cursor = mPage.getSelectionStart();
+          String operator = ((TextView) v).getText().toString();
           mPage.getText().insert(cursor, " " + operator + " ");
         }
+        mAddOperator.setSelection(0);
+        return;
+      }
+
+      public void onNothingSelected(AdapterView arg0) {
+        return;
+      }
+    };
+    
+    mAddConstantListener = new Spinner.OnItemSelectedListener() {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
+        if (position != 0) {
+          int cursor = mPage.getSelectionStart();
+          String constant = ((TextView) v).getText().toString();
+          // TODO: escape quotes
+          mPage.getText().insert(cursor, constant);
+        }
+        mAddSeries.setSelection(0);
         return;
       }
 
@@ -209,7 +252,10 @@ public class FormulaEditorActivity extends EvenTrendActivity {
 
   private void populateFields() {
     CategoryDbTable.Row row = getDbh().fetchCategory(mCatId);
-    mPage.setText(row.getFormula());
+    if (mText.equals(""))
+      mPage.setText(row.getFormula());
+    else
+      mPage.setText(mText);
   }
 
   @Override
@@ -248,6 +294,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   @Override
   protected void onSaveInstanceState(Bundle outState) {
     outState.putLong(CATEGORY_ID, mCatId);
+    outState.putString(FORMULA_TEXT, mPage.getText().toString());
     super.onSaveInstanceState(outState);
   }
 
@@ -263,6 +310,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     populateFields();
   }
 
+  
   private void saveState() {
     if (mSave == true) {
       CategoryDbTable.Row cat = getDbh().fetchCategory(mCatId);

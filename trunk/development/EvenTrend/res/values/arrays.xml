@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 <string-array name="formula_operators">
+<item>(Op)</item>
 <item>+</item>
 <item>-</item>
 <item>*</item>
 <item>/</item>
-<item>prev value</item>
-<item>prev time</item>
+<item>previous value</item>
+<item>previous timestamp</item>
 </string-array> 
 </resources>

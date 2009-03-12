@@ -317,10 +317,8 @@ public class TimeSeriesCollector {
   public TimeSeries getSeriesByNameNonlocking(String name) {
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
-      if (ts != null && ts.getDbRow().getCategoryName().equals(name)) {
-        unlock();
+      if (ts != null && ts.getDbRow().getCategoryName().equals(name))
         return ts;
-      }
     }
     return null;
   }
