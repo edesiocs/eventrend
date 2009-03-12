@@ -75,9 +75,9 @@ public class CalendarPlotYear {
   public void setDimensions(Tuple dimensions) {
     mDimensions.set(dimensions);
     if (mDimensions.y > mDimensions.x)
-      mNYears = 3;
-    else
       mNYears = 5;
+    else
+      mNYears = 3;
     setCellSizes();
   }
 
