@@ -240,6 +240,15 @@ public class Graph {
         mBoundsMins.y = goal;
     }
 
+    if (mBoundsMins.x == mBoundsMaxs.x) {
+      mBoundsMins.x--;
+      mBoundsMaxs.x++;
+    }
+    if (Math.abs(mBoundsMins.y - mBoundsMaxs.y) < GraphView.MINIMUM_DELTA) {
+      mBoundsMins.y--;
+      mBoundsMaxs.y++;
+    }
+    
     return;
   }
 

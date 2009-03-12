@@ -407,7 +407,7 @@ public class TimeSeriesCollector {
         }
 
         l = aggregateDatapoints(l, ts.getDbRow().getType());
-        ts.setDatapoints(null, l, null);
+        ts.setDatapoints(null, l, null, true);
       }
     }
 
@@ -468,12 +468,16 @@ public class TimeSeriesCollector {
         post = aggregateDatapoints(post, ts.getDbRow().getType());
       }
 
-      if (has_data == true) {
-        ts.setDatapoints(pre, range, post);
-      }
+      if (has_data == true)
+        ts.setDatapoints(pre, range, post, true);
     }
 
     generateSynthetics();
+    
+//    ArrayList<TimeSeries> enabledSeries = getAllEnabledSeries();
+//    for (int i = 0; i < enabledSeries.size(); i++) {
+//      aggregateDatapoints(enabledSeries.get(i));
+//    }
 
     mAggregationMs = oldAggregationMs;
 
@@ -525,7 +529,7 @@ public class TimeSeriesCollector {
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());
         ArrayList<Datapoint> calculated = formula.apply(dependee
             .getDependents());
-        dependee.setDatapoints(null, calculated, null);
+        dependee.setDatapoints(null, calculated, null, true);
 
         lastTrend = dependee.getTrendStats().mTrendPrev;
         newTrend = dependee.getTrendStats().mTrend;
@@ -594,8 +598,21 @@ public class TimeSeriesCollector {
     visible = aggregateDatapoints(visible, synth.getDbRow().getType());
     post = aggregateDatapoints(post, synth.getDbRow().getType());
 
-    synth.setDatapoints(pre, visible, post);
+    synth.setDatapoints(pre, visible, post, true);
   }
+
+//  private void aggregateDatapoints(TimeSeries ts) {
+//    ArrayList<Datapoint> pre;
+//    ArrayList<Datapoint> range;
+//    ArrayList<Datapoint> post;
+//
+//    pre = aggregateDatapoints(ts.getVisiblePre(), ts.getDbRow().getType());
+//    range = aggregateDatapoints(ts.getVisible(), ts.getDbRow().getType());
+//    post = aggregateDatapoints(ts.getVisiblePost(), ts.getDbRow().getType());
+//    ts.setDatapoints(pre, range, post, true);
+//    
+//    return;
+//  }
 
   private ArrayList<Datapoint> aggregateDatapoints(ArrayList<Datapoint> list,
       String type) {
