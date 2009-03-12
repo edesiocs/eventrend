@@ -10,6 +10,7 @@ TODO:
 	Formula Editor:
 	  escape quotes in series names
 	General:
+	 * get averages to average in aggregation, not sum
     test re-plotting of graph
 		set various text-entry to numeric (and see if numeric does floats), use
 		   filters instead of onkey listeners
