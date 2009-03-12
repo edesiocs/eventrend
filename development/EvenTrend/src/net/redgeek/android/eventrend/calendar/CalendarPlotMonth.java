@@ -366,11 +366,12 @@ public class CalendarPlotMonth {
     Calendar cal = mDates.getCalendar();
     long ms = cal.getTimeInMillis();
     int position = mDates.get(Calendar.DAY_OF_WEEK);
-    int day = mDates.get(Calendar.DAY_OF_MONTH);
+    int day, month;
 
     position--;
     while (i-- > 0) {
       day = mDates.get(Calendar.DAY_OF_MONTH);
+      month = mDates.get(Calendar.MONTH);
 
       ms = mDates.getCalendar().getTimeInMillis();
       for (int s = 0; s < mTSC.numSeries(); s++) {
@@ -397,7 +398,7 @@ public class CalendarPlotMonth {
             oldVal = prev.mValue.y;
 
           tmp.setTimeInMillis(current.mMillis);
-          if (day == tmp.get(Calendar.DAY_OF_MONTH)) {
+          if (month == tmp.get(Calendar.MONTH) && day == tmp.get(Calendar.DAY_OF_MONTH)) {
             drawMonthDayValue(canvas, position, oldVal, current.mValue.y, ts
                 .getDbRow().getGoal(), current.mStdDev);
           }
