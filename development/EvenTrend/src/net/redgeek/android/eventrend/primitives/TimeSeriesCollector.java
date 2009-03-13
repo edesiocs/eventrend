@@ -238,6 +238,9 @@ public class TimeSeriesCollector {
 
   public void setSeriesInterpolator(TimeSeries ts, String type) {
     TimeSeriesInterpolator tsi = null;
+    if (mInterpolators == null)
+      return;
+    
     for (int i = 0; i < mInterpolators.size(); i++) {
       tsi = mInterpolators.get(i);
       if (type.equals(tsi.getName()))

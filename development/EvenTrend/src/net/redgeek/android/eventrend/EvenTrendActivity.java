@@ -134,6 +134,12 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
     return mInterpolators;
   }
 
+  public static ArrayList<TimeSeriesInterpolator> getInterpolatorsCopy() {
+    ArrayList<TimeSeriesInterpolator> list = new ArrayList<TimeSeriesInterpolator>();
+    registerInterpolators(list);
+    return list;
+  }
+
   public TimeSeriesInterpolator getInterpolator(String name) {
     TimeSeriesInterpolator tsi = null;
 
@@ -148,20 +154,21 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
 
     return null;
   }
-
+  
   private void registerPlugins() {
-    registerInterpolators();
+    registerInterpolators(mInterpolators);
   }
 
-  private void registerInterpolators() {
-    registerInterpolator(new LinearInterpolator());
-    registerInterpolator(new CubicInterpolator());
-    registerInterpolator(new StepEarlyInterpolator());
-    registerInterpolator(new StepMidInterpolator());
-    registerInterpolator(new StepLateInterpolator());
+  private static void registerInterpolators(ArrayList<TimeSeriesInterpolator> list) {
+    registerInterpolator(list, new LinearInterpolator());
+    registerInterpolator(list, new CubicInterpolator());
+    registerInterpolator(list, new StepEarlyInterpolator());
+    registerInterpolator(list, new StepMidInterpolator());
+    registerInterpolator(list, new StepLateInterpolator());
   }
 
-  private void registerInterpolator(TimeSeriesInterpolator tsi) {
-    mInterpolators.add(tsi);
+  private static void registerInterpolator(ArrayList<TimeSeriesInterpolator> list,
+      TimeSeriesInterpolator tsi) {
+    list.add(tsi);
   }
 }
