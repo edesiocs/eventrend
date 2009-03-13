@@ -16,8 +16,7 @@
 
 package net.redgeek.android.eventrend;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -29,6 +28,14 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.view.Menu;
+import android.view.MenuItem;
+
+import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.util.DialogUtil;
 
 /**
  * Seriously considering replacing this with a custom preferences screen, adding
@@ -38,6 +45,11 @@ import android.preference.PreferenceScreen;
  * 
  */
 public class Preferences extends PreferenceActivity {
+  private static final int MENU_HELP_ID   = Menu.FIRST;
+  private static final int MENU_RECALC_ID = Menu.FIRST + 1;
+  
+  private static final int HELP_DIALOG_ID = 0;
+
   public static final String PREFS_NAME = "EvenTrendPrefs";
 
   public static final String PREFS_DEFAULT_VIEW = "DefaultView";
@@ -56,12 +68,13 @@ public class Preferences extends PreferenceActivity {
   public static final int PREFS_HISTORY_DEFAULT = 20;
   public static final float PREFS_TREND_STDDEV_DEFAULT = 1.0f;
 
-  EvenTrendDbAdapter mDbh;
+  private EvenTrendDbAdapter mDbh;
+  private DialogUtil         mDialogUtil;
 
   @Override
   protected void onCreate(Bundle icicle) {
     super.onCreate(icicle);
-
+    mDialogUtil = new DialogUtil(this);
     setPreferenceScreen(createPreferenceHierarchy());
   }
 
@@ -158,7 +171,7 @@ public class Preferences extends PreferenceActivity {
     EditTextPreference smoothing = new EditTextPreference(this);
     smoothing.setDialogTitle("Smoothing Constant");
     smoothing.setKey(PREFS_SMOOTHING_PERCENT);
-    smoothing.setTitle("Smoothing Percentage");
+    smoothing.setTitle("Smoothing Constant");
     smoothing.setSummary("Weight to decay moving average weighting by.");
     smoothing.setDefaultValue(new Float(PREFS_SMOOTHING_PERCENT_DEFAULT)
         .toString());
@@ -166,7 +179,54 @@ public class Preferences extends PreferenceActivity {
 
     return root;
   }
+  
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    boolean result = super.onCreateOptionsMenu(menu);
+    menu.add(0, MENU_HELP_ID, 0, R.string.menu_app_help).setIcon(
+        android.R.drawable.ic_menu_help);
+    menu.add(0, MENU_RECALC_ID, 0, R.string.menu_prefs_recalc)
+        .setIcon(R.drawable.graph);
+    return result;
+  }
+  
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case MENU_HELP_ID:
+        showDialog(HELP_DIALOG_ID);
+        return true;
+      case MENU_RECALC_ID:
+        recalcTrends();
+        return true;
+    }
+    return super.onOptionsItemSelected(item);
+  }
+  
+  @Override
+  protected Dialog onCreateDialog(int id) {
+    switch (id) {
+      case HELP_DIALOG_ID:
+        String str = getResources().getString(R.string.prefs_overview);
+        return mDialogUtil.newOkDialog("Help", str);
+    }
+    return null;
+  }
 
+  private void recalcTrends() {
+    TimeSeriesCollector tsc = new TimeSeriesCollector(mDbh);
+    tsc.setHistory(getHistory(this));
+    tsc.setSmoothing(getSmoothingConstant(this));
+    tsc.setSensitivity(getStdDevSensitivity(this));
+    tsc.setInterpolators(EvenTrendActivity.getInterpolatorsCopy());    
+    tsc.updateTimeSeriesMetaLocking(true);
+
+    for (int i = 0; i < tsc.numSeries(); i++) {
+      TimeSeries ts = tsc.getSeries(i);
+      tsc.updateCategoryTrend(ts.getDbRow().getId());
+    }
+  }
+  
   public static String getDefaultGroup(Context ctx) {
     SharedPreferences settings = PreferenceManager
         .getDefaultSharedPreferences(ctx);

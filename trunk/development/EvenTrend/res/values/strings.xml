@@ -12,6 +12,7 @@
 <string name="menu_entry_import_replace">Restore</string>
 <string name="menu_entry_import_merge">Import (Merge)</string>
 <string name="menu_entry_edit">Edit Entries</string>
+<string name="menu_prefs_recalc">Recalc Trends</string>
 <color name="changed_value_marker">#cc3333</color>
 <color name="replace_text">#666666</color>
 <color name="status_backgroud">#000000</color>
