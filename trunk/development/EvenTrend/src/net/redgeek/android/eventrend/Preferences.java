@@ -186,7 +186,7 @@ public class Preferences extends PreferenceActivity {
     menu.add(0, MENU_HELP_ID, 0, R.string.menu_app_help).setIcon(
         android.R.drawable.ic_menu_help);
     menu.add(0, MENU_RECALC_ID, 0, R.string.menu_prefs_recalc)
-        .setIcon(R.drawable.graph);
+        .setIcon(R.drawable.refresh);
     return result;
   }
   

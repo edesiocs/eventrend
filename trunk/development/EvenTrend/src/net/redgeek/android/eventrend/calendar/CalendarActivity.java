@@ -299,7 +299,7 @@ public class CalendarActivity extends EvenTrendActivity {
   public boolean onCreateOptionsMenu(Menu menu) {
     boolean result = super.onCreateOptionsMenu(menu);
     menu.add(0, MENU_CALENDAR_RANGE_ID, 0, R.string.menu_calendar_range)
-        .setIcon(android.R.drawable.ic_dialog_info);
+        .setIcon(android.R.drawable.ic_menu_info_details);
     menu.add(0, MENU_CALENDAR_GRAPH_ID, 0, R.string.menu_graph).setIcon(
         R.drawable.graph);
     menu.add(0, MENU_CALENDAR_PREFS_ID, 0, R.string.menu_app_prefs).setIcon(
