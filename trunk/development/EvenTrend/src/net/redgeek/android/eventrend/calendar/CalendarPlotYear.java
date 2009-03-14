@@ -272,7 +272,7 @@ public class CalendarPlotYear {
     }
 
     int offset = 0;
-    if (mCellWidth < 40) {
+    if (mNYears == 5) {
       if (position % 2 == 0)
         offset = -CalendarView.TEXT_HEIGHT - 3;
     }
