@@ -159,3 +159,29 @@ The following operations are supported:  `+`, `-`, `*`, `\`, and `previous`.  Ea
 The last operator deserves special comment:  it returns the difference of each value or timestamp in the series with the one preceding it.  For example, if the series were called `weight`, and the values `150, 153, 147` had been entered over time, the equation `series "weight" previous value` would evaluate to `0, 3, -6`.  If each datum in the series was entered precisely 1 day apart, the equation `series "weight" previous value` would yield `0, 86400000, 86400000` - this is because the timestamp of each entry is measured in milliseconds.  Because of this, some helpful constants are provided:  `minute`, `hour`, `am/pm`, `day`, `week`, `month`, `quarter`, and `year`, which are
 defined as the average number of milliseconds in each periods' time.  So, in order to calculate how many hours between weighings, the following may be used: `(series "weight" previous timestamp) / hour`
 
+Complete list of operators:
+  * `+`
+  * `-`
+  * `*`
+  * `/`
+  * `previous`
+
+Complete list of operands:
+  * `series "series name"`
+  * constant:  
+    * `minute`
+    * `hour`
+    * `am/pm`
+    * `day`
+    * `week`
+    * `month`
+    * `quarter`
+    * `year`
+    * `value` (usable only with `previous`)
+    * `timestamp` (usable only with `previous`)
+  * literal:
+    * integer: `-2`, `4`, ...
+    * float: `1.67`, `2.5e-5`, ....
+
+Grouping operator:
+  * `()`
