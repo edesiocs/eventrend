@@ -10,7 +10,15 @@ Categories can be edited by long-clicking on the category row, and can be groupe
 
 There are are a lot of fields that can be filled out when creating a category.  Click on each the text of each field when adding a category for help, or continue reading.
 
-= Category Setup Help =
+= Data Input Overview =
+
+Once categories have been created, data collection can commence.  Just type a number in the text entry box, or click the +/- buttons until the desired value is displayed, and click "Add."  That's it -- the value is automatically added to the database with the current time and the trend icons updated.  If you accidentally add some data from the wrong category or with the incorrect value, just click "Undo" near the top of the screen.  Note that the "undo" history is only 1 deep -- if you mess up twice, you'll have to click the "Menu" button, choose "Edit Entries", and delete or modify the entry in the subsequent screens.
+
+By default, the "Now" checkbox is selected, which displays the current time and and data input will contain this timestamp.  If you'd like to input data for another time -- either in the future or past -- select the "Set Date" and "Set Time" buttons, set the date and time accordingly, and then click "Add".  Note that when a date or time other than the current time is selected, the background of the clock turns red.  This is just a visual reminder to let you know that you're not entering data for the current time, but some other one.  Simply select the "Now" checkbox to return to the current time.
+
+= Category Help =
+
+Categories may be added, deleted, or modified at any time.  If a category is deleted, all of it's associated data is deleted as well.  The behavior of changing a particular aspect of a category, such as Aggregation, is covered in each section below.
 
 == Group Name ==
 
@@ -19,10 +27,6 @@ This is an arbitrary name; categories with the same group will  appear in a list
 == Category Name ==
 
 The name of the data to be tracked.
-
-== Default Value ==
-
-Once a category is added, it will appear in a list on the main screen. This is the value that will filled in by default, so if there's a particular value that you tend to enter more frequently than others, feel free to set it here.
 
 == Goal ==
 
@@ -62,64 +66,87 @@ StepLate draws a continuous step function from one point to the next, where the 
 
 StepMid draws a continuous step function from one point to the next, where the interpolated data will rise or lower to the next point at the midpoint between data points.
 
+== Calculated / Synthetic ==
 
+Calculated, or Synthetic, categories are based on the inputs of one or more other series, such as adding two series together or referencing the previous timestamp or value of a series.  No data is stored in the database, but is calculated on the fly.  If this option is selected, it is not possible to set a *Default Value*, *Increment/Decrement*, or *Zero Empty Periods*, as all those fields are related to data input.  Since this category will be calculated on the fly, they would have no effect.  Selecting this will also enabled a button that allows creating the formula by which the series will be calculated.
 
-<string name="cat_synthetic_title">Synthetic</string>
-<string name="cat_synthetic_desc">Synthetic series are based on the inputs of
-one or more other series, such as adding two series together or referencing the previous
-timestamp or value of a series.  No data is stored in the database, however, synthetic
-values are present when exporting.</string>
-<string name="cat_formula_title">Default Value</string>
-<string name="cat_formula_desc">(TODO)</string>
-<string name="cat_increment_title">Increment/Decrement</string>
-<string name="cat_increment_desc">When recording an entry under a category, the value can 
-be entered directly via the keyboard.  However, depending on the user interface selection in 
-"Settings," there may be a set of plus and minus buttons near the text entry.  The value in 
-this box controls how much the value in the text entry box is changed with one click of 
-either button.</string>
-</string>
+== Formula ==
 
-</string>
-<string name="cat_type_title">Type</string>
-<string name="cat_type_desc">The value type determines how multiple entries are aggregated,
-both in data input (where multiple entries within the same period listed below will be aggregated
-into a single point) and during graphing, where value may be temporarily aggregated for the purpose
-of display only.  An example may prove to illustrate the difference most effectively:  suppose you 
-are tracking the number of hours exercised per day.  In this case, if you worked out an hour in 
-the morning and and hour in the evening, you'd want the total for the day to be 2 hours, do you'd 
-choose "Sum."  However, if  you're tracking your weight, and you weighed yourself in the morning and 
-evening, you'd want the two values to be averaged together, so you'd choose "Average."  Note that this 
-setting only really makes a difference if and aggregation level other than "None" is selected below.
-</string>
+Please see *Advanced Usage*.
 
-</string>
-<string name="cat_interp_title">Interpolation</string>
-<string name="cat_interp_desc">This field controls how data between entries are interpolated,
-which affects data correlation and graphing.</string>
-<string name="cat_zerofill_title">Zero Empty Periods</string>
-<string name="cat_zerofill_desc">Have EvenTrend automatically insert 0's at for each aggregation
-period that passes without any entries.  The addition will occur at the start of the period, and
-if any entries are added later on within the period, the 0 will be updated to reflect the new value.  
-An example may help to explain this better: say you're trying to quit smoking, and are 
-recording the number of cigarettes consumed per day, you'd probably want to set the Aggregation 
-to "Day", and select this option.  For any days in which you didn't have any cigarettes, 
-a 0 would be automatically inserted.  However, if you were tracking your weight, you probably 
-wouldn't want to select this:  if you miss weighing yourself one day, you just 
-want to ignore the period instead of recording a weight of 0.  Note that this option is only available
-if the type is "Sum" and the aggregation period is not "None."
-</string>
-<string name="calendar_overview">
-Data Range info is only calculated over all the displayed data.  The solid color 
-at the top of the box indicates the trend going toward or away from the goal compared to the previous
-day, and the color of the value in the box denotes wether the trend was going toward or away from the
-goal compared to the previous day.  Brighter colors indicate a larger change, dimmer colors a smaller
-change, and gray indicates that the value was essentially flat (as determined by the sensitivity
-preferences.)
-</string>
-<string name="formula_help">
-Note:  formulas may be considered an advanced feature of this program.
+== Default Value ==
 
-Formulas may be constructed of binary operations only, that is, of the form \'x operator y\', and
+Once a category is added, it will appear in a list on the main screen. This is the value that will filled in by default, so if there's a particular value that you tend to enter more frequently than others, feel free to set it here.
+
+== Increment/Decrement ==
+
+When recording an entry under a category, the value can be entered directly via the keyboard.  However, there is also a set of plus and minus buttons near the text entry. The value in this box controls how much the value in the text entry box is changed with one click of either button.
+
+== Value Type ==
+
+The value type determines how multiple entries are aggregated, both in data input (where multiple entries within the same period listed below will be aggregated into a single point) and during graphing and calendar views, where value may be temporarily aggregated for the purpose of display only.  
+
+An example may prove to illustrate the difference most effectively:  suppose you are tracking the number of hours exercised per day.  In this case, if you worked out an hour in the morning and and hour in the evening, you'd want the total for the day to be 2 hours, do you'd choose "Sum."  However, if  you're tracking your weight, and you weighed yourself in the morning and evening, you'd want the two values to be averaged together, so you'd choose "Average."  Note that this setting only makes a difference if and aggregation level other than "None" is selected.
+
+== Zero Empty Periods ==
+
+Have EvenTrend automatically insert 0's at for each aggregation period that passes without any entries.  The addition will occur at the start of the period, and if any entries are added later on within the period, the 0 will be updated to reflect the new value.  
+
+An example may help to explain this better: say you're trying to quit smoking, and are recording the number of cigarettes consumed per day.  You'd probably want to set the Aggregation to "Day" (or "Hour", the choice is yours) and select this option.  For any days in which you didn't have any cigarettes, a 0 would be automatically inserted. 
+
+However, if you were tracking your weight, you probably wouldn't want to select this:  if you miss weighing yourself one day, you just want to ignore the period instead of recording a weight of 0.  Note that this option is only available if the type is "Sum" and the aggregation period is not "None."
+
+= Graph Overview =
+
+By default, the graph will display only the categories which were present on the input page.  However, any arbitrary set of graph can be displayed by pressing the "Menu" button and choosing "Filter."  Click the checkboxes beside each category to enable or disable the display of the category.
+
+The y-axis of the graph contains markers at the top and bottom denoting the minimum and maximum values of the displayed categories, and the x-axis the dates and/or times, depending on the zoom level.  Long-press the graph to bring up the zoom buttons.  Note that each category is drawn independently, that is, each category is scaled to take up as much of the vertical screen space as possible.
+
+Each point on the graph can be clicked on to bring up a dialog with details of the point.  This dialog also a button to gather statistics regarding the displayed portion of the category.
+
+The graph may be scrolled left or by dragging, and the data may be temporarily aggregated into other period via the pop-up menu.
+
+Data may be correlated via non-time-shifted linear correlation by pressing the "Menu" button and choosing "Correlate."  Note that this correlation is only calculated over the displayed data, not the entire set of data for the category.  Since data correlation is highly dependent on the source data, the ratings should only be taken and rough guidelines.
+
+= Calendar Overview =
+
+The "Data Range Info" is only calculated over all the displayed data.  The solid color 
+at the top of the box indicates the trend going toward or away from the goal compared to the previous day, and the color of the value in the box denotes whether the trend was going toward or away from the goal compared to the previous day.  Brighter colors indicate a larger change, dimmer colors a smaller change, and gray indicates that the value was essentially flat (as determined by the sensitivity preferences.)
+
+= Advanced Usage =
+
+== Settings: Trending Parameters ==
+
+The trend of a series is calculated thusly:
+
+`trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1))`
+
+where `n` is the last `history` entries.  Thus, it is an approximation of an exponentially smoothed weighted average (some shortcuts are taken.)  The following parameters affect this calculation, as well as as the interpretation of it's results.
+
+Note that changes to the next items will only manifest once a new data point has been added to a series, or if the "Recalc Trends" menu item is selected.
+
+=== History === 
+
+The number of data points to take into account when calculating trends and other statistics.  The default value is 20, and with a default smoothing constant of 0.1, there is no reason to make it larger.  The larger the value, the more data must be read from the internal database, the more calculations have to be done, and the slower a variety of operations will become.
+
+=== Standard Deviation Sensitivity ===
+
+On the main screen, trend icons are selected based on the difference of the current trend and the trend value at the previous data point.  The threshold for determining the incline of arrow is the standard deviation multiplied by the sensitivity.  
+
+With a this value set to 1.0, this means that a change of greater than 1 standard deviation (over the last "History" datapoints) will result in a trend icon that points 45 degrees up or down, and an arrow that points slightly up or down if the change exceeds 1/2 a standard deviation.
+
+If the value is 0.5, that means the arrow  will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a standard deviation.  
+
+On the calendar views, this has a similar function related to the intensity of the green or red color of value and trend changes.  Default is 1.0, although many people may want to drop this to 0.5 in order to see more wiggle out of their trend indicators.
+
+=== Smoothing Constant ===
+
+This is a value indicating the weight of previous data points to the current
+one.  A value 1.0 indicates that a strict average of the last "History" points will be taken.  Anything less than 1.0 indicates that recent points have more influence over the trend than previous points, and the smaller the value, the more important recent data is.  Default is 0.1.
+
+== Calculated / Synthetics Categories ==
+
+The formula for a synthetics series may be constructed of binary operations only, that is, of the form `x operator y`, and
 must evaluate to a series of values.  For example, \'series "water" + series "beers"\' and 
 \'40 - series "work hours"\' both evaluate to a sequence, while \'4 + 5\' does not.  A series must
 consist of the word \'series\' followed by whitespace and the name of the category to use in double
@@ -187,28 +214,5 @@ look a little funky.
 Decimal Places:  the number of decimal places to round values to.  This is used throughout the
 application.  Default is 2.
 \n
-Note that changes to the next three fields will only manifest once a new data point has been
-added to a series, or if the "Recalc Trends" menu item is selected.
-\n
-History:  the number of datapoints to take into account when calculating trends and other statistics.
-Default value is 20, and with a default smoothing percentage of 10% (0.1), there is no reason to
-make it larger.
-\n
-Standard Deviation Sensitivity:  On the main screen, trend icons are selected based on the difference
-of the current trend and the trend value at the previous data point.  The threshold for determining the
-incline of arrow is the standard deviation * this value.  So, With a this value set to 1.0,
-this means that a change of greater than 1 standard deviation (over the last "History" datapoints)
-will result in a trend icon that points 45 degrees up or down, and an arrow that points slightly up
-or down if the change exceeds 1/2 a standard deviation.  If the value is 0.5, that means the arrow 
-will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a 
-standard deviation.  On the calendar views, this has a similar function related to the intensity of 
-the green or red color of value and trend changes.  Default is 1.0.
-\n
-Smoothing Constant:  This is a value indicating the weight of previous datapoints to the current
-one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
-a value of 1.0 indicates that a strict average of the last "History" points will be taken.  Anything
-less than 1.0 indicates that recent points have more influence over the trend than previous points,
-and the smaller the value, the more important recent data is.  Default is 0.1.
-\n
-</string>
+
 </resources>
