@@ -1,4 +1,6 @@
 TODO:
+  Add link to detailed online help
+  
 	Input:
 	  don't zerofill final (current) period, so NEntries is correct
 	CalendarView:
