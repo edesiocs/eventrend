@@ -81,13 +81,13 @@ preferences.)
 </string>
 <string name="formula_help">
 Note:  formulas may be considered an advanced feature of this program.
-
+\n\n
 Formulas may be constructed of binary operations only, that is, of the form \'x operator y\', and
 must evaluate to a series of values.  For example, \'series "water" + series "beers"\' and 
 \'40 - series "work hours"\' both evaluate to a sequence, while \'4 + 5\' does not.  A series must
 consist of the word \'series\' followed by whitespace and the name of the category to use in double
 quotes, as in the examples presented above.
-
+\n\n
 There is no implicit 
 grouping, so instead of attempting to calculate \'x + y + z\', the following should be used:  
 \'(x + y) + z\' or \'x + (y + z)\'.  The following operations are supported:  \'+\', \'-\', \'*\', \'/\', and 
@@ -101,33 +101,35 @@ are provided:  \'minute\', \'hour\', \'am/pm\', \'day\', \'week\', \'month\', \'
 defined as the average number of milliseconds in each periods' time.  So, in order to calculate 
 how many hours between weighings, the following may be used: 
 \'(series "weight" previous timestamp) / hour\'.
-\n
+\n\n
 </string>
 <string name="overview">
 EvenTrend is a program to track arbitrary data over time.  In short, you can create categories 
 of data, graph multiple items at one time, look at the historical trend, and compare it against 
 goals.  It's intended to be able to add data incrementally as it occurs with a minimum of clicks 
 or presses.
-
+\n\n
+For detailed help, please see the online docs @ http://code.google.com/p/eventrend/wiki/Documentation
+\n\n
 The first step in using EvenTrend to the create a category, for example, "weight." To 
 create a category, click the "Menu" button from the main screen and select "Add Category." 
 After a category is created, it will be listed on the main screen.  Whenever there's and event 
 that you want to record occurs, launch EvenTrend, set the value, and click "Add."
-
+\n\n
 There are are a lot of fields that can be filled out when creating a category.  Click on each
 the text of each field when adding a category for help.
-
+\n\n
 Brief notes on other aspects of EvenTrend:
-
+\n\n
 When viewing a category list, long clicks or the trackball can be used the select categories 
 for re-ordering or editing.
-
+\n\n
 In order to save or restore a EvenTrend database, select "Edit Entries" from the main menu, 
 and then select "Export to Mail," "Export to File," or "Restore."  "Export to File" will store 
 a comma separated value dump of the databses to the sdcard of your phone under the directory 
 "EvenTrend."  "Restore" reads one of these CSV files from the same directory and will 
 replace all the current data.
-
+\n\n
 Graph aggregation only affect the display of the data, and is distinct from the aggregation set 
 for the category.  The trending used in the graph is an exponentially weighted moving average 
 based on the history value set in the preferences.  This essentially means that recent entries 
@@ -142,21 +144,21 @@ be displayed.
 Default Group:  this is the group the display by default, however, since android programs are
 essentially "always running," this only takes effect if the program has been killed and restarted
 by the system.
-\n
+\n\n
 Graph Background:  black or white.  Most development has been done with a black screen, since I
 think it's a little easier on the eyes, and minimizes battery use, so the white background might
 look a little funky.
-\n
+\n\n
 Decimal Places:  the number of decimal places to round values to.  This is used throughout the
 application.  Default is 2.
-\n
+\n\n
 Note that changes to the next three fields will only manifest once a new data point has been
 added to a series, or if the "Recalc Trends" menu item is selected.
-\n
+\n\n
 History:  the number of datapoints to take into account when calculating trends and other statistics.
 Default value is 20, and with a default smoothing percentage of 10% (0.1), there is no reason to
 make it larger.
-\n
+\n\n
 Standard Deviation Sensitivity:  On the main screen, trend icons are selected based on the difference
 of the current trend and the trend value at the previous data point.  The threshold for determining the
 incline of arrow is the standard deviation * this value.  So, With a this value set to 1.0,
@@ -166,12 +168,12 @@ or down if the change exceeds 1/2 a standard deviation.  If the value is 0.5, th
 will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a 
 standard deviation.  On the calendar views, this has a similar function related to the intensity of 
 the green or red color of value and trend changes.  Default is 1.0.
-\n
+\n\n
 Smoothing Constant:  This is a value indicating the weight of previous datapoints to the current
 one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
 a value of 1.0 indicates that a strict average of the last "History" points will be taken.  Anything
 less than 1.0 indicates that recent points have more influence over the trend than previous points,
 and the smaller the value, the more important recent data is.  Default is 0.1.
-\n
+\n\n
 </string>
 </resources>
