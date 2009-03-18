@@ -105,9 +105,9 @@ public class UpdateRecentDataTask {
     long now = System.currentTimeMillis();
 
     mCal.setTimeInMillis(d.mMillis);
-    while (mCal.getTimeInMillis() + periodMs < now) {
+    while (true) {
       if (periodMs == DateUtil.HOUR_MS) {
-        DateUtil.setToPeriodStart(mCal, Period.HOUR);
+        DateUtil.setToPeriodStart(mCal, Period.HOUR);        
         mCal.add(Calendar.HOUR, 1);
       } else if (periodMs == DateUtil.AMPM_MS) {
         DateUtil.setToPeriodStart(mCal, Period.AMPM);
@@ -129,10 +129,14 @@ public class UpdateRecentDataTask {
         mCal.add(Calendar.YEAR, 1);
       }
 
+      long ms = mCal.getTimeInMillis();
+      if (ms + periodMs >= now)
+        break;
+      
       entry.setCategoryId(catId);
       entry.setTimestamp(mCal.getTimeInMillis());
       entry.setValue(0.0f);
-      entry.setNEntries(0);
+      entry.setNEntries(1);
       mTSC.getDbh().createEntry(entry);
     }
 
