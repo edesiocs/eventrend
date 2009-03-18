@@ -535,13 +535,14 @@ public class TimeSeriesCollector {
 
     mDbh.updateCategoryTrend(catId, trendStr, newTrend);
 
-    if (ts.getDependees().size() > 0) {
+    if (ts.getDependees() != null && ts.getDependees().size() > 0) {
       for (int i = 0; i < ts.getDependees().size(); i++) {
         TimeSeries dependee = ts.getDependees().get(i);
 
         for (int j = 0; j < dependee.getDependents().size(); j++) {
           TimeSeries tmp = dependee.getDependents().get(j);
-          gatherLatestDatapointsLocking(tmp.getDbRow().getId(), mHistory);
+          if (tmp != null)
+            gatherLatestDatapointsLocking(tmp.getDbRow().getId(), mHistory);
         }
 
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());
@@ -765,14 +766,14 @@ public class TimeSeriesCollector {
     ts.getDependees().clear();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries dependee = getSeries(i);
-      if (ts == null || ts == dependee)
+      if (ts == null || dependee == null || ts == dependee)
         continue;
 
       if (dependee.getDbRow().getSynthetic() == true) {
         Formula formula = mFormulaCache.getFormula(dependee.getDbRow().getId());
         ArrayList<String> names = formula.getDependentNames();
 
-        if (names.contains(ts.getDbRow().getCategoryName()))
+        if (names != null && names.contains(ts.getDbRow().getCategoryName()))
           ts.addDependee(dependee);
       }
     }

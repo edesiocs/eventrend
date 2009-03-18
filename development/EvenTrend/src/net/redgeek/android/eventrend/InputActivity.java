@@ -550,6 +550,7 @@ public class InputActivity extends EvenTrendActivity {
     CategoryDbTable.Row row;
     CategoryListAdapter cla = null;
     ListView lv = null;
+    TimeSeries ts;
 
     int defaultGroupId = 0;
 
@@ -558,8 +559,12 @@ public class InputActivity extends EvenTrendActivity {
     mFlipper.removeAllViews();
 
     for (int i = 0; i < mTSC.numSeries(); i++) {
-      row = mTSC.getSeries(i).getDbRow();
-      Integer listNum = (Integer) hm.get(row.getGroupName());
+      ts = mTSC.getSeries(i);
+      if (ts == null)
+        continue;
+      
+      row = ts.getDbRow();
+      Integer listNum = hm.get(row.getGroupName());
       if (listNum == null) {
         listNum = new Integer(list);
         cla = new CategoryListAdapter(this, mTSC);
@@ -588,7 +593,8 @@ public class InputActivity extends EvenTrendActivity {
     if (switchToView < 0)
       switchToView = defaultGroupId;
 
-    mFlipper.setDisplayedChild(switchToView);
+    if (switchToView >= 0 && switchToView < mFlipper.getChildCount())
+      mFlipper.setDisplayedChild(switchToView);
   }
 
   public void redrawSyntheticViews() {
