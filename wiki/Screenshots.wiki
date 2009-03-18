@@ -4,7 +4,7 @@
 
 Data Input:
 
-[http://eventrend.googlecode.com/files/EvenTrend-rc1-5.png]
+http://eventrend.googlecode.com/files/EvenTrend-rc1-5.png
 
 Graphing:
 
