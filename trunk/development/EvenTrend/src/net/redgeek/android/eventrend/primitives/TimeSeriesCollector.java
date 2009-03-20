@@ -157,42 +157,47 @@ public class TimeSeriesCollector {
   }
 
   public void updateTimeSeriesData(long start, long end, boolean flushCache) {
+    waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
       if (ts != null && ts.isEnabled() == true) {
         long catId = ts.getDbRow().getId();
-        updateTimeSeriesDataLocking(catId, start, end, flushCache);
+        updateTimeSeriesData(catId, start, end, flushCache);
       }
     }
+    unlock();
   }
 
   public void updateTimeSeriesData(long catId, boolean flushCache) {
-    updateTimeSeriesDataLocking(catId, mQueryStart, mQueryEnd, flushCache);
+    waitForLock();
+    updateTimeSeriesData(catId, mQueryStart, mQueryEnd, flushCache);
+    unlock();
   }
 
-  private void updateTimeSeriesDataLocking(long catId, long start, long end,
+  private void updateTimeSeriesData(long catId, long start, long end,
       boolean flushCache) {
-    if (flushCache == true) {
-      waitForLock();
+    if (flushCache == true)
       mDatapointCache.refresh(catId);
-      unlock();
-    }
 
-    gatherSeriesLocking(start, end);
+    gatherSeries(start, end);
   }
 
   public void setSmoothing(float smoothing) {
     mSmoothing = smoothing;
+    waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
       mSeries.get(i).recalcStatsAndBounds(mSmoothing, mHistory);
     }
+    unlock();
   }
 
   public void setHistory(int history) {
     mHistory = history;
+    waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
       mSeries.get(i).recalcStatsAndBounds(mSmoothing, mHistory);
     }
+    unlock();
   }
 
   public void setSensitivity(float sensitivity) {
@@ -247,8 +252,11 @@ public class TimeSeriesCollector {
         break;
     }
 
-    if (tsi != null)
+    if (tsi != null) {
+      waitForLock();
       ts.setInterpolator(tsi);
+      unlock();
+    }
 
     return;
   }
@@ -268,17 +276,24 @@ public class TimeSeriesCollector {
   }
 
   public boolean isSeriesEnabled(long catId) {
-    TimeSeries ts = getSeriesByIdLocking(catId);
+    boolean b;
+    waitForLock();
+    TimeSeries ts = getSeriesByIdNonlocking(catId);
     if (ts == null)
-      return false;
-    return ts.isEnabled();
+      b = false;
+    else
+      b = ts.isEnabled();
+    unlock();
+    return b;
   }
 
   public void setSeriesEnabled(long catId, boolean b) {
-    TimeSeries ts = getSeriesByIdLocking(catId);
-    if (ts == null)
-      return;
-    ts.setEnabled(b);
+    waitForLock();    
+    TimeSeries ts = getSeriesByIdNonlocking(catId);
+    if (ts != null)
+      ts.setEnabled(b);
+    unlock();
+    return;
   }
 
   public void toggleSeriesEnabled(long catId) {
@@ -294,11 +309,40 @@ public class TimeSeriesCollector {
   }
 
   public int numSeries() {
-    return mSeries.size();
+    int i;
+    waitForLock();
+    i = mSeries.size();
+    unlock();
+    return i;
   }
 
   public TimeSeries getSeries(int i) {
-    return mSeries.get(i);
+    TimeSeries ts = null;
+    try {
+      ts = mSeries.get(i);
+    } catch(IndexOutOfBoundsException e) {
+      ts = null;
+    }
+    return ts;
+  }
+
+  public CategoryDbTable.Row getSeriesMetaLocking(int i) {
+    CategoryDbTable.Row row = null;
+    waitForLock();
+    TimeSeries ts = getSeries(i);
+    row = new CategoryDbTable.Row(ts.getDbRow());
+    unlock();
+    return row;
+  }
+
+  public long getSeriesIdLocking(int i) {
+    long id = -1;
+    waitForLock();
+    TimeSeries ts = getSeries(i);
+    if (ts != null)
+      id = ts.getDbRow().getId();
+    unlock();
+    return id;
   }
 
   private TimeSeries getSeriesByIdNonlocking(long catId) {
@@ -418,11 +462,15 @@ public class TimeSeriesCollector {
   }
 
   public synchronized void gatherSeriesLocking(long milliStart, long milliEnd) {
+    waitForLock();
+    gatherSeries(milliStart, milliEnd);
+    unlock();
+  }
+  
+  public synchronized void gatherSeries(long milliStart, long milliEnd) {
     ArrayList<Datapoint> pre, range, post;
     boolean has_data;
     long oldAggregationMs = mAggregationMs;
-
-    waitForLock();
 
     mQueryStart = milliStart;
     mQueryEnd = milliEnd;
@@ -449,27 +497,6 @@ public class TimeSeriesCollector {
 
       mDatapointCache.populateRange(ts.getDbRow().getId(), mCollectionStart,
           mCollectionEnd, mAggregationMs);
-
-//      pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory,
-//          mCollectionStart);
-//      if (pre != null && pre.size() > 0) {
-//        has_data = true;
-//        pre = aggregateDatapoints(pre, ts.getDbRow().getType());
-//      }
-//
-//      range = mDatapointCache.getDataInRange(ts.getDbRow().getId(),
-//          mCollectionStart, mCollectionEnd);
-//      if (range != null && range.size() > 0) {
-//        has_data = true;
-//        range = aggregateDatapoints(range, ts.getDbRow().getType());
-//      }
-//
-//      post = mDatapointCache.getDataAfter(ts.getDbRow().getId(), 1,
-//          mCollectionEnd);
-//      if (post != null && range.size() > 0) {
-//        has_data = true;
-//        post = aggregateDatapoints(post, ts.getDbRow().getType());
-//      }
 
       pre = mDatapointCache.getDataBefore(ts.getDbRow().getId(), mHistory,
           mCollectionStart);
@@ -498,8 +525,6 @@ public class TimeSeriesCollector {
     }
 
     mAggregationMs = oldAggregationMs;
-
-    unlock();
 
     return;
   }
