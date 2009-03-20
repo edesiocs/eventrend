@@ -559,11 +559,10 @@ public class InputActivity extends EvenTrendActivity {
     mFlipper.removeAllViews();
 
     for (int i = 0; i < mTSC.numSeries(); i++) {
-      ts = mTSC.getSeries(i);
-      if (ts == null)
+      row = mTSC.getSeriesMetaLocking(i);
+      if (row == null)
         continue;
       
-      row = ts.getDbRow();
       Integer listNum = hm.get(row.getGroupName());
       if (listNum == null) {
         listNum = new Integer(list);
@@ -753,9 +752,8 @@ public class InputActivity extends EvenTrendActivity {
   private void setEnabledSeries() {
     if (mTSC.numSeries() > 0) {
       for (int i = 0; i < mTSC.numSeries(); i++) {
-        TimeSeries ts = mTSC.getSeries(i);
-        if (ts != null)
-          mTSC.setSeriesEnabled(ts.getDbRow().getId(), false);
+        long id = mTSC.getSeriesIdLocking(i);
+        mTSC.setSeriesEnabled(id, false);
       }
 
       int childIndex = mFlipper.getDisplayedChild();

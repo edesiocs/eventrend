@@ -18,6 +18,7 @@ package net.redgeek.android.eventrend.backgroundtasks;
 
 import java.util.Calendar;
 
+import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
@@ -71,8 +72,10 @@ public class UpdateRecentDataTask {
 
   public void fillAllCategories() {
     for (int i = 0; i < mTSC.numSeries(); i++) {
-      fillCategory(mTSC.getSeries(i).getDbRow().getId(), mZerofill,
-          mUpdateTrend);
+      long id = mTSC.getSeriesIdLocking(i);
+      if (id > 0) {
+        fillCategory(id, mZerofill, mUpdateTrend);
+      }
     }
     return;
   }
@@ -82,8 +85,7 @@ public class UpdateRecentDataTask {
     return;
   }
 
-  private void fillCategory(long catId, boolean zerofill,
-      boolean updateTrend) {
+  private void fillCategory(long catId, boolean zerofill, boolean updateTrend) {
     EntryDbTable.Row entry = new EntryDbTable.Row();
 
     if (zerofill == false && updateTrend == true) {
@@ -93,7 +95,7 @@ public class UpdateRecentDataTask {
     }
 
     TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
-    if (ts.getDbRow().getZeroFill() == false)
+    if (ts == null || ts.getDbRow().getZeroFill() == false)
       return;
 
     mTSC.gatherLatestDatapointsLocking(catId, mHistory);
