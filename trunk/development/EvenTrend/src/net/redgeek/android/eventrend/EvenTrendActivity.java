@@ -50,6 +50,8 @@ import android.os.Bundle;
  * 
  */
 public class EvenTrendActivity extends ListActivity implements GUITask {
+  public static final String TAG = "EvenTrend";
+  
   public static final int CATEGORY_LIST = 0;
   public static final int CATEGORY_CREATE = 1;
   public static final int CATEGORY_EDIT = 2;

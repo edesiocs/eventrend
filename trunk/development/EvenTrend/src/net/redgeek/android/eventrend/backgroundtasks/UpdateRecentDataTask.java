@@ -18,13 +18,14 @@ package net.redgeek.android.eventrend.backgroundtasks;
 
 import java.util.Calendar;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
+import android.util.Log;
 
 /**
  * Task to perform one or both of the two actions:
@@ -71,9 +72,11 @@ public class UpdateRecentDataTask {
   }
 
   public void fillAllCategories() {
+    Log.d(EvenTrendActivity.TAG, "fillAllCategories(): entered");
     for (int i = 0; i < mTSC.numSeries(); i++) {
       long id = mTSC.getSeriesIdLocking(i);
       if (id > 0) {
+        Log.d(EvenTrendActivity.TAG, "fillAllCategories(): filling id " + id);
         fillCategory(id, mZerofill, mUpdateTrend);
       }
     }
@@ -81,15 +84,20 @@ public class UpdateRecentDataTask {
   }
 
   public void fillCategory(long catId) {
+    Log.d(EvenTrendActivity.TAG, "fillCategory(): single call for id " + catId);
     fillCategory(catId, mZerofill, mUpdateTrend);
     return;
   }
 
-  private void fillCategory(long catId, boolean zerofill, boolean updateTrend) {
+  private synchronized void fillCategory(long catId, boolean zerofill, 
+      boolean updateTrend) {
     EntryDbTable.Row entry = new EntryDbTable.Row();
+    
+    Log.d(EvenTrendActivity.TAG, "fillCategory(): entered");
 
     if (zerofill == false && updateTrend == true) {
       // quick check to see if we need to update trends only...
+      Log.d(EvenTrendActivity.TAG, "fillCategory(): updating trend only");
       mTSC.updateCategoryTrend(catId);
       return;
     }
@@ -98,6 +106,7 @@ public class UpdateRecentDataTask {
     if (ts == null || ts.getDbRow().getZeroFill() == false)
       return;
 
+    Log.d(EvenTrendActivity.TAG, "fillCategory(): gathering datapoints");
     mTSC.gatherLatestDatapointsLocking(catId, mHistory);
     Datapoint d = mTSC.getLastDatapoint(catId);
     if (d == null)
@@ -142,8 +151,10 @@ public class UpdateRecentDataTask {
       mTSC.getDbh().createEntry(entry);
     }
 
-    if (updateTrend == true)
+    if (updateTrend == true) {
+      Log.d(EvenTrendActivity.TAG, "fillCategory(): updating trend after fill");
       mTSC.updateCategoryTrend(entry.getCategoryId());
+    }
 
     return;
   }
