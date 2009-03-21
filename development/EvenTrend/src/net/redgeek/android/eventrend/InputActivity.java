@@ -47,6 +47,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -229,6 +230,7 @@ public class InputActivity extends EvenTrendActivity {
           mOldHour = newHour;
           mDataUpdater.setZerofill(true);
           mDataUpdater.setUpdateTrend(true);
+          Log.d(TAG, "mUpdateNowTime: scheduling data filler");
           GUITaskQueue.getInstance().addTask(mProgress, (GUITask) getCtx());
         }
 
@@ -384,18 +386,24 @@ public class InputActivity extends EvenTrendActivity {
 
   @Override
   protected void onResume() {
+    Log.d(TAG, "onResume(): entered");
+    Log.d(TAG, "onResume(): scheduling update");
     scheduleUpdateNow();
     getPrefs();
 
+    Log.d(TAG, "onResume(): updating meta data");
     mTSC.updateTimeSeriesMetaLocking(false);
+    Log.d(TAG, "onResume(): updating category data view");
     fillCategoryData(mFlipper.getDisplayedChild());
     setCurrentViews(false);
 
     if (mDataUpdater != null) {
       mDataUpdater.setZerofill(true);
       mDataUpdater.setUpdateTrend(true);
+      Log.d(TAG, "onResume(): scheduling data filler");
       GUITaskQueue.getInstance().addTask(mProgress, this);
     }
+    Log.d(TAG, "onResume(): calling super");
     super.onResume();
   }
 

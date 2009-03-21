@@ -132,7 +132,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
           + " -> " + newValue;
       mCategoryUpdateView.setText(status);
       Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-          Toast.LENGTH_LONG).show();
+          Toast.LENGTH_SHORT).show();
     } else {
       ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
           timestamp, mCategoryUpdateView, mRowView);
@@ -144,7 +144,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
           + ": " + newValue;
       mCategoryUpdateView.setText(status);
       Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-          Toast.LENGTH_LONG).show();
+          Toast.LENGTH_SHORT).show();
     }
 
     CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
