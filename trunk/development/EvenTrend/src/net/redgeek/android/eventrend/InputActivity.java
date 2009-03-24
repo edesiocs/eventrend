@@ -189,7 +189,6 @@ public class InputActivity extends EvenTrendActivity {
 
   @Override
   public void onFailure(Throwable t) {
-    mTSC.unlock();
   }
 
   // *** main setup routines ***/
@@ -386,7 +385,7 @@ public class InputActivity extends EvenTrendActivity {
 
   @Override
   protected void onResume() {
-    Log.d(TAG, "onResume(): entered");
+    Log.d(TAG, "onResume(): entered @ " + DateUtil.toTimestamp(System.currentTimeMillis()));
     Log.d(TAG, "onResume(): scheduling update");
     scheduleUpdateNow();
     getPrefs();
