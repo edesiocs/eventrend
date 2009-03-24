@@ -93,24 +93,30 @@ public class UpdateRecentDataTask {
       boolean updateTrend) {
     EntryDbTable.Row entry = new EntryDbTable.Row();
     
-    Log.d(EvenTrendActivity.TAG, "fillCategory(): entered");
+    Log.d(EvenTrendActivity.TAG, "fillCategory(): entered @ " 
+        + DateUtil.toTimestamp(System.currentTimeMillis()));
 
     if (zerofill == false && updateTrend == true) {
       // quick check to see if we need to update trends only...
       Log.d(EvenTrendActivity.TAG, "fillCategory(): updating trend only");
       mTSC.updateCategoryTrend(catId);
+      Log.d(EvenTrendActivity.TAG, "fillCategory(): returning after trend only update");
       return;
     }
 
     TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
-    if (ts == null || ts.getDbRow().getZeroFill() == false)
+    if (ts == null || ts.getDbRow().getZeroFill() == false) {
+      Log.d(EvenTrendActivity.TAG, "fillCategory(): null ts or no z-fill, returning");
       return;
+    }
 
     Log.d(EvenTrendActivity.TAG, "fillCategory(): gathering datapoints");
     mTSC.gatherLatestDatapointsLocking(catId, mHistory);
     Datapoint d = mTSC.getLastDatapoint(catId);
-    if (d == null)
+    if (d == null) {
+      Log.d(EvenTrendActivity.TAG, "fillCategory(): null datapoint, returning");
       return;
+    }
 
     long periodMs = ts.getDbRow().getPeriodMs();
     long now = System.currentTimeMillis();
@@ -156,6 +162,7 @@ public class UpdateRecentDataTask {
       mTSC.updateCategoryTrend(entry.getCategoryId());
     }
 
+    Log.d(EvenTrendActivity.TAG, "fillCategory(): returning after all work");
     return;
   }
 }

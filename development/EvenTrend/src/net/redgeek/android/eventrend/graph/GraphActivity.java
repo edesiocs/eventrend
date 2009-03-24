@@ -294,7 +294,6 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   public void onFailure(Throwable t) {
-    mTSC.unlock();
   }
 
   @Override
