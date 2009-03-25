@@ -66,7 +66,7 @@ public class Preferences extends PreferenceActivity {
   public static final int PREFS_DECIMAL_PLACES_DEFAULT = 2;
   public static final float PREFS_SMOOTHING_PERCENT_DEFAULT = 0.1f;
   public static final int PREFS_HISTORY_DEFAULT = 20;
-  public static final float PREFS_TREND_STDDEV_DEFAULT = 1.0f;
+  public static final float PREFS_TREND_STDDEV_DEFAULT = 0.5f;
 
   private EvenTrendDbAdapter mDbh;
   private DialogUtil         mDialogUtil;

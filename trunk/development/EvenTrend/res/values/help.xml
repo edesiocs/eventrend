@@ -167,7 +167,7 @@ will result in a trend icon that points 45 degrees up or down, and an arrow that
 or down if the change exceeds 1/2 a standard deviation.  If the value is 0.5, that means the arrow 
 will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a 
 standard deviation.  On the calendar views, this has a similar function related to the intensity of 
-the green or red color of value and trend changes.  Default is 1.0.
+the green or red color of value and trend changes.  Default is 0.5.
 \n\n
 Smoothing Constant:  This is a value indicating the weight of previous datapoints to the current
 one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
