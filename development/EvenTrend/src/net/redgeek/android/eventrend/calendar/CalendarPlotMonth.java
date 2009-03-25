@@ -119,18 +119,19 @@ public class CalendarPlotMonth {
   }
 
   private Paint mapTrendStateToPaint(TrendState state) {
-    if (state == TrendState.UP_GOOD_BIG || state == TrendState.DOWN_GOOD_BIG)
+    if (state == TrendState.UP_GOOD_HUGE || state == TrendState.DOWN_GOOD_HUGE)
       return mPaints.get(PaintIndex.DATUM_GOOD4.ordinal());
-    else if (state == TrendState.UP_GOOD_SMALL
-        || state == TrendState.DOWN_GOOD_SMALL)
+    else if (state == TrendState.UP_GOOD_BIG || state == TrendState.DOWN_GOOD_BIG)
+      return mPaints.get(PaintIndex.DATUM_GOOD3.ordinal());
+    else if (state == TrendState.UP_GOOD_SMALL || state == TrendState.DOWN_GOOD_SMALL)
       return mPaints.get(PaintIndex.DATUM_GOOD2.ordinal());
-    else if (state == TrendState.DOWN_BAD_BIG
-        || state == TrendState.DOWN_BAD_SMALL)
+    else if (state == TrendState.DOWN_BAD_HUGE || state == TrendState.DOWN_BAD_HUGE)
       return mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
-    else if (state == TrendState.UP_BAD_BIG || state == TrendState.UP_BAD_SMALL)
+    else if (state == TrendState.DOWN_BAD_BIG || state == TrendState.DOWN_BAD_BIG)
+      return mPaints.get(PaintIndex.DATUM_BAD3.ordinal());
+    else if (state == TrendState.DOWN_BAD_SMALL || state == TrendState.DOWN_BAD_SMALL)
       return mPaints.get(PaintIndex.DATUM_BAD2.ordinal());
-    else if (state == TrendState.UP_SMALL || state == TrendState.DOWN_SMALL
-        || state == TrendState.EVEN)
+    else if (state == TrendState.UP_SMALL || state == TrendState.DOWN_SMALL || state == TrendState.EVEN)
       return mPaints.get(PaintIndex.DATUM_EVEN.ordinal());
     else if (state == TrendState.EVEN_GOAL)
       return mPaints.get(PaintIndex.DATUM_EVEN_GOAL.ordinal());

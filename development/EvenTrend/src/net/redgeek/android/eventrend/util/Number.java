@@ -85,23 +85,40 @@ public class Number {
   }
 
   public enum TrendState {
-    UP_GOOD_BIG, UP_GOOD_SMALL, UP_BAD_SMALL, UP_BAD_BIG, UP_SMALL, DOWN_GOOD_BIG, DOWN_GOOD_SMALL, DOWN_BAD_SMALL, DOWN_BAD_BIG, DOWN_SMALL, EVEN, EVEN_GOAL, UNKNOWN
+    UP_GOOD_HUGE,
+    UP_GOOD_BIG,
+    UP_GOOD_SMALL, 
+    UP_BAD_HUGE, 
+    UP_BAD_SMALL, 
+    UP_BAD_BIG, 
+    UP_SMALL, 
+    DOWN_GOOD_HUGE, 
+    DOWN_GOOD_BIG, 
+    DOWN_GOOD_SMALL, 
+    DOWN_BAD_HUGE, 
+    DOWN_BAD_SMALL, 
+    DOWN_BAD_BIG, 
+    DOWN_SMALL, 
+    EVEN, 
+    EVEN_GOAL, 
+    UNKNOWN
   };
 
   public static TrendState getTrendState(float oldTrend, float newTrend,
       float goal, float sensitivity, float stdDev) {
     sensitivity = sensitivity * stdDev;
     float half = sensitivity / 2.0f;
+    float quarter = sensitivity / 4.0f;
 
     if (oldTrend == newTrend) {
       // truly flat trend
       if (newTrend == goal)
         // perfect!
         return TrendState.EVEN_GOAL;
-      else if (newTrend < goal && newTrend + half > goal)
+      else if (newTrend < goal && newTrend + quarter > goal)
         // flat near the goal!
         return TrendState.EVEN_GOAL;
-      else if (newTrend > goal && newTrend - half < goal)
+      else if (newTrend > goal && newTrend - quarter < goal)
         // flat near the goal!
         return TrendState.EVEN_GOAL;
       else
@@ -111,14 +128,17 @@ public class Number {
       if (oldTrend > goal && newTrend > goal) {
         // toward goal
         if (oldTrend - newTrend > sensitivity)
+          // huge drop
+          return TrendState.DOWN_GOOD_HUGE;
+        else if (oldTrend - newTrend > half)
           // big drop
           return TrendState.DOWN_GOOD_BIG;
-        else if (oldTrend - newTrend > half)
+        else if (oldTrend - newTrend > quarter)
           // little drop
           return TrendState.DOWN_GOOD_SMALL;
         else {
           // under bounds for flat
-          if (newTrend - half < goal)
+          if (newTrend - quarter < goal)
             // flat near the goal!
             return TrendState.EVEN_GOAL;
           else
@@ -128,14 +148,17 @@ public class Number {
       } else if (oldTrend < goal && newTrend < goal) {
         // away from goal
         if (oldTrend - newTrend > sensitivity)
+          // huge drop
+          return TrendState.DOWN_BAD_HUGE;
+        else if (oldTrend - newTrend > half)
           // big drop
           return TrendState.DOWN_BAD_BIG;
-        if (oldTrend - newTrend > half)
+        else if (oldTrend - newTrend > quarter)
           // little drop
           return TrendState.DOWN_BAD_SMALL;
         else {
           // under bounds for flat
-          if (newTrend + half > goal)
+          if (newTrend + quarter > goal)
             // flat near the goal!
             return TrendState.EVEN_GOAL;
           else
@@ -151,13 +174,16 @@ public class Number {
         // toward goal
         if (newTrend - oldTrend > sensitivity)
           // big rise
-          return TrendState.UP_GOOD_BIG;
+          return TrendState.UP_GOOD_HUGE;
         else if (newTrend - oldTrend > half)
+          // little rise
+          return TrendState.UP_GOOD_BIG;
+        else if (newTrend - oldTrend > quarter)
           // little rise
           return TrendState.UP_GOOD_SMALL;
         else {
           // under bounds for flat
-          if (newTrend + half > goal)
+          if (newTrend + quarter > goal)
             // flat near the goal!
             return TrendState.EVEN_GOAL;
           else
@@ -168,13 +194,16 @@ public class Number {
         // away from goal
         if (newTrend - oldTrend > sensitivity)
           // big rise
-          return TrendState.UP_BAD_BIG;
+          return TrendState.UP_BAD_HUGE;
         else if (newTrend - oldTrend > half)
+          // little rise
+          return TrendState.UP_BAD_BIG;
+        else if (newTrend - oldTrend > quarter)
           // little rise
           return TrendState.UP_BAD_SMALL;
         else {
           // under bounds for flat
-          if (newTrend - half < goal)
+          if (newTrend - quarter < goal)
             // flat near the goal!
             return TrendState.EVEN_GOAL;
           else
@@ -192,20 +221,28 @@ public class Number {
 
   public static String mapTrendStateToString(TrendState state) {
     String trendStr;
-    if (state == TrendState.UP_GOOD_BIG)
+    if (state == TrendState.UP_GOOD_HUGE)
+      trendStr = CategoryDbTable.KEY_TREND_UP_HUGE_GOOD;
+    else if (state == TrendState.UP_GOOD_BIG)
       trendStr = CategoryDbTable.KEY_TREND_UP_GOOD;
     else if (state == TrendState.UP_GOOD_SMALL)
       trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT_GOOD;
+    else if (state == TrendState.UP_BAD_HUGE)
+      trendStr = CategoryDbTable.KEY_TREND_UP_HUGE_BAD;
     else if (state == TrendState.UP_BAD_BIG)
       trendStr = CategoryDbTable.KEY_TREND_UP_BAD;
     else if (state == TrendState.UP_BAD_SMALL)
       trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT_BAD;
     else if (state == TrendState.UP_SMALL)
       trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT;
+    else if (state == TrendState.DOWN_GOOD_HUGE)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_HUGE_GOOD;
     else if (state == TrendState.DOWN_GOOD_BIG)
       trendStr = CategoryDbTable.KEY_TREND_DOWN_GOOD;
     else if (state == TrendState.DOWN_GOOD_SMALL)
       trendStr = CategoryDbTable.KEY_TREND_DOWN_SLIGHT_GOOD;
+    else if (state == TrendState.DOWN_BAD_HUGE)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_HUGE_BAD;
     else if (state == TrendState.DOWN_BAD_BIG)
       trendStr = CategoryDbTable.KEY_TREND_DOWN_BAD;
     else if (state == TrendState.DOWN_BAD_SMALL)

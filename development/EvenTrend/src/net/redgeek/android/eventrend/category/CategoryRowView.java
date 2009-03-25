@@ -299,7 +299,13 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void updateTrendIcon(String trendState) {
-    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_BAD))
+    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_HUGE_BAD))
+      mTrendIconDrawable = getResources()
+          .getDrawable(R.drawable.trend_down_huge_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_HUGE_GOOD))
+      mTrendIconDrawable = getResources()
+          .getDrawable(R.drawable.trend_down_huge_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_BAD))
       mTrendIconDrawable = getResources()
           .getDrawable(R.drawable.trend_down_bad);
     else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_GOOD))
@@ -319,6 +325,10 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT_GOAL))
       mTrendIconDrawable = getResources().getDrawable(
           R.drawable.trend_flat_goal_glow);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_HUGE_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_huge_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_HUGE_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_huge_bad);
     else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_BAD))
       mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_bad);
     else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_GOOD))
