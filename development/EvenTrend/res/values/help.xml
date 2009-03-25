@@ -163,11 +163,12 @@ Standard Deviation Sensitivity:  On the main screen, trend icons are selected ba
 of the current trend and the trend value at the previous data point.  The threshold for determining the
 incline of arrow is the standard deviation * this value.  So, With a this value set to 1.0,
 this means that a change of greater than 1 standard deviation (over the last "History" datapoints)
-will result in a trend icon that points 45 degrees up or down, and an arrow that points slightly up
-or down if the change exceeds 1/2 a standard deviation.  If the value is 0.5, that means the arrow 
-will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a 
-standard deviation.  On the calendar views, this has a similar function related to the intensity of 
-the green or red color of value and trend changes.  Default is 0.5.
+will result in a trend icon that points 45 degrees up or down, and an arrow that points 30 degrees up
+or down if the change exceeds 1/2 a standard deviation, and 15 degrees up or down if the change 
+exceeds 1/4 a standard deviation.  If the value is 0.5, that means the arrow will be set to 45 degrees
+up or down at 1/2 a standard deviation, 30 degrees at 1/4 and 15 degrees at 1/8.  On the calendar
+views, this has a similar function related to the intensity of the green or red color of value and 
+trend changes.  Default is 0.5.
 \n\n
 Smoothing Constant:  This is a value indicating the weight of previous datapoints to the current
 one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
