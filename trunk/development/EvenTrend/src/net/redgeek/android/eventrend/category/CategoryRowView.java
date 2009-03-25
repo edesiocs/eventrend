@@ -45,7 +45,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class CategoryRowView extends LinearLayout implements GUITask {
   // UI elements
@@ -128,11 +127,11 @@ public class CategoryRowView extends LinearLayout implements GUITask {
           timestamp, mCategoryUpdateView, mRowView);
       status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
           + oldValue + " -> " + newValue;
-      toast = "Update @ " + DateUtil.toTimestamp(timestamp) + ": " + oldValue
-          + " -> " + newValue;
       mCategoryUpdateView.setText(status);
-      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-          Toast.LENGTH_SHORT).show();
+//      toast = "Update @ " + DateUtil.toTimestamp(timestamp) + ": " + oldValue
+//          + " -> " + newValue;
+//      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
+//          Toast.LENGTH_SHORT).show();
     } else {
       ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
           timestamp, mCategoryUpdateView, mRowView);
@@ -140,11 +139,11 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       status = "Add @ "
           + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
           + newValue;
-      toast = "Add @ " + DateUtil.toTimestamp(mAddEntryTask.mLastAddTimestamp)
-          + ": " + newValue;
       mCategoryUpdateView.setText(status);
-      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-          Toast.LENGTH_SHORT).show();
+//      toast = "Add @ " + DateUtil.toTimestamp(mAddEntryTask.mLastAddTimestamp)
+//          + ": " + newValue;
+//      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
+//          Toast.LENGTH_SHORT).show();
     }
 
     CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
@@ -299,49 +298,46 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void updateTrendIcon(String trendState) {
-    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_HUGE_BAD))
-      mTrendIconDrawable = getResources()
-          .getDrawable(R.drawable.trend_down_huge_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_HUGE_GOOD))
-      mTrendIconDrawable = getResources()
-          .getDrawable(R.drawable.trend_down_huge_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_BAD))
-      mTrendIconDrawable = getResources()
-          .getDrawable(R.drawable.trend_down_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_down_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_SLIGHT))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_down_slight);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_SLIGHT_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_down_slight_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_SLIGHT_BAD))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_down_slight_bad);
+    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_90_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_90_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_90_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_90_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_75_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_75_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_75_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_75_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_90_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_90_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_90_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_90_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_75_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_75_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_75_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_75_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_BAD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_bad);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_GOOD))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_good);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15);
+    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15))
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15);
     else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT))
       mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat);
     else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT_GOAL))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_flat_goal_glow);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_HUGE_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_huge_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_HUGE_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_huge_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_SLIGHT))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_up_slight);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_SLIGHT_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_up_slight_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_SLIGHT_BAD))
-      mTrendIconDrawable = getResources().getDrawable(
-          R.drawable.trend_up_slight_bad);
+      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat_goal_glow);    
     else
       mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_unknown);
 

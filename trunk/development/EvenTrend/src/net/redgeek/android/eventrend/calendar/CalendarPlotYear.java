@@ -136,21 +136,22 @@ public class CalendarPlotYear {
   }
 
   private Paint mapTrendStateToPaint(TrendState state) {
-    if (state == TrendState.UP_GOOD_HUGE || state == TrendState.DOWN_GOOD_HUGE)
+    if (state == TrendState.UP_90_GOOD || state == TrendState.DOWN_90_GOOD
+        || state == TrendState.UP_75_GOOD || state == TrendState.DOWN_75_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD4.ordinal());
-    else if (state == TrendState.UP_GOOD_BIG || state == TrendState.DOWN_GOOD_BIG)
+    else if (state == TrendState.UP_45_GOOD || state == TrendState.DOWN_45_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD3.ordinal());
-    else if (state == TrendState.UP_GOOD_SMALL || state == TrendState.DOWN_GOOD_SMALL)
+    else if (state == TrendState.UP_15_GOOD || state == TrendState.DOWN_15_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD2.ordinal());
-    else if (state == TrendState.DOWN_BAD_HUGE || state == TrendState.DOWN_BAD_HUGE)
+    else if (state == TrendState.UP_75_BAD || state == TrendState.DOWN_75_BAD)
       return mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
-    else if (state == TrendState.DOWN_BAD_BIG || state == TrendState.DOWN_BAD_BIG)
+    else if (state == TrendState.UP_45_BAD || state == TrendState.DOWN_45_BAD)
       return mPaints.get(PaintIndex.DATUM_BAD3.ordinal());
-    else if (state == TrendState.DOWN_BAD_SMALL || state == TrendState.DOWN_BAD_SMALL)
-      return mPaints.get(PaintIndex.DATUM_BAD2.ordinal());
-    else if (state == TrendState.UP_SMALL || state == TrendState.DOWN_SMALL || state == TrendState.EVEN)
+    else if (state == TrendState.UP_15_BAD || state == TrendState.DOWN_15_BAD)
+      return mPaints.get(PaintIndex.DATUM_BAD2.ordinal());    
+    else if (state == TrendState.UP_15 || state == TrendState.DOWN_15 || state == TrendState.FLAT)
       return mPaints.get(PaintIndex.DATUM_EVEN.ordinal());
-    else if (state == TrendState.EVEN_GOAL)
+    else if (state == TrendState.FLAT_GOAL)
       return mPaints.get(PaintIndex.DATUM_EVEN_GOAL.ordinal());
     return null;
   }

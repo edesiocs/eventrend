@@ -95,23 +95,27 @@ public class CategoryDbTable {
   // This is only used sometimes, so isn't in the regular list
   public static final long KEY_PERIOD_MS_AUTO = -1;
 
-  public static final String KEY_TREND_DOWN_BAD = "trend_down_bad";
-  public static final String KEY_TREND_DOWN_HUGE_BAD = "trend_down_huge_bad";
-  public static final String KEY_TREND_DOWN_GOOD = "trend_down_good";
-  public static final String KEY_TREND_DOWN_HUGE_GOOD = "trend_down_huge_good";
-  public static final String KEY_TREND_DOWN_SLIGHT = "trend_down_slight";
-  public static final String KEY_TREND_DOWN_SLIGHT_BAD = "trend_down_slight_bad";
-  public static final String KEY_TREND_DOWN_SLIGHT_GOOD = "trend_down_slight_good";
+  public static final String KEY_TREND_DOWN_15_GOOD = "trend_down_15_good";
+  public static final String KEY_TREND_DOWN_15_BAD = "trend_down_15_bad";
+  public static final String KEY_TREND_DOWN_45_GOOD = "trend_down_45_good";
+  public static final String KEY_TREND_DOWN_45_BAD = "trend_down_45_bad";
+  public static final String KEY_TREND_DOWN_75_GOOD = "trend_down_75_good";
+  public static final String KEY_TREND_DOWN_75_BAD = "trend_down_75_bad";
+  public static final String KEY_TREND_DOWN_90_GOOD = "trend_down_90_good";
+  public static final String KEY_TREND_DOWN_90_BAD = "trend_down_90_bad";
+  public static final String KEY_TREND_UP_15_GOOD = "trend_up_15_good";
+  public static final String KEY_TREND_UP_15_BAD = "trend_up_15_bad";
+  public static final String KEY_TREND_UP_45_GOOD = "trend_up_45_good";
+  public static final String KEY_TREND_UP_45_BAD = "trend_up_45_bad";
+  public static final String KEY_TREND_UP_75_GOOD = "trend_up_75_good";
+  public static final String KEY_TREND_UP_75_BAD = "trend_up_75_bad";
+  public static final String KEY_TREND_UP_90_GOOD = "trend_up_90_good";
+  public static final String KEY_TREND_UP_90_BAD = "trend_up_90_bad";  
   public static final String KEY_TREND_FLAT = "trend_flat";
   public static final String KEY_TREND_FLAT_GOAL = "trend_flat_goal";
+  public static final String KEY_TREND_DOWN_15 = "trend_down_15";
+  public static final String KEY_TREND_UP_15 = "trend_up_15";
   public static final String KEY_TREND_UNKNOWN = "trend_unknown";
-  public static final String KEY_TREND_UP_HUGE_BAD = "trend_up_huge_bad";
-  public static final String KEY_TREND_UP_BAD = "trend_up_bad";
-  public static final String KEY_TREND_UP_HUGE_GOOD = "trend_up_huge_good";
-  public static final String KEY_TREND_UP_GOOD = "trend_up_good";
-  public static final String KEY_TREND_UP_SLIGHT = "trend_up_slight";
-  public static final String KEY_TREND_UP_SLIGHT_BAD = "trend_up_slight_bad";
-  public static final String KEY_TREND_UP_SLIGHT_GOOD = "trend_up_slight_good";
 
   public static final String KEY_STAR = TABLE_NAME + ".*";
   public static final String[] KEY_ALL = { KEY_ROWID, KEY_GROUP_NAME,

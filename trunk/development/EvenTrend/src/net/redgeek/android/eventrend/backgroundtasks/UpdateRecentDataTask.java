@@ -72,11 +72,9 @@ public class UpdateRecentDataTask {
   }
 
   public void fillAllCategories() {
-    Log.d(EvenTrendActivity.TAG, "fillAllCategories(): entered");
     for (int i = 0; i < mTSC.numSeries(); i++) {
       long id = mTSC.getSeriesIdLocking(i);
       if (id > 0) {
-        Log.d(EvenTrendActivity.TAG, "fillAllCategories(): filling id " + id);
         fillCategory(id, mZerofill, mUpdateTrend);
       }
     }
@@ -84,7 +82,6 @@ public class UpdateRecentDataTask {
   }
 
   public void fillCategory(long catId) {
-    Log.d(EvenTrendActivity.TAG, "fillCategory(): single call for id " + catId);
     fillCategory(catId, mZerofill, mUpdateTrend);
     return;
   }
@@ -93,28 +90,20 @@ public class UpdateRecentDataTask {
       boolean updateTrend) {
     EntryDbTable.Row entry = new EntryDbTable.Row();
     
-    Log.d(EvenTrendActivity.TAG, "fillCategory(): entered @ " 
-        + DateUtil.toTimestamp(System.currentTimeMillis()));
-
     if (zerofill == false && updateTrend == true) {
       // quick check to see if we need to update trends only...
-      Log.d(EvenTrendActivity.TAG, "fillCategory(): updating trend only");
       mTSC.updateCategoryTrend(catId);
-      Log.d(EvenTrendActivity.TAG, "fillCategory(): returning after trend only update");
       return;
     }
 
     TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
     if (ts == null || ts.getDbRow().getZeroFill() == false) {
-      Log.d(EvenTrendActivity.TAG, "fillCategory(): null ts or no z-fill, returning");
       return;
     }
 
-    Log.d(EvenTrendActivity.TAG, "fillCategory(): gathering datapoints");
     mTSC.gatherLatestDatapointsLocking(catId, mHistory);
     Datapoint d = mTSC.getLastDatapoint(catId);
     if (d == null) {
-      Log.d(EvenTrendActivity.TAG, "fillCategory(): null datapoint, returning");
       return;
     }
 
@@ -158,11 +147,9 @@ public class UpdateRecentDataTask {
     }
 
     if (updateTrend == true) {
-      Log.d(EvenTrendActivity.TAG, "fillCategory(): updating trend after fill");
       mTSC.updateCategoryTrend(entry.getCategoryId());
     }
 
-    Log.d(EvenTrendActivity.TAG, "fillCategory(): returning after all work");
     return;
   }
 }
