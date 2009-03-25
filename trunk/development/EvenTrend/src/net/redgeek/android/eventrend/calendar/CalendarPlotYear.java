@@ -136,16 +136,15 @@ public class CalendarPlotYear {
   }
 
   private Paint mapTrendStateToPaint(TrendState state) {
-    if (state == TrendState.UP_90_GOOD || state == TrendState.DOWN_90_GOOD
-        || state == TrendState.UP_75_GOOD || state == TrendState.DOWN_75_GOOD)
+    if (state == TrendState.UP_45_GOOD || state == TrendState.DOWN_45_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD4.ordinal());
-    else if (state == TrendState.UP_45_GOOD || state == TrendState.DOWN_45_GOOD)
+    else if (state == TrendState.UP_30_GOOD || state == TrendState.DOWN_30_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD3.ordinal());
     else if (state == TrendState.UP_15_GOOD || state == TrendState.DOWN_15_GOOD)
       return mPaints.get(PaintIndex.DATUM_GOOD2.ordinal());
-    else if (state == TrendState.UP_75_BAD || state == TrendState.DOWN_75_BAD)
-      return mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
     else if (state == TrendState.UP_45_BAD || state == TrendState.DOWN_45_BAD)
+      return mPaints.get(PaintIndex.DATUM_BAD4.ordinal());
+    else if (state == TrendState.UP_30_BAD || state == TrendState.DOWN_30_BAD)
       return mPaints.get(PaintIndex.DATUM_BAD3.ordinal());
     else if (state == TrendState.UP_15_BAD || state == TrendState.DOWN_15_BAD)
       return mPaints.get(PaintIndex.DATUM_BAD2.ordinal());    
