@@ -85,22 +85,26 @@ public class Number {
   }
 
   public enum TrendState {
-    UP_GOOD_HUGE,
-    UP_GOOD_BIG,
-    UP_GOOD_SMALL, 
-    UP_BAD_HUGE, 
-    UP_BAD_SMALL, 
-    UP_BAD_BIG, 
-    UP_SMALL, 
-    DOWN_GOOD_HUGE, 
-    DOWN_GOOD_BIG, 
-    DOWN_GOOD_SMALL, 
-    DOWN_BAD_HUGE, 
-    DOWN_BAD_SMALL, 
-    DOWN_BAD_BIG, 
-    DOWN_SMALL, 
-    EVEN, 
-    EVEN_GOAL, 
+    DOWN_15_GOOD,
+    DOWN_15_BAD,
+    DOWN_45_GOOD,
+    DOWN_45_BAD,
+    DOWN_75_GOOD,
+    DOWN_75_BAD,
+    DOWN_90_GOOD,
+    DOWN_90_BAD,
+    UP_15_GOOD,
+    UP_15_BAD,
+    UP_45_GOOD,
+    UP_45_BAD,
+    UP_75_GOOD,
+    UP_75_BAD,
+    UP_90_GOOD,
+    UP_90_BAD,
+    DOWN_15,
+    UP_15,
+    FLAT,
+    FLAT_GOAL,
     UNKNOWN
   };
 
@@ -114,105 +118,105 @@ public class Number {
       // truly flat trend
       if (newTrend == goal)
         // perfect!
-        return TrendState.EVEN_GOAL;
+        return TrendState.FLAT_GOAL;
       else if (newTrend < goal && newTrend + quarter > goal)
         // flat near the goal!
-        return TrendState.EVEN_GOAL;
+        return TrendState.FLAT_GOAL;
       else if (newTrend > goal && newTrend - quarter < goal)
         // flat near the goal!
-        return TrendState.EVEN_GOAL;
+        return TrendState.FLAT_GOAL;
       else
-        return TrendState.EVEN;
+        return TrendState.FLAT;
     } else if (oldTrend > newTrend) {
       // going down
       if (oldTrend > goal && newTrend > goal) {
         // toward goal
         if (oldTrend - newTrend > sensitivity)
           // huge drop
-          return TrendState.DOWN_GOOD_HUGE;
+          return TrendState.DOWN_75_GOOD;
         else if (oldTrend - newTrend > half)
           // big drop
-          return TrendState.DOWN_GOOD_BIG;
+          return TrendState.DOWN_45_GOOD;
         else if (oldTrend - newTrend > quarter)
           // little drop
-          return TrendState.DOWN_GOOD_SMALL;
+          return TrendState.DOWN_15_GOOD;
         else {
           // under bounds for flat
           if (newTrend - quarter < goal)
             // flat near the goal!
-            return TrendState.EVEN_GOAL;
+            return TrendState.FLAT_GOAL;
           else
             // flat elsewhere
-            return TrendState.EVEN;
+            return TrendState.FLAT;
         }
       } else if (oldTrend < goal && newTrend < goal) {
         // away from goal
         if (oldTrend - newTrend > sensitivity)
           // huge drop
-          return TrendState.DOWN_BAD_HUGE;
+          return TrendState.DOWN_75_BAD;
         else if (oldTrend - newTrend > half)
           // big drop
-          return TrendState.DOWN_BAD_BIG;
+          return TrendState.DOWN_45_BAD;
         else if (oldTrend - newTrend > quarter)
           // little drop
-          return TrendState.DOWN_BAD_SMALL;
+          return TrendState.DOWN_15_BAD;
         else {
           // under bounds for flat
           if (newTrend + quarter > goal)
             // flat near the goal!
-            return TrendState.EVEN_GOAL;
+            return TrendState.FLAT_GOAL;
           else
             // flat elsewhere
-            return TrendState.EVEN;
+            return TrendState.FLAT;
         }
       } else
         // crossing goal line
-        return TrendState.DOWN_SMALL;
+        return TrendState.DOWN_15;
     } else if (oldTrend < newTrend) {
       // going up
       if (oldTrend < goal && newTrend < goal) {
         // toward goal
         if (newTrend - oldTrend > sensitivity)
           // big rise
-          return TrendState.UP_GOOD_HUGE;
+          return TrendState.UP_75_GOOD;
         else if (newTrend - oldTrend > half)
           // little rise
-          return TrendState.UP_GOOD_BIG;
+          return TrendState.UP_45_GOOD;
         else if (newTrend - oldTrend > quarter)
           // little rise
-          return TrendState.UP_GOOD_SMALL;
+          return TrendState.UP_15_GOOD;
         else {
           // under bounds for flat
           if (newTrend + quarter > goal)
             // flat near the goal!
-            return TrendState.EVEN_GOAL;
+            return TrendState.FLAT_GOAL;
           else
             // flat elsewhere
-            return TrendState.EVEN;
+            return TrendState.FLAT;
         }
       } else if (oldTrend > goal && newTrend > goal) {
         // away from goal
         if (newTrend - oldTrend > sensitivity)
           // big rise
-          return TrendState.UP_BAD_HUGE;
+          return TrendState.UP_75_BAD;
         else if (newTrend - oldTrend > half)
           // little rise
-          return TrendState.UP_BAD_BIG;
+          return TrendState.UP_45_BAD;
         else if (newTrend - oldTrend > quarter)
           // little rise
-          return TrendState.UP_BAD_SMALL;
+          return TrendState.UP_15_BAD;
         else {
           // under bounds for flat
           if (newTrend - quarter < goal)
             // flat near the goal!
-            return TrendState.EVEN_GOAL;
+            return TrendState.FLAT_GOAL;
           else
             // flat elsewhere
-            return TrendState.EVEN;
+            return TrendState.FLAT;
         }
       } else {
         // crossing goal line
-        return TrendState.UP_SMALL;
+        return TrendState.UP_15;
       }
     } else
       // ??
@@ -221,37 +225,42 @@ public class Number {
 
   public static String mapTrendStateToString(TrendState state) {
     String trendStr;
-    if (state == TrendState.UP_GOOD_HUGE)
-      trendStr = CategoryDbTable.KEY_TREND_UP_HUGE_GOOD;
-    else if (state == TrendState.UP_GOOD_BIG)
-      trendStr = CategoryDbTable.KEY_TREND_UP_GOOD;
-    else if (state == TrendState.UP_GOOD_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT_GOOD;
-    else if (state == TrendState.UP_BAD_HUGE)
-      trendStr = CategoryDbTable.KEY_TREND_UP_HUGE_BAD;
-    else if (state == TrendState.UP_BAD_BIG)
-      trendStr = CategoryDbTable.KEY_TREND_UP_BAD;
-    else if (state == TrendState.UP_BAD_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT_BAD;
-    else if (state == TrendState.UP_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_UP_SLIGHT;
-    else if (state == TrendState.DOWN_GOOD_HUGE)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_HUGE_GOOD;
-    else if (state == TrendState.DOWN_GOOD_BIG)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_GOOD;
-    else if (state == TrendState.DOWN_GOOD_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_SLIGHT_GOOD;
-    else if (state == TrendState.DOWN_BAD_HUGE)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_HUGE_BAD;
-    else if (state == TrendState.DOWN_BAD_BIG)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_BAD;
-    else if (state == TrendState.DOWN_BAD_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_SLIGHT_BAD;
-    else if (state == TrendState.DOWN_SMALL)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_SLIGHT;
-    else if (state == TrendState.EVEN)
+    
+    if (state == TrendState.DOWN_90_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_90_GOOD;
+    else if (state == TrendState.DOWN_90_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_90_BAD;
+    else if (state == TrendState.DOWN_75_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_75_GOOD;
+    else if (state == TrendState.DOWN_75_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_75_BAD;
+    else if (state == TrendState.DOWN_45_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_GOOD;
+    else if (state == TrendState.DOWN_45_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_BAD;
+    else if (state == TrendState.DOWN_15_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_GOOD;
+    else if (state == TrendState.DOWN_15_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_BAD;
+    else if (state == TrendState.UP_75_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_75_GOOD;
+    else if (state == TrendState.UP_75_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_75_BAD;
+    else if (state == TrendState.UP_45_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_45_GOOD;
+    else if (state == TrendState.UP_45_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_45_BAD;
+    else if (state == TrendState.UP_15_GOOD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_15_GOOD;
+    else if (state == TrendState.UP_15_BAD)
+      trendStr = CategoryDbTable.KEY_TREND_UP_15_BAD;
+    else if (state == TrendState.DOWN_15)
+      trendStr = CategoryDbTable.KEY_TREND_DOWN_15;
+    else if (state == TrendState.UP_15)
+      trendStr = CategoryDbTable.KEY_TREND_UP_15;
+    else if (state == TrendState.FLAT)
       trendStr = CategoryDbTable.KEY_TREND_FLAT;
-    else if (state == TrendState.EVEN_GOAL)
+    else if (state == TrendState.FLAT_GOAL)
       trendStr = CategoryDbTable.KEY_TREND_FLAT_GOAL;
     else
       // if (state == TrendState.UNKNOWN)
