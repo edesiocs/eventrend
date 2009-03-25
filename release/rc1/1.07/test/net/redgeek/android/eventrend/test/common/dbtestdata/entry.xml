@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<database>
+<table name="entries">
+  <row>
+    <column name="_id">1</column>
+    <column name="category_id">2</column>
+    <column name="timestamp">1000</column>
+    <column name="value">4.0</column>
+    <column name="n_entries">5</column>
+  </row>
+</table>
+</database>  
