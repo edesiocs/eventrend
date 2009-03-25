@@ -135,11 +135,9 @@ The number of data points to take into account when calculating trends and other
 
 === Standard Deviation Sensitivity ===
 
-On the main screen, trend icons are selected based on the difference of the current trend and the trend value at the previous data point.  The threshold for determining the incline of arrow is the standard deviation multiplied by the sensitivity.  
+On the main screen, trend icons are selected based on the difference of the current trend and the trend value at the previous data point.  These trend icons are currently set to be arrows that point directly to the right (flat trend), 15, 30, or 45 degrees up or down, depending on the magnitude of the change.  The threshold for determining the incline of arrow is the standard deviation multiplied by the sensitivity.  
 
-With a this value set to 1.0, this means that a change of greater than 1 standard deviation (over the last "History" datapoints) will result in a trend icon that points 45 degrees up or down, and an arrow that points slightly up or down if the change exceeds 1/2 a standard deviation.
-
-If the value is 0.5, that means the arrow  will be set to 45 degrees up or down at 1/2 a standard deviation, and slightly up or down at 1/4 a standard deviation.  
+With a this value set to 1.0, this means that a change of greater than 1 standard deviation (over the last "History" datapoints) will result in a trend icon that points 45 degrees up or down, and an arrow that points slightly up or down if the change exceeds 1/2 a standard deviation, and 15 degrees up or down if the changed exceeds 1/4 a standard deviation.  If the value is 0.5, that means the arrow will be set to 45 degrees at 1/2 a standard deviation, and 30 degrees at 1/4 a standard deviation, and 15 degrees at 1/8.  The default is 0.5.
 
 On the calendar views, this has a similar function related to the intensity of the green or red color of value and trend changes.  Default is 1.0, although many people may want to drop this to 0.5 in order to see more wiggle out of their trend indicators.
 
