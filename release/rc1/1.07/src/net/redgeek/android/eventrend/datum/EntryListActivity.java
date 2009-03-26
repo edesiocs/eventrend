@@ -39,6 +39,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.TableRow.LayoutParams;
@@ -281,15 +282,14 @@ public class EntryListActivity extends EvenTrendActivity {
     GUITaskQueue.getInstance().addTask(mProgress, this);
   }
 
-  // TODO: add scroll view
-  // @Override
-  // protected void onListItemClick(ListView l, View v, int position, long id) {
-  // super.onListItemClick(l, v, position, id);
-  // long rowId = ((EntryRowView)v).getRowId();
-  // Intent i = new Intent(this, EntryEditActivity.class);
-  // i.putExtra(EntryDbTable.KEY_ROWID, rowId);
-  // startActivityForResult(i, ENTRY_EDIT);
-  // }
+  @Override
+  protected void onListItemClick(ListView l, View v, int position, long id) {
+    super.onListItemClick(l, v, position, id);
+    long rowId = ((EntryRowView) v).getRowId();
+    Intent i = new Intent(this, EntryEditActivity.class);
+    i.putExtra(EntryDbTable.KEY_ROWID, rowId);
+    startActivityForResult(i, ENTRY_EDIT);
+  }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
