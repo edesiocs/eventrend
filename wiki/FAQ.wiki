@@ -19,3 +19,7 @@ You'll need 1-3 categories, depending on if you want to track weight, body fat p
 || Calculated: || (not selected) ||
 || Value Type: || Average ||
 || Zero Empty Period: || (not selected) ||
+
+Feel free to set your goal, colors, as you prefer.  If you're weighing yourself in pounds or kilos, set "increment/decrement" to "1.0", or if you have a more accurate scale that measures 1/2 or 1/4 pounds (or kilos), you can set it to 0.5 or 0.25, respectively.  Any less than that probably wouldn't be accurate anyway, and will only make it so you have to press "+" or "-" more times to get to the value you want.
+
+For a default value, I'd suggest entering something just a little below your current weight (if you're trying to gain weight, then something a little above your current weight.)  This will make it so there's a very small number of click required to enter a given weight, but gives you a little extra satisfaction when you lose enough that get to click the "-" button.
