@@ -41,7 +41,7 @@
 				</TextView>
 				<EditText android:layout_width="wrap_content"
 					android:layout_height="wrap_content" android:id="@+id/category_edit_goal"
-					android:layout_gravity="right|center_vertical" android:text="0.0">
+					android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
 				</EditText>
 			</TableRow>
 			<TableRow android:layout_width="fill_parent"
@@ -109,7 +109,7 @@
 				</TextView>
 				<EditText android:layout_width="wrap_content"
 					android:layout_height="wrap_content" android:id="@+id/category_edit_default_value"
-					android:layout_gravity="right|center_vertical" android:text="0.0">
+					android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
 				</EditText>
 			</TableRow>
 			<TableRow android:layout_height="wrap_content"
@@ -121,7 +121,7 @@
 				</TextView>
 				<EditText android:layout_width="wrap_content"
 					android:layout_height="wrap_content" android:id="@+id/category_edit_increment"
-					android:layout_gravity="right|center_vertical" android:text="1.0">
+					android:layout_gravity="right|center_vertical" android:text="1.0" android:numeric="signed|decimal">
 				</EditText>
 			</TableRow>			
 			<TableRow android:layout_height="wrap_content"

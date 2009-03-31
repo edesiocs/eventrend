@@ -45,7 +45,7 @@
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
 				android:id="@+id/entry_edit_value" 
-				android:layout_gravity="right|center_vertical">
+				android:layout_gravity="right|center_vertical" android:numeric="signed|decimal">
 			</EditText>
 			<TextView 
 				android:id="@+id/entry_edit_value_changed"
