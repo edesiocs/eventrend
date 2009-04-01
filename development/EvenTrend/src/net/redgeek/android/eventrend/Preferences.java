@@ -28,6 +28,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.text.method.DigitsKeyListener;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -81,6 +82,9 @@ public class Preferences extends PreferenceActivity {
   private PreferenceScreen createPreferenceHierarchy() {
     mDbh = new EvenTrendDbAdapter.SqlAdapter(this);
     mDbh.open();
+
+    DigitsKeyListener integer = new DigitsKeyListener(false, false);
+    DigitsKeyListener decimal = new DigitsKeyListener(false, true);
 
     // Root
     PreferenceScreen root = getPreferenceManager().createPreferenceScreen(this);
@@ -139,6 +143,7 @@ public class Preferences extends PreferenceActivity {
     decimalPlaces.setSummary("The number of decimal places to round to");
     decimalPlaces.setDefaultValue(new Integer(PREFS_DECIMAL_PLACES_DEFAULT)
         .toString());
+    decimalPlaces.getEditText().setKeyListener(integer);
     dataInput.addPreference(decimalPlaces);
 
     // Trending prefs
@@ -154,6 +159,7 @@ public class Preferences extends PreferenceActivity {
     history
         .setSummary("The number of datapoints to include in weighted averaging.");
     history.setDefaultValue(new Integer(PREFS_HISTORY_DEFAULT).toString());
+    history.getEditText().setKeyListener(integer);
     trendingPrefs.addPreference(history);
 
     // Standard Deviation Sensitivity
@@ -165,6 +171,7 @@ public class Preferences extends PreferenceActivity {
         .setSummary("A scaling influencing trend icons.  Bigger == less sensitive.");
     sensitivity.setDefaultValue(new Float(PREFS_TREND_STDDEV_DEFAULT)
         .toString());
+    sensitivity.getEditText().setKeyListener(decimal);
     trendingPrefs.addPreference(sensitivity);
 
     // Smoothing
@@ -175,6 +182,7 @@ public class Preferences extends PreferenceActivity {
     smoothing.setSummary("Weight to decay moving average weighting by.");
     smoothing.setDefaultValue(new Float(PREFS_SMOOTHING_PERCENT_DEFAULT)
         .toString());
+    smoothing.getEditText().setKeyListener(decimal);
     trendingPrefs.addPreference(smoothing);
 
     return root;
