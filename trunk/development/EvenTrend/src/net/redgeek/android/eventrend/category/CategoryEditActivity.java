@@ -16,17 +16,6 @@
 
 package net.redgeek.android.eventrend.category;
 
-import java.util.ArrayList;
-
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
-import net.redgeek.android.eventrend.synthetic.Formula;
-import net.redgeek.android.eventrend.synthetic.FormulaEditorActivity;
-import net.redgeek.android.eventrend.util.ColorPickerDialog;
-import net.redgeek.android.eventrend.util.ComboBox;
-import net.redgeek.android.eventrend.util.DynamicSpinner;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
@@ -36,6 +25,9 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -49,6 +41,18 @@ import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
+import net.redgeek.android.eventrend.synthetic.Formula;
+import net.redgeek.android.eventrend.synthetic.FormulaEditorActivity;
+import net.redgeek.android.eventrend.util.ColorPickerDialog;
+import net.redgeek.android.eventrend.util.ComboBox;
+import net.redgeek.android.eventrend.util.DynamicSpinner;
+
+import java.util.ArrayList;
 
 public class CategoryEditActivity extends EvenTrendActivity {
   static final int DELETE_DIALOG_ID = 0;
@@ -150,6 +154,21 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mRow = getDbh().fetchCategory(mRowId);
   }
 
+  public static class RestrictedNameFilter implements InputFilter {
+    private String mInvalidRegex;
+
+    public RestrictedNameFilter(String invalidRegex) {
+      mInvalidRegex = invalidRegex;
+    }
+
+    public CharSequence filter(CharSequence source, int start, int end,
+        Spanned dest, int dstart, int dend) {
+      String out = "" + source;
+      out = out.replaceAll(mInvalidRegex, "");
+      return out.subSequence(0, out.length());
+    }
+  };
+  
   private void setupUI() {
     setContentView(R.layout.category_edit);
 
@@ -172,6 +191,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
     setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
     mCategoryText = (EditText) findViewById(R.id.category_edit_name);
+    InputFilter[] FilterArray = new InputFilter[1];
+    FilterArray[0] = new RestrictedNameFilter("[\"\\\\]");
+    mCategoryText.setFilters(FilterArray);
+    
     setHelpDialog(R.id.category_edit_name_view, DIALOG_HELP_CATEGORY);
 
     mGoalText = (EditText) findViewById(R.id.category_edit_goal);
