@@ -1,0 +1,32 @@
+
+Ok, if you're reading the source, it means you're either:
+  - trying to see how I've done something to use in your own project (cool), or
+  - you're interested in adding/subtracting/improving this codebase (yay!), or
+  - you're just curious (?)
+  
+In any case, you should be aware that this started off as a simple 2-4K line
+project to learn android basics, but due to feature requests, use over time, 
+and other factors, it just kept growing into a reasonably good-sized hunk of
+code.  Which surprised me, since I generally don't write UI code, much less
+windowed UI code, I haven't written java since the late-90's, and I've never 
+even owned a smart phone before the G1.  So, the code's quite messy -- some 
+places are just hacks just to see if the results I was looking for were 
+possible, and some areas are a bit more elegantly designed or implemented as I 
+learned more about all these technologies.
+
+Eventually, I'd like to make the code more 'android-y' and refactor the design
+somewhat -- there tickets in place to fix many aspects of this at the codesite
+(http://code.google.com/p/eventrend/issues/list); feel free to add more.
+
+In terms of cleaning up the codebase, my primary concerns would definitely be
+more tests, and it's apparent I need to factor some of the larger classes down 
+into more manageable (and testable) pieces.  I need to use intents and 
+associated classes more extensively, like URIs, as well as moving custom views
+into the XML and creating stylable attributes.  Finally, I need to figure out if
+positron (or something else) would be a good fit for functional tests.
+
+So, if you want to jump on any of that -- or anything else -- you'd have my
+gratitude!  Or, you can wait for me to do it.  :)
+
+barclayosborn@gmail.com
+http://code.google.com/p/eventrend/
