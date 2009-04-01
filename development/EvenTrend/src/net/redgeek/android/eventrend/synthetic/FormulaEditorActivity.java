@@ -165,8 +165,7 @@ public class FormulaEditorActivity extends EvenTrendActivity {
           long id) {
         if (position != 0) {
           int cursor = mPage.getSelectionStart();
-          String series = ((TextView) v).getText().toString();
-          // TODO: escape quotes
+          String series = Tokenizer.escape(((TextView) v).getText().toString());
           mPage.getText().insert(cursor, "series \"" + series + "\"");
         }
         mAddSeries.setSelection(0);
@@ -201,7 +200,6 @@ public class FormulaEditorActivity extends EvenTrendActivity {
         if (position != 0) {
           int cursor = mPage.getSelectionStart();
           String constant = ((TextView) v).getText().toString();
-          // TODO: escape quotes
           mPage.getText().insert(cursor, constant);
         }
         mAddSeries.setSelection(0);
@@ -248,6 +246,18 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   }
 
   public void setupMenu() {
+  }
+  
+  private String escape(String escape) {
+    String escapedName = "";
+    for (int i = 0; i < escape.length(); i++) {
+      char c = escape.charAt(i);
+      if (c == '\\' || c == '"') {
+        escapedName += '\\';
+      }
+      escapedName += c;
+    }
+    return escapedName;
   }
 
   private void populateFields() {
