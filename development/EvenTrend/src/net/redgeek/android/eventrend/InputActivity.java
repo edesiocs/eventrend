@@ -399,6 +399,13 @@ public class InputActivity extends EvenTrendActivity {
     super.onResume();
   }
 
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+    super.onActivityResult(requestCode, resultCode, intent);
+    if (resultCode == RESULT_DELETED)
+      mTSC.clearSeriesLocking();
+  }
+
   // *** clock ***//
 
   private void scheduleUpdateNow() {
@@ -661,12 +668,6 @@ public class InputActivity extends EvenTrendActivity {
 
     i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
     startActivityForResult(i, CALENDAR_VIEW);
-  }
-
-  @Override
-  protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-    super.onActivityResult(requestCode, resultCode, intent);
-    // fillCategoryData(mFlipper.getDisplayedChild());
   }
 
   // *** display update routines ***/

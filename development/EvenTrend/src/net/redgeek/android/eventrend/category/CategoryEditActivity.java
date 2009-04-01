@@ -578,12 +578,13 @@ public class CategoryEditActivity extends EvenTrendActivity {
       public void onClick(DialogInterface dialog, int whichButton) {
         getDbh().deleteCategory(mRowId);
         getDbh().deleteCategoryEntries(mRowId);
-        setResult(RESULT_OK);
+        setResult(RESULT_DELETED);
         finish();
       }
     });
     b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int whichButton) {
+        setResult(RESULT_CANCELED);
       }
     });
     Dialog d = b.create();
