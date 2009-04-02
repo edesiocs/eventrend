@@ -22,7 +22,7 @@ Thanks.  (Extra thanks if you gave me 1 star because you hated the interface.)  
 
 = You said this could be used with the Hacker's Diet.  How do I set up my categories? =
 
-You'll need 1-3 categories, depending on if you want to track weight, body fat percentage, and/or rungs.  Since I do exercises separate from the "exercise rungs" used within the diet, I'll omit a configuration for that here.  Here's a sample configuration for weight and body fat percentage, where omitted fields should be filled in with value appropriate to your situation:
+You'll need 1-3 categories, depending on if you want to track weight, body fat percentage, and/or rungs.  Since I do exercises separate from the "exercise rungs" used within the diet, I'll omit a configuration for that here.  The current release of the software includes some sample categories along there lines, but for references, here's a sample configuration for average daily weight and body fat percentage, where omitted fields should be filled in with value appropriate to your situation:
 
 || Group Name: || Hackers Diet ||
 || Category Name: || Weight ||
