@@ -4,7 +4,8 @@
 <string name="cat_group_desc">This is an arbitrary name; categories with the same group will 
 appear in a list on the same page.  For example, you may want to have categories such as "weight" 
 and "exercise" under the group of "health," and the categories of "driving time" and "gas used" 
-under the group of "auto."</string>
+under the group of "auto."  In the main input screen, to change groups, swipe to the left
+or right.</string>
 <string name="cat_category_title">Category Name</string>
 <string name="cat_category_desc">Name of the data to be tracked.</string>
 <string name="cat_default_value_title">Default Value</string>
@@ -119,9 +120,11 @@ that you want to record occurs, launch EvenTrend, set the value, and click "Add.
 There are are a lot of fields that can be filled out when creating a category.  Click on each
 the text of each field when adding a category for help.
 \n\n
+If you create categories in different groups, swipe to the left or right to change the displayed group.
+\n\n
 Brief notes on other aspects of EvenTrend:
 \n\n
-When viewing a category list, long clicks or the trackball can be used the select categories 
+When viewing a category list, long clicks can be used the select categories 
 for re-ordering or editing.
 \n\n
 In order to save or restore a EvenTrend database, select "Edit Entries" from the main menu, 
@@ -134,11 +137,7 @@ Graph aggregation only affect the display of the data, and is distinct from the 
 for the category.  The trending used in the graph is an exponentially weighted moving average 
 based on the history value set in the preferences.  This essentially means that recent entries 
 are weighted more heavily than older entries, and with the default smoothing constant of 0.1, 
-using a history value greater than 20 is not of any use.  The "sensitivity" preferences is a 
-multiplier on the standard deviation history of the series:  if the current trend datapoint is
-greater than or less than the last trend point by (standard deviation * sensitivity), a "big up"
-or "big down" arrow will be displayed, else the "little up," "little down," or "flat" arrow will 
-be displayed. 
+using a history value greater than 20 is not of any use.
 </string>
 <string name="prefs_overview">
 Default Group:  this is the group the display by default, however, since android programs are

@@ -2,6 +2,7 @@ package net.redgeek.android.eventrend.db;
 
 import java.util.Calendar;
 
+import net.redgeek.android.eventrend.db.CategoryDbTable.Row;
 import net.redgeek.android.eventrend.importing.CSV;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
@@ -104,11 +105,90 @@ public interface EvenTrendDbAdapter {
       DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
       }
-
+     
       @Override
       public void onCreate(SQLiteDatabase db) {
         db.execSQL(CategoryDbTable.TABLE_CREATE);
         db.execSQL(EntryDbTable.TABLE_CREATE);
+        
+        // Install some defaults:
+        ContentValues args = new ContentValues();
+        args.put(CategoryDbTable.KEY_GROUP_NAME, "Health");
+        args.put(CategoryDbTable.KEY_CATEGORY_NAME, "Feel free to edit or delete "
+            + "these sample categories. There's a lot of help in the program and "
+            + "on the website, click Menu > Help for details.");
+        args.put(CategoryDbTable.KEY_DEFAULT_VALUE, 5.0f);
+        args.put(CategoryDbTable.KEY_LAST_VALUE, 5.0f);
+        args.put(CategoryDbTable.KEY_LAST_TREND, 0.0f);
+        args.put(CategoryDbTable.KEY_INCREMENT, 1.0f);
+        args.put(CategoryDbTable.KEY_GOAL, 10.0f);
+        args.put(CategoryDbTable.KEY_TYPE, "Sum");
+        args.put(CategoryDbTable.KEY_COLOR, "#cccccc");
+        args.put(CategoryDbTable.KEY_PERIOD_MS, 0);
+        args.put(CategoryDbTable.KEY_RANK, 1);
+        args.put(CategoryDbTable.KEY_TREND_STATE, CategoryDbTable.KEY_TREND_UNKNOWN);
+        args.put(CategoryDbTable.KEY_INTERPOLATION, "Linear");
+        args.put(CategoryDbTable.KEY_ZEROFILL, false);
+        args.put(CategoryDbTable.KEY_SYNTHETIC, false);
+        args.put(CategoryDbTable.KEY_FORMULA, "");
+        db.insert(CategoryDbTable.TABLE_NAME, null, args);
+        
+        args = new ContentValues();
+        args.put(CategoryDbTable.KEY_GROUP_NAME, "Health");
+        args.put(CategoryDbTable.KEY_CATEGORY_NAME, "Weight");
+        args.put(CategoryDbTable.KEY_DEFAULT_VALUE, 150.0f);
+        args.put(CategoryDbTable.KEY_LAST_VALUE, 150.0f);
+        args.put(CategoryDbTable.KEY_LAST_TREND, 0.0f);
+        args.put(CategoryDbTable.KEY_INCREMENT, 0.5f);
+        args.put(CategoryDbTable.KEY_GOAL, 150.f);
+        args.put(CategoryDbTable.KEY_TYPE, "Average");
+        args.put(CategoryDbTable.KEY_COLOR, "#00ff00");
+        args.put(CategoryDbTable.KEY_PERIOD_MS, DateUtil.DAY_MS);
+        args.put(CategoryDbTable.KEY_RANK, 2);
+        args.put(CategoryDbTable.KEY_TREND_STATE, CategoryDbTable.KEY_TREND_UNKNOWN);
+        args.put(CategoryDbTable.KEY_INTERPOLATION, "Cubic");
+        args.put(CategoryDbTable.KEY_ZEROFILL, false);
+        args.put(CategoryDbTable.KEY_SYNTHETIC, false);
+        args.put(CategoryDbTable.KEY_FORMULA, "");
+        db.insert(CategoryDbTable.TABLE_NAME, null, args);
+
+        args = new ContentValues();
+        args.put(CategoryDbTable.KEY_GROUP_NAME, "Health");
+        args.put(CategoryDbTable.KEY_CATEGORY_NAME, "Body Fat %");
+        args.put(CategoryDbTable.KEY_DEFAULT_VALUE, 25.0f);
+        args.put(CategoryDbTable.KEY_LAST_VALUE, 25.0f);
+        args.put(CategoryDbTable.KEY_LAST_TREND, 0.0f);
+        args.put(CategoryDbTable.KEY_INCREMENT, 1.0f);
+        args.put(CategoryDbTable.KEY_GOAL, 20.0f);
+        args.put(CategoryDbTable.KEY_TYPE, "Average");
+        args.put(CategoryDbTable.KEY_COLOR, "#ff0000");
+        args.put(CategoryDbTable.KEY_PERIOD_MS, DateUtil.DAY_MS);
+        args.put(CategoryDbTable.KEY_RANK, 3);
+        args.put(CategoryDbTable.KEY_TREND_STATE, CategoryDbTable.KEY_TREND_UNKNOWN);
+        args.put(CategoryDbTable.KEY_INTERPOLATION, "Cubic");
+        args.put(CategoryDbTable.KEY_ZEROFILL, false);
+        args.put(CategoryDbTable.KEY_SYNTHETIC, false);
+        args.put(CategoryDbTable.KEY_FORMULA, "");
+        db.insert(CategoryDbTable.TABLE_NAME, null, args);
+
+        args = new ContentValues();
+        args.put(CategoryDbTable.KEY_GROUP_NAME, "Health");
+        args.put(CategoryDbTable.KEY_CATEGORY_NAME, "Hours Exercised");
+        args.put(CategoryDbTable.KEY_DEFAULT_VALUE, 1.0f);
+        args.put(CategoryDbTable.KEY_LAST_VALUE, 1.0f);
+        args.put(CategoryDbTable.KEY_LAST_TREND, 0.0f);
+        args.put(CategoryDbTable.KEY_INCREMENT, 0.25f);
+        args.put(CategoryDbTable.KEY_GOAL, 2.0f);
+        args.put(CategoryDbTable.KEY_TYPE, "Sum");
+        args.put(CategoryDbTable.KEY_COLOR, "#0000ff");
+        args.put(CategoryDbTable.KEY_PERIOD_MS, DateUtil.DAY_MS);
+        args.put(CategoryDbTable.KEY_RANK, 4);
+        args.put(CategoryDbTable.KEY_TREND_STATE, CategoryDbTable.KEY_TREND_UNKNOWN);
+        args.put(CategoryDbTable.KEY_INTERPOLATION, "Cubic");
+        args.put(CategoryDbTable.KEY_ZEROFILL, true);
+        args.put(CategoryDbTable.KEY_SYNTHETIC, false);
+        args.put(CategoryDbTable.KEY_FORMULA, "");
+        db.insert(CategoryDbTable.TABLE_NAME, null, args);
       }
 
       @Override
