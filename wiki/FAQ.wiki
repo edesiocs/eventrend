@@ -2,7 +2,7 @@
 
 = I don't get it.  What does this program do? =
 
-This program provide a way to track events.  First, you have to tell it what you'd like to track, for example, number of times you floss in a week, how much you weigh, how many miles you drove, etc.  The interface is designed (hopefully) to minimize the number of clicks and presses required to record an event, so you don't end up spending your time recording data about your life, instead of living it.  This is why "Now" is selected by default -- the timestamp recorded with the event is set to "now".  (However, you can set the timestamp to an arbitrary date and time to record an event at a time other than now.)
+This program provide a way to track events.  First, you have to tell it what you'd like to track, for example, number of times you floss in a week, how much you weigh, how many miles you drove, average number of times you cuss in a month, etc.  The interface is designed (hopefully) to minimize the number of clicks and presses required to record an event, so you don't end up spending your time recording data about your life, instead of living it.  This is why "Now" is selected by default -- the timestamp recorded with the event is set to "now".  (However, you can set the timestamp to an arbitrary date and time to record an event at a time other than now.)
 
 The steepest part of the learning curve is setting up events.  There are a lot of options when setting up a categories, but at the beginning, you only really need to worry about a couple parameters:
 
