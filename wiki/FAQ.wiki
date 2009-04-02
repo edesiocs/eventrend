@@ -16,6 +16,10 @@ Any parameter can be changed at any time, but the two mentioned above affect wha
 
 Each type of even is tracked in a "category", and categories can be organized into "groups."  All categories in a group are displayed in a single scrollable list.  To change groups, simply swipe your finger to the left or right, and the next group will appear.
 
+= The interface sucks.  Why did you make that so crappy on an otherwise useful program? =
+
+Thanks.  (Extra thanks if you gave me 1 star because you hated the interface.)  As a mentioned elsewhere, my goal for the user interface (at least, of the main input screen) to require minimal button presses to record data.  For my usage patterns, I think I accomplished this goal.  However, the way I use the program is not how everyone else will use the program, and considering I don't have my own usability lab at my disposal, I need your input to improve it!  [mailto:barclayosborn@gmail.com Email me]!  [http://code.google.com/p/eventrend/issues/entry File feature requests]!
+
 = You said this could be used with the Hacker's Diet.  How do I set up my categories? =
 
 You'll need 1-3 categories, depending on if you want to track weight, body fat percentage, and/or rungs.  Since I do exercises separate from the "exercise rungs" used within the diet, I'll omit a configuration for that here.  Here's a sample configuration for weight and body fat percentage, where omitted fields should be filled in with value appropriate to your situation:
