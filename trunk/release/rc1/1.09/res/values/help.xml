@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="cat_group_title">Group Name</string>
+<string name="cat_group_desc">This is an arbitrary name; categories with the same group will 
+appear in a list on the same page.  For example, you may want to have categories such as "weight" 
+and "exercise" under the group of "health," and the categories of "driving time" and "gas used" 
+under the group of "auto."  In the main input screen, to change groups, swipe to the left
+or right.</string>
+<string name="cat_category_title">Category Name</string>
+<string name="cat_category_desc">Name of the data to be tracked.</string>
+<string name="cat_default_value_title">Default Value</string>
+<string name="cat_default_value_desc">Once a category is added, it will appear in a list on 
+the main screen. This is the value that will filled in by default, so if there's a particular 
+value that you tend to enter more frequently than others, feel free to set it here.</string>
+<string name="cat_synthetic_title">Synthetic</string>
+<string name="cat_synthetic_desc">Synthetic series are based on the inputs of
+one or more other series, such as adding two series together or referencing the previous
+timestamp or value of a series.  No data is stored in the database, however, synthetic
+values are present when exporting.</string>
+<string name="cat_formula_title">Default Value</string>
+<string name="cat_formula_desc">(TODO)</string>
+<string name="cat_increment_title">Increment/Decrement</string>
+<string name="cat_increment_desc">When recording an entry under a category, the value can 
+be entered directly via the keyboard.  However, depending on the user interface selection in 
+"Settings," there may be a set of plus and minus buttons near the text entry.  The value in 
+this box controls how much the value in the text entry box is changed with one click of 
+either button.</string>
+<string name="cat_goal_title">Goal</string>
+<string name="cat_goal_desc">If there is a goal, such as reaching a weight of 150 pounds, 
+enter it here.  This will allow the graph to display a goal line for the category, and is used 
+by the trend icons displayed in the category list to determine if you are moving to or away 
+from your goal.
+</string>
+<string name="cat_color_title">Color</string>
+<string name="cat_color_desc">The color has no effect on the operation of application, 
+but makes the list of categories easier to differentiate.  Each category will also be graphed 
+in this color.
+</string>
+<string name="cat_type_title">Type</string>
+<string name="cat_type_desc">The value type determines how multiple entries are aggregated,
+both in data input (where multiple entries within the same period listed below will be aggregated
+into a single point) and during graphing, where value may be temporarily aggregated for the purpose
+of display only.  An example may prove to illustrate the difference most effectively:  suppose you 
+are tracking the number of hours exercised per day.  In this case, if you worked out an hour in 
+the morning and and hour in the evening, you'd want the total for the day to be 2 hours, do you'd 
+choose "Sum."  However, if  you're tracking your weight, and you weighed yourself in the morning and 
+evening, you'd want the two values to be averaged together, so you'd choose "Average."  Note that this 
+setting only really makes a difference if and aggregation level other than "None" is selected below.
+</string>
+<string name="cat_aggregate_title">Aggregation</string>
+<string name="cat_aggregate_desc">If you'd like to collapse multiple entries into one, 
+select the period that you'd like to collapse.  See description in Value Type for an example.  
+Note that once entries are aggregated, they cannot be separated, and the timestamp of the entry 
+will be that of the first entry added in the period.  Aggregating by period will minimize the 
+amount of data that needs to be stored.  This field can be changed at any time, and only affect 
+entries that are added after the last time this field is changed -- i.e., if you select "Day", 
+add some entries, and then change the category to "Hour", all the previous entries will still 
+be aggregated into days, and the new entries moving forward will be aggregated into hours.
+</string>
+<string name="cat_interp_title">Interpolation</string>
+<string name="cat_interp_desc">This field controls how data between entries are interpolated,
+which affects data correlation and graphing.</string>
+<string name="cat_zerofill_title">Zero Empty Periods</string>
+<string name="cat_zerofill_desc">Have EvenTrend automatically insert 0's at for each aggregation
+period that passes without any entries.  The addition will occur at the start of the period, and
+if any entries are added later on within the period, the 0 will be updated to reflect the new value.  
+An example may help to explain this better: say you're trying to quit smoking, and are 
+recording the number of cigarettes consumed per day, you'd probably want to set the Aggregation 
+to "Day", and select this option.  For any days in which you didn't have any cigarettes, 
+a 0 would be automatically inserted.  However, if you were tracking your weight, you probably 
+wouldn't want to select this:  if you miss weighing yourself one day, you just 
+want to ignore the period instead of recording a weight of 0.  Note that this option is only available
+if the type is "Sum" and the aggregation period is not "None."
+</string>
+<string name="calendar_overview">
+Data Range info is only calculated over all the displayed data.  The solid color 
+at the top of the box indicates the trend going toward or away from the goal compared to the previous
+day, and the color of the value in the box denotes wether the trend was going toward or away from the
+goal compared to the previous day.  Brighter colors indicate a larger change, dimmer colors a smaller
+change, and gray indicates that the value was essentially flat (as determined by the sensitivity
+preferences.)
+</string>
+<string name="formula_help">
+Note:  formulas may be considered an advanced feature of this program.
+\n\n
+Formulas may be constructed of binary operations only, that is, of the form \'x operator y\', and
+must evaluate to a series of values.  For example, \'series "water" + series "beers"\' and 
+\'40 - series "work hours"\' both evaluate to a sequence, while \'4 + 5\' does not.  A series must
+consist of the word \'series\' followed by whitespace and the name of the category to use in double
+quotes, as in the examples presented above.
+\n\n
+There is no implicit 
+grouping, so instead of attempting to calculate \'x + y + z\', the following should be used:  
+\'(x + y) + z\' or \'x + (y + z)\'.  The following operations are supported:  \'+\', \'-\', \'*\', \'/\', and 
+\'previous\'.  The last operator deserves special comment:  it returns the difference of each value or 
+timestamp in the series with the one preceding it.  For example, if the series were called \'weight\', 
+and the values [150, 153, 147] had been entered over time, the equation \'series "weight" previous value\'
+would evaluate to [0, 3, -6].  If each datum in the series was entered precisely 1 day apart,
+the equation \'series "weight" previous value\' would yield [0, 86400000, 86400000] - this is because
+the timestamp of each entry is measured in milliseconds.  Because of this, some helpful constants
+are provided:  \'minute\', \'hour\', \'am/pm\', \'day\', \'week\', \'month\', \'quarter\', and \'year\', which are
+defined as the average number of milliseconds in each periods' time.  So, in order to calculate 
+how many hours between weighings, the following may be used: 
+\'(series "weight" previous timestamp) / hour\'.
+\n\n
+</string>
+<string name="overview">
+EvenTrend is a program to track arbitrary data over time.  In short, you can create categories 
+of data, graph multiple items at one time, look at the historical trend, and compare it against 
+goals.  It's intended to be able to add data incrementally as it occurs with a minimum of clicks 
+or presses.
+\n\n
+For detailed help, please see the online docs @ http://code.google.com/p/eventrend/wiki/Documentation
+\n\n
+The first step in using EvenTrend to the create a category, for example, "weight." To 
+create a category, click the "Menu" button from the main screen and select "Add Category." 
+After a category is created, it will be listed on the main screen.  Whenever there's and event 
+that you want to record occurs, launch EvenTrend, set the value, and click "Add."
+\n\n
+There are are a lot of fields that can be filled out when creating a category.  Click on each
+the text of each field when adding a category for help.
+\n\n
+If you create categories in different groups, swipe to the left or right to change the displayed group.
+\n\n
+Brief notes on other aspects of EvenTrend:
+\n\n
+When viewing a category list, long clicks can be used the select categories 
+for re-ordering or editing.
+\n\n
+In order to save or restore a EvenTrend database, select "Edit Entries" from the main menu, 
+and then select "Export to Mail," "Export to File," or "Restore."  "Export to File" will store 
+a comma separated value dump of the databses to the sdcard of your phone under the directory 
+"EvenTrend."  "Restore" reads one of these CSV files from the same directory and will 
+replace all the current data.
+\n\n
+Graph aggregation only affect the display of the data, and is distinct from the aggregation set 
+for the category.  The trending used in the graph is an exponentially weighted moving average 
+based on the history value set in the preferences.  This essentially means that recent entries 
+are weighted more heavily than older entries, and with the default smoothing constant of 0.1, 
+using a history value greater than 20 is not of any use.
+</string>
+<string name="prefs_overview">
+Default Group:  this is the group the display by default, however, since android programs are
+essentially "always running," this only takes effect if the program has been killed and restarted
+by the system.
+\n\n
+Graph Background:  black or white.  Most development has been done with a black screen, since I
+think it's a little easier on the eyes, and minimizes battery use, so the white background might
+look a little funky.
+\n\n
+Decimal Places:  the number of decimal places to round values to.  This is used throughout the
+application.  Default is 2.
+\n\n
+Note that changes to the next three fields will only manifest once a new data point has been
+added to a series, or if the "Recalc Trends" menu item is selected.
+\n\n
+History:  the number of datapoints to take into account when calculating trends and other statistics.
+Default value is 20, and with a default smoothing percentage of 10% (0.1), there is no reason to
+make it larger.
+\n\n
+Standard Deviation Sensitivity:  On the main screen, trend icons are selected based on the difference
+of the current trend and the trend value at the previous data point.  The threshold for determining the
+incline of arrow is the standard deviation * this value.  So, With a this value set to 1.0,
+this means that a change of greater than 1 standard deviation (over the last "History" datapoints)
+will result in a trend icon that points 45 degrees up or down, and an arrow that points 30 degrees up
+or down if the change exceeds 1/2 a standard deviation, and 15 degrees up or down if the change 
+exceeds 1/4 a standard deviation.  If the value is 0.5, that means the arrow will be set to 45 degrees
+up or down at 1/2 a standard deviation, 30 degrees at 1/4 and 15 degrees at 1/8.  On the calendar
+views, this has a similar function related to the intensity of the green or red color of value and 
+trend changes.  Default is 0.5.
+\n\n
+Smoothing Constant:  This is a value indicating the weight of previous datapoints to the current
+one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
+a value of 1.0 indicates that a strict average of the last "History" points will be taken.  Anything
+less than 1.0 indicates that recent points have more influence over the trend than previous points,
+and the smaller the value, the more important recent data is.  Default is 0.1.
+\n\n
+</string>
+</resources>
