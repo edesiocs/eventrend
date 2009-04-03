@@ -11,6 +11,19 @@
 			android:layout_height="wrap_content" android:layout_width="fill_parent" 
 			android:shrinkColumns="1"
 			android:stretchColumns="1" android:paddingRight="8px">
+
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:layout_gravity="right|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Parameter" android:clickable="false" android:textStyle="bold" android:layout_gravity="top|left">
+        </TextView>
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:text="Tap Each Parameter Name for Detailed Help" 
+          android:clickable="false" android:gravity="top|right">
+        </TextView>
+      </TableRow>
+
 			<TableRow android:layout_height="wrap_content"
 				android:layout_width="fill_parent" android:layout_gravity="right|center_vertical">
 				<TextView android:layout_width="wrap_content"
@@ -69,7 +82,7 @@
 				android:layout_width="fill_parent">
 				<TextView android:layout_width="wrap_content"
 					android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-					android:clickable="true" android:text="Interpolation"
+					android:clickable="true" android:text="Connect Points By"
 					android:id="@+id/category_edit_interp_view"></TextView>
 				<LinearLayout android:layout_height="wrap_content"
 					android:id="@+id/category_edit_interp_menu" android:layout_width="fill_parent"
