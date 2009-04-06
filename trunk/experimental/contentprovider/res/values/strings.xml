@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+<string name="app_name">EvenTrend</string>
+<string name="menu_category_add">Add Category</string>
+<string name="menu_category_delete">Delete Category</string>
+<string name="menu_calendar">Calendar View</string>
+<string name="menu_calendar_range">Range Info</string>
+<string name="menu_app_prefs">Settings</string>
+<string name="menu_app_help">Help</string>
+<string name="menu_entry_export_mail">Export to Mail</string>
+<string name="menu_entry_export_file">Export to File</string>
+<string name="menu_entry_import_replace">Restore</string>
+<string name="menu_entry_import_merge">Import (Merge)</string>
+<string name="menu_entry_edit">Edit Entries</string>
+<string name="menu_prefs_recalc">Recalc Trends</string>
+<color name="changed_value_marker">#cc3333</color>
+<color name="replace_text">#666666</color>
+<color name="status_backgroud">#000000</color>
+<color name="graph_status_background">#000000</color>
+<color name="calendar_bad1">#660000</color>
+<color name="calendar_bad2">#990000</color>
+<color name="calendar_bad3">#cc0000</color>
+<color name="calendar_bad4">#ff0000</color>
+<color name="calendar_good1">#006600</color>
+<color name="calendar_good2">#009900</color>
+<color name="calendar_good3">#00cc00</color>
+<color name="calendar_good4">#00ff00</color>
+<color name="calendar_flat">#cccccc</color>
+<color name="calendar_goal">#666600</color>
+<color name="calendar_dark_label">#ffffff</color>
+<color name="calendar_light_label">#000000</color>
+<color name="calendar_value">#cccccc</color>
+<string name="context_edit_category">Edit Category</string>
+<string name="context_move_up">Move Up</string>
+<string name="context_move_down">Move Down</string>
+<string name="graph_filter">Filter</string>
+<string name="graph_correlate">Correlate</string>
+<string name="graph_snap_to">Snap to Period</string>
+<string name="graph_prefs">Graph Settings</string>
+<string name="menu_graph">Graph</string>
+<string name="graph_view_agg_prompt">Aggregate By</string>
+<string name="import_dir">/sdcard/eventrend</string>
+</resources>
