@@ -260,7 +260,13 @@ public class Preferences extends PreferenceActivity {
         .getDefaultSharedPreferences(ctx);
     String s = settings.getString(PREFS_DECIMAL_PLACES, new Integer(
         PREFS_DECIMAL_PLACES_DEFAULT).toString());
-    return Integer.parseInt(s);
+    int i;
+    try {
+      i = Integer.parseInt(s);
+    } catch (Exception e) {
+      i = PREFS_DECIMAL_PLACES_DEFAULT;
+    }
+    return i;
   }
 
   public static float getSmoothingConstant(Context ctx) {
@@ -268,7 +274,13 @@ public class Preferences extends PreferenceActivity {
         .getDefaultSharedPreferences(ctx);
     String s = settings.getString(PREFS_SMOOTHING_PERCENT, new Float(
         PREFS_SMOOTHING_PERCENT_DEFAULT).toString());
-    return Float.parseFloat(s);
+    float f;
+    try {
+      f = Float.parseFloat(s);
+    } catch (Exception e) {
+      f = PREFS_SMOOTHING_PERCENT_DEFAULT;
+    }
+    return f;
   }
 
   public static int getHistory(Context ctx) {
@@ -276,7 +288,13 @@ public class Preferences extends PreferenceActivity {
         .getDefaultSharedPreferences(ctx);
     String s = settings.getString(PREFS_HISTORY, new Integer(
         PREFS_HISTORY_DEFAULT).toString());
-    return Integer.parseInt(s);
+    int i;
+    try {
+      i = Integer.parseInt(s);
+    } catch (Exception e) {
+      i = PREFS_HISTORY_DEFAULT;
+    }
+    return i;
   }
 
   public static float getStdDevSensitivity(Context ctx) {
@@ -284,6 +302,12 @@ public class Preferences extends PreferenceActivity {
         .getDefaultSharedPreferences(ctx);
     String s = settings.getString(PREFS_TREND_STDDEV, new Float(
         PREFS_TREND_STDDEV_DEFAULT).toString());
-    return Float.parseFloat(s);
+    float f;
+    try {
+      f = Float.parseFloat(s);
+    } catch (Exception e) {
+      f = PREFS_TREND_STDDEV_DEFAULT;
+    }
+    return f;
   }
 }
