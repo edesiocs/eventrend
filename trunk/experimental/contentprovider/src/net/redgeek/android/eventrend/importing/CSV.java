@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.importing;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EntryDbTable;
+import net.redgeek.android.timeseries.CategoryDbTable;
+import net.redgeek.android.timeseries.EntryDbTable;
 
 /**
  * Probably the worst CSV parser ever created. Supports minimal CSV I/O, and
@@ -73,7 +73,7 @@ public class CSV {
    * @param row
    *          The Row to join the fields of.
    * @return The comma-separated string.
-   * @see net.redgeek.android.eventrend.db.CategoryDbTable.Row
+   * @see net.redgeek.android.timeseries.CategoryDbTable.Row
    */
   public static String joinCSV(CategoryDbTable.Row row) {
     StringBuffer buffer = new StringBuffer();
@@ -142,7 +142,7 @@ public class CSV {
    * @param row
    *          The Row to join the fields of.
    * @return The comma-separated string.
-   * @see net.redgeek.android.eventrend.db.EntryDbTable.Row
+   * @see net.redgeek.android.timeseries.EntryDbTable.Row
    */
   public static String joinCSV(EntryDbTable.Row row) {
     StringBuffer buffer = new StringBuffer();

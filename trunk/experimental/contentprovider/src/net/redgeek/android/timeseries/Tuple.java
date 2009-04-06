@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.timeseries;
 
 /**
  * Basic tuple representation used throughout. Provide basic constructors and

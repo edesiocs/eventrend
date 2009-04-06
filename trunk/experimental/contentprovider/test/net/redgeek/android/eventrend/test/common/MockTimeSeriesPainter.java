@@ -19,8 +19,8 @@ package net.redgeek.android.eventrend.test.common;
 import android.graphics.Canvas;
 
 import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.timeseries.TimeSeries;
+import net.redgeek.android.timeseries.Tuple;
 
 // Not testing any drawing calls yet
 public class MockTimeSeriesPainter implements TimeSeriesPainter {

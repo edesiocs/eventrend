@@ -20,8 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import junit.framework.TestCase;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.test.common.MockCursor;
+import net.redgeek.android.timeseries.CategoryDbTable;
 
 // Note that several tests use equality comparison on float, which could be 
 // dangerous in general, but should be safe for such small predefined values.

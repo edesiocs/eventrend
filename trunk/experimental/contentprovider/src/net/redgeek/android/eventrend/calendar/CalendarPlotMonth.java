@@ -21,14 +21,14 @@ import java.util.Calendar;
 
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.calendar.CalendarPlot.PaintIndex;
-import net.redgeek.android.eventrend.primitives.Datapoint;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 import net.redgeek.android.eventrend.util.Number.TrendState;
+import net.redgeek.android.timeseries.Datapoint;
+import net.redgeek.android.timeseries.TimeSeries;
+import net.redgeek.android.timeseries.TimeSeriesCollector;
+import net.redgeek.android.timeseries.Tuple;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;

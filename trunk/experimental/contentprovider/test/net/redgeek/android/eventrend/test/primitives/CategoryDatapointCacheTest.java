@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.primitives.CategoryDatapointCache;
-import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.timeseries.CategoryDatapointCache;
+import net.redgeek.android.timeseries.Datapoint;
 
 import junit.framework.TestCase;
 

@@ -18,7 +18,7 @@ package net.redgeek.android.eventrend.graph.plugins;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.timeseries.TimeSeries;
 
 /**
  * Interface for plugging in different correlators, currently only used by the

@@ -22,9 +22,9 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 
-import net.redgeek.android.eventrend.primitives.Datapoint;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.timeseries.Datapoint;
+import net.redgeek.android.timeseries.TimeSeries;
+import net.redgeek.android.timeseries.Tuple;
 
 import java.util.ArrayList;
 

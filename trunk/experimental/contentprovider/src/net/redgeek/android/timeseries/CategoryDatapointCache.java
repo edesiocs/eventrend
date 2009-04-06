@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.timeseries;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 
 public class CategoryDatapointCache {
   private long mCatId;

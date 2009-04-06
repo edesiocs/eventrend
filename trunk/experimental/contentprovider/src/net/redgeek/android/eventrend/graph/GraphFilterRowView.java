@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.graph;
 
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.timeseries.TimeSeriesCollector;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.Gravity;

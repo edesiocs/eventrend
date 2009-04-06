@@ -16,8 +16,8 @@
 
 package net.redgeek.android.eventrend.test.common;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EntryDbTable;
+import net.redgeek.android.timeseries.CategoryDbTable;
+import net.redgeek.android.timeseries.EntryDbTable;
 import junit.framework.TestCase;
 
 public class DbTestReaderTest extends TestCase {

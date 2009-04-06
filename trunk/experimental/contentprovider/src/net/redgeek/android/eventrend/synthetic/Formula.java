@@ -18,14 +18,14 @@ package net.redgeek.android.eventrend.synthetic;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.primitives.Datapoint;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.synthetic.AST.BinaryOperation;
 import net.redgeek.android.eventrend.synthetic.AST.GroupOperand;
 import net.redgeek.android.eventrend.synthetic.AST.Operand;
 import net.redgeek.android.eventrend.synthetic.AST.Operation;
 import net.redgeek.android.eventrend.synthetic.AST.UnaryOperation;
 import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.timeseries.Datapoint;
+import net.redgeek.android.timeseries.TimeSeries;
 
 /**
  * A representation of formulas for generating synthetic time series. Note that

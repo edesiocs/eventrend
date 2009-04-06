@@ -19,16 +19,16 @@ package net.redgeek.android.eventrend.test.backgroundtasks;
 import junit.framework.TestCase;
 
 import net.redgeek.android.eventrend.backgroundtasks.AddEntryTask;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.test.common.DbTestReader;
 import net.redgeek.android.eventrend.test.common.MockEvenTrendDbAdapter;
 import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
+import net.redgeek.android.timeseries.CategoryDbTable;
+import net.redgeek.android.timeseries.EntryDbTable;
+import net.redgeek.android.timeseries.TimeSeriesCollector;
 
 import java.util.ArrayList;
 import java.util.Calendar;
