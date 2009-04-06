@@ -20,13 +20,13 @@ import java.util.Calendar;
 
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.backgroundtasks.DataCollectionTask;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
+import net.redgeek.android.timeseries.TimeSeriesCollector;
+import net.redgeek.android.timeseries.Tuple;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;

@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.synthetic;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.timeseries.CategoryDbTable;
 
 public class Tokenizer {
   public enum Opcode {

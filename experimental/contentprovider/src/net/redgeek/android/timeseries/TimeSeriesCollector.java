@@ -14,13 +14,11 @@
  * the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.timeseries;
 
 import android.database.Cursor;
 import android.util.Log;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;

@@ -17,7 +17,7 @@
 package net.redgeek.android.eventrend.graph.plugins;
 
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.timeseries.Tuple;
 import android.graphics.Path;
 
 /**

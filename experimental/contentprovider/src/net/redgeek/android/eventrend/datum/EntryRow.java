@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.datum;
 
-import net.redgeek.android.eventrend.db.EntryDbTable;
+import net.redgeek.android.timeseries.EntryDbTable;
 
 public class EntryRow implements Comparable<EntryRow> {
   private EntryDbTable.Row mRow;

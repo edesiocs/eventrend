@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.timeseries;
 
 import java.util.Calendar;
 import java.util.Comparator;
 
-import net.redgeek.android.eventrend.db.EntryDbTable;
 
 /**
  * The basic element used in graphing.

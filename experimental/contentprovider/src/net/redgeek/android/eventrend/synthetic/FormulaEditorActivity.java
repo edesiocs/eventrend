@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.synthetic;
 
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
+import net.redgeek.android.timeseries.CategoryDbTable;
 import android.app.Dialog;
 import android.database.Cursor;
 import android.os.Bundle;

@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.graph;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.primitives.Datapoint;
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.timeseries.Datapoint;
+import net.redgeek.android.timeseries.Tuple;
 
 /**
  * Transform absolute value into the viewable size.
