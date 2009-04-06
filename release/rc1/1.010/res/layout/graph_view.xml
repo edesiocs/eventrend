@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	xmlns:android="http://schemas.android.com/apk/res/android" 
+	android:orientation="vertical" 
+	android:layout_gravity="center_vertical|center_horizontal"	
+	android:id="@+id/graph_view">
+	<LinearLayout 
+		android:id="@+id/graph_controls" 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:orientation="horizontal" 
+		android:layout_gravity="center_vertical|center_horizontal">
+		
+		
+		<LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/graph_view_agg_menu"></LinearLayout><ToggleButton 
+			android:id="@+id/graph_view_trends" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:checked="true" android:textOff="Trends" android:textOn="Trends">
+		</ToggleButton>
+		<ToggleButton 
+			android:id="@+id/graph_view_goals" 
+			android:layout_width="wrap_content" 
+			android:layout_height="wrap_content" 
+			android:checked="true" android:textOff="Goals" android:textOn="Goals">
+		</ToggleButton>
+        <ToggleButton 
+        	android:id="@+id/graph_view_markers" 
+        	android:layout_width="wrap_content" 
+        	android:layout_height="wrap_content" 
+        	android:textOff="Markers" android:textOn="Markers">
+        </ToggleButton>
+
+</LinearLayout>
+	<LinearLayout 
+		android:id="@+id/graph_status_layout"
+		android:layout_height="wrap_content" android:background="@color/graph_status_background" android:layout_width="fill_parent">
+		<TextView 
+			android:layout_height="wrap_content" 
+			android:id="@+id/graph_status" android:background="@color/graph_status_background" android:layout_width="fill_parent">
+		</TextView>
+	</LinearLayout>
+	
+	<RelativeLayout
+    	android:layout_width="fill_parent" 
+    	android:layout_height="fill_parent"> 
+    	
+    	<LinearLayout
+			android:id="@+id/graph_plot"
+		    android:layout_width="fill_parent"
+    		android:layout_height="fill_parent"
+    		android:enabled="true"
+		    android:clickable="true" android:orientation="vertical">   	
+		</LinearLayout> 
+		<LinearLayout
+			android:id="@+id/graph_zoom" 
+    		android:layout_width="wrap_content" 
+		    android:layout_height="wrap_content" 
+		    android:layout_alignParentBottom="true" 
+		    android:layout_centerHorizontal="true">
+		</LinearLayout> 
+	</RelativeLayout>	
+	
+				<ListView 
+				android:layout_width="wrap_content" 
+				android:layout_height="wrap_content" 
+				android:id="@+id/android:list" 
+				android:choiceMode="singleChoice" 
+				android:longClickable="true">
+    		</ListView>
+	
+</LinearLayout>
