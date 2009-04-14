@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.graph.plugins;
 
-import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.primitives.Tuple;
 import android.graphics.Path;
 

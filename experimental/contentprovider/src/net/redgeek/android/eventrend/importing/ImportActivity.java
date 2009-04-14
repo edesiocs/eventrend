@@ -18,10 +18,10 @@ package net.redgeek.android.eventrend.importing;
 
 import java.io.File;
 
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.backgroundtasks.ImportTask;
+import net.redgeek.android.eventrend.input.EvenTrendActivity;
+import net.redgeek.android.eventrend.input.Preferences;
+import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 import android.app.Dialog;

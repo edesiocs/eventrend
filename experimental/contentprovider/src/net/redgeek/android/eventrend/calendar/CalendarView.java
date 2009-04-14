@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.calendar;
 
 import java.util.Calendar;
 
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.backgroundtasks.DataCollectionTask;
+import net.redgeek.android.eventrend.input.Preferences;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
