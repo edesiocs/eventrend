@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.input;
+package net.redgeek.android.eventrend;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -34,6 +34,9 @@ import android.view.MenuItem;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.input.R;
+import net.redgeek.android.eventrend.input.R.drawable;
+import net.redgeek.android.eventrend.input.R.string;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DialogUtil;

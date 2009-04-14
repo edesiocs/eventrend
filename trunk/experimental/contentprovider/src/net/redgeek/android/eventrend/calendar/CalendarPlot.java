@@ -18,7 +18,7 @@ package net.redgeek.android.eventrend.calendar;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.input.Preferences;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.primitives.Tuple;

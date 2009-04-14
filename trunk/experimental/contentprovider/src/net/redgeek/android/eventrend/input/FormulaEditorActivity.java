@@ -18,6 +18,7 @@ package net.redgeek.android.eventrend.input;
 
 import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrecorder.synthetic.Tokenizer;
+import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.db.CategoryDbTable;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
 import android.app.Dialog;

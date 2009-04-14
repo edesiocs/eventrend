@@ -19,8 +19,8 @@ package net.redgeek.android.eventrend.datum;
 import java.util.Calendar;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
-import net.redgeek.android.eventrend.input.EvenTrendActivity;
-import net.redgeek.android.eventrend.input.Preferences;
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.primitives.EntryDbTable;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;

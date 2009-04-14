@@ -23,6 +23,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.backgroundtasks.UpdateRecentDataTask;
 import net.redgeek.android.eventrend.calendar.CalendarActivity;
 import net.redgeek.android.eventrend.category.CategoryEditActivity;
