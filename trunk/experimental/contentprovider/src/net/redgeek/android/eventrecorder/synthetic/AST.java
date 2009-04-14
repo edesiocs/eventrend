@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.synthetic;
+package net.redgeek.android.eventrecorder.synthetic;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.synthetic.Tokenizer.Token;
-import net.redgeek.android.eventrend.synthetic.Tokenizer.TokenID;
-import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrecorder.synthetic.Tokenizer.Token;
+import net.redgeek.android.eventrecorder.synthetic.Tokenizer.TokenID;
+import net.redgeek.android.eventrend.input.util.DateUtil;
 
 public class AST {
   public enum Opcode {

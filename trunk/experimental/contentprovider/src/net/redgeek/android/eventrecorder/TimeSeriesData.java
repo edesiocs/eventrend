@@ -356,7 +356,7 @@ public class TimeSeriesData {
     /**
      * How to interpolate data between points.
      * <p>
-     * Type: STRING, base class name of interpolator class
+     * Type: STRING, full class name of interpolator class
      * </p>
      */
     public static final String INTERPOLATION = "interpolation";

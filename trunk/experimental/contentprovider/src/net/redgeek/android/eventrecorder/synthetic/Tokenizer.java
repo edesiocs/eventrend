@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.synthetic;
-
-import net.redgeek.android.timeseries.CategoryDbTable;
+package net.redgeek.android.eventrecorder.synthetic;
 
 public class Tokenizer {
   public enum Opcode {
@@ -40,6 +38,10 @@ public class Tokenizer {
   public static final String SERIES_DELIM = "\"";
   public static final String ESCAPE = "\\";
 
+  public static final String[] PERIODS = {
+    "hour", "ampm", "day", "week", "month", "quarter", "year",
+  };
+  
   public static class Token {
     public TokenID mTokenID;
     public String mValue;
@@ -211,11 +213,8 @@ public class Tokenizer {
     } catch (NumberFormatException e) {
     }
 
-    for (int i = 0; i < CategoryDbTable.KEY_PERIODS.length; i++) {
-      if (CategoryDbTable.KEY_PERIODS[i].toLowerCase().equals("none"))
-        continue;
-      if (t.mValue.toLowerCase().equals(
-          CategoryDbTable.KEY_PERIODS[i].toLowerCase())) {
+    for (int i = 0; i < PERIODS.length; i++) {
+      if (t.mValue.toLowerCase().equals(PERIODS[i].toLowerCase())) {
         t.mTokenID = TokenID.PERIOD_CONSTANT;
         return t;
       }
