@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.TreeMap;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrend.db.EntryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.primitives.EntryDbTable;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 import android.content.ContentValues;

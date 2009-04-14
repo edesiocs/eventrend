@@ -16,14 +16,14 @@
 
 package net.redgeek.android.eventrend;
 
+import net.redgeek.android.eventrend.util.DialogUtil;
 import android.app.Dialog;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
-import android.preference.ListPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceManager;
@@ -31,15 +31,6 @@ import android.preference.PreferenceScreen;
 import android.text.method.DigitsKeyListener;
 import android.view.Menu;
 import android.view.MenuItem;
-
-import net.redgeek.android.eventrecorder.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.input.R;
-import net.redgeek.android.eventrend.input.R.drawable;
-import net.redgeek.android.eventrend.input.R.string;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.util.DialogUtil;
 
 /**
  * Seriously considering replacing this with a custom preferences screen, adding
@@ -50,7 +41,6 @@ import net.redgeek.android.eventrend.util.DialogUtil;
  */
 public class Preferences extends PreferenceActivity {
   private static final int MENU_HELP_ID   = Menu.FIRST;
-  private static final int MENU_RECALC_ID = Menu.FIRST + 1;
   
   private static final int HELP_DIALOG_ID = 0;
 
@@ -72,8 +62,8 @@ public class Preferences extends PreferenceActivity {
   public static final int PREFS_HISTORY_DEFAULT = 20;
   public static final float PREFS_TREND_STDDEV_DEFAULT = 0.5f;
 
-  private EvenTrendDbAdapter mDbh;
-  private DialogUtil         mDialogUtil;
+  private ContentResolver mContent;
+  private DialogUtil      mDialogUtil;
 
   @Override
   protected void onCreate(Bundle icicle) {
@@ -83,9 +73,6 @@ public class Preferences extends PreferenceActivity {
   }
 
   private PreferenceScreen createPreferenceHierarchy() {
-    mDbh = new EvenTrendDbAdapter.SqlAdapter(this);
-    mDbh.open();
-
     DigitsKeyListener integer = new DigitsKeyListener(false, false);
     DigitsKeyListener decimal = new DigitsKeyListener(false, true);
 
@@ -97,29 +84,6 @@ public class Preferences extends PreferenceActivity {
     dataInput.setTitle("Data Input");
     root.addPreference(dataInput);
 
-    // default group displayed pref
-    ListPreference defaultGroup = new ListPreference(this);
-
-    Cursor c = mDbh.fetchAllGroups();
-    c.moveToFirst();
-    String[] values = new String[c.getCount()];
-
-    for (int i = 0; i < c.getCount(); i++) {
-      String group = c.getString(c
-          .getColumnIndexOrThrow(CategoryDbTable.KEY_GROUP_NAME));
-      values[i] = new String(group);
-      c.moveToNext();
-    }
-    c.close();
-
-    defaultGroup.setEntries(values);
-    defaultGroup.setEntryValues(values);
-    defaultGroup.setDialogTitle("Default Group");
-    defaultGroup.setKey(PREFS_DEFAULT_VIEW);
-    defaultGroup.setTitle("Default Group");
-    defaultGroup.setSummary("Default group to display when launched");
-    dataInput.addPreference(defaultGroup);
-
     // Black or white graph background
     CheckBoxPreference defaultGraphBlack = new CheckBoxPreference(this);
     defaultGraphBlack.setKey(PREFS_DEFAULT_GRAPH_BLACK);
@@ -129,14 +93,6 @@ public class Preferences extends PreferenceActivity {
     defaultGraphBlack
         .setDefaultValue(new Boolean(PREFS_GRAPH_BACKGROUND_BLACK));
     dataInput.addPreference(defaultGraphBlack);
-
-    // Default value or last value
-    // CheckBoxPreference defaultIsLastValue = new CheckBoxPreference(this);
-    // defaultIsLastValue.setKey(PREFS_DEFAULT_TO_LAST);
-    // defaultIsLastValue.setTitle("Default to Last Value");
-    // defaultIsLastValue.setSummary("Set the default value to the last value entered");
-    // defaultIsLastValue.setDefaultValue(PREFS_DEFAULT_TO_LAST_DEFAULT);
-    // dataInput.addPreference(defaultIsLastValue);
 
     // Decimal places
     EditTextPreference decimalPlaces = new EditTextPreference(this);
@@ -196,8 +152,6 @@ public class Preferences extends PreferenceActivity {
     boolean result = super.onCreateOptionsMenu(menu);
     menu.add(0, MENU_HELP_ID, 0, R.string.menu_app_help).setIcon(
         android.R.drawable.ic_menu_help);
-    menu.add(0, MENU_RECALC_ID, 0, R.string.menu_prefs_recalc)
-        .setIcon(R.drawable.refresh);
     return result;
   }
   
@@ -206,9 +160,6 @@ public class Preferences extends PreferenceActivity {
     switch (item.getItemId()) {
       case MENU_HELP_ID:
         showDialog(HELP_DIALOG_ID);
-        return true;
-      case MENU_RECALC_ID:
-        recalcTrends();
         return true;
     }
     return super.onOptionsItemSelected(item);
@@ -224,20 +175,6 @@ public class Preferences extends PreferenceActivity {
     return null;
   }
 
-  private void recalcTrends() {
-    TimeSeriesCollector tsc = new TimeSeriesCollector(mDbh);
-    tsc.setHistory(getHistory(this));
-    tsc.setSmoothing(getSmoothingConstant(this));
-    tsc.setSensitivity(getStdDevSensitivity(this));
-    tsc.setInterpolators(EvenTrendActivity.getInterpolatorsCopy());    
-    tsc.updateTimeSeriesMetaLocking(true);
-
-    for (int i = 0; i < tsc.numSeries(); i++) {
-      TimeSeries ts = tsc.getSeries(i);
-      tsc.updateCategoryTrend(ts.getDbRow().getId());
-    }
-  }
-  
   public static String getDefaultGroup(Context ctx) {
     SharedPreferences settings = PreferenceManager
         .getDefaultSharedPreferences(ctx);

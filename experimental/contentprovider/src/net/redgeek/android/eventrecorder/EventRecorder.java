@@ -16,9 +16,17 @@
 
 package net.redgeek.android.eventrecorder;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepEarlyInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepLateInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepMidInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -42,6 +50,8 @@ public class EventRecorder extends Service {
   private Calendar mCal;
   private int mLastHr;
   private Lock mLock;
+
+  private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
   /** Number of milliseconds in a second */
   public static final long SECOND_MS = 1000;
@@ -94,6 +104,8 @@ public class EventRecorder extends Service {
         }
       }
     };
+    
+    registerInterpolators(mInterpolators);
         
     IntentFilter filter = new IntentFilter();
     filter.addAction(Intent.ACTION_TIME_TICK);
@@ -496,5 +508,37 @@ public class EventRecorder extends Service {
     }
 
     return;
+  }
+  
+  public ArrayList<TimeSeriesInterpolator> getInterpolators() {
+    return mInterpolators;
+  }
+
+  public TimeSeriesInterpolator getInterpolator(String name) {
+    TimeSeriesInterpolator tsi = null;
+
+    if (name == null)
+      return null;
+
+    for (int i = 0; i < mInterpolators.size(); i++) {
+      tsi = mInterpolators.get(i);
+      if (name.equals(tsi.getName()))
+        return tsi;
+    }
+
+    return null;
+  }
+  
+  private static void registerInterpolators(ArrayList<TimeSeriesInterpolator> list) {
+    registerInterpolator(list, new LinearInterpolator());
+    registerInterpolator(list, new CubicInterpolator());
+    registerInterpolator(list, new StepEarlyInterpolator());
+    registerInterpolator(list, new StepMidInterpolator());
+    registerInterpolator(list, new StepLateInterpolator());
+  }
+
+  private static void registerInterpolator(ArrayList<TimeSeriesInterpolator> list,
+      TimeSeriesInterpolator tsi) {
+    list.add(tsi);
   }
 }

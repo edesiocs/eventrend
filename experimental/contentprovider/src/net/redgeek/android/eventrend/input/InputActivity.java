@@ -22,21 +22,14 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.backgroundtasks.UpdateRecentDataTask;
-import net.redgeek.android.eventrend.calendar.CalendarActivity;
+import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.category.CategoryEditActivity;
 import net.redgeek.android.eventrend.category.CategoryListAdapter;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
-import net.redgeek.android.eventrend.datum.EntryListActivity;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.graph.GraphActivity;
-import net.redgeek.android.eventrend.primitives.EntryDbTable;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
@@ -49,7 +42,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -75,13 +67,8 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
 
-/**
- * Main interface screen, aside from the GraphActivity. This is also the root
- * activity and interface, were most if not all of the data inputing is
- * performed by the user. (The exceptions bring category and entry editing.)
- * 
- * @author barclay
- */
+// TODO:  change everything to content providers
+// TODO:  setup listeners for CP changes
 public class InputActivity extends EvenTrendActivity {
   // Menu-button IDs
   private static final int MENU_ADD_ID = Menu.FIRST;
@@ -133,7 +120,6 @@ public class InputActivity extends EvenTrendActivity {
   private Calendar mCal;
 
   // From preferences
-  private String mDefaultGroup;
   private int mHistory;
   private float mSmoothing;
   private float mSensitivity;
@@ -148,11 +134,8 @@ public class InputActivity extends EvenTrendActivity {
   private TimePickerDialog.OnTimeSetListener mTimeSetListener;
 
   // Tasks, handlers, etc
-  private UpdateRecentDataTask mDataUpdater;
   private Runnable mUpdateNowTime;
   private Handler mNowHandler;
-
-  private TimeSeriesCollector mTSC;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -165,10 +148,6 @@ public class InputActivity extends EvenTrendActivity {
     fillCategoryData(-1);
 
     setCurrentViews(true);
-  }
-
-  public EvenTrendDbAdapter getDb() {
-    return getDbh();
   }
 
   public TextView getTimestampView() {
@@ -186,7 +165,6 @@ public class InputActivity extends EvenTrendActivity {
   // *** background tasks ***/
   @Override
   public void executeNonGuiTask() throws Exception {
-    mDataUpdater.fillAllCategories();
   }
 
   @Override
@@ -195,7 +173,6 @@ public class InputActivity extends EvenTrendActivity {
 
   // *** main setup routines ***/
   private void getPrefs() {
-    mDefaultGroup = Preferences.getDefaultGroup(getCtx());
     mHistory = Preferences.getHistory(getCtx());
     mSmoothing = Preferences.getSmoothingConstant(getCtx());
     mSensitivity = Preferences.getStdDevSensitivity(getCtx());
@@ -203,18 +180,6 @@ public class InputActivity extends EvenTrendActivity {
 
   private void setupTasksAndData() {
     mUndoLock = new ReentrantLock();
-
-    mTSC = new TimeSeriesCollector(getDbh());
-    mTSC.setHistory(mHistory);
-    mTSC.setSmoothing(mSmoothing);
-    mTSC.setSensitivity(mSensitivity);
-    mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
-    mTSC.updateTimeSeriesMetaLocking(true);
-
-    mDataUpdater = new UpdateRecentDataTask(mTSC, mHistory);
-    // mDataUpdater.setZerofill(true);
-    // mDataUpdater.setUpdateTrend(true);
-    // GUITaskQueue.getInstance().addTask(mProgress, this);
 
     mTimestamp = new DateUtil.DateItem();
     mCal = Calendar.getInstance();
@@ -227,12 +192,6 @@ public class InputActivity extends EvenTrendActivity {
 
         if (mPickNow.isChecked() == true)
           setTimestampNow();
-        if (newHour != mOldHour) {
-          mOldHour = newHour;
-          mDataUpdater.setZerofill(true);
-          mDataUpdater.setUpdateTrend(true);
-          GUITaskQueue.getInstance().addTask(mProgress, (GUITask) getCtx());
-        }
 
         mNowHandler.postDelayed(mUpdateNowTime, DateUtil.SECOND_MS);
       }
@@ -389,23 +348,12 @@ public class InputActivity extends EvenTrendActivity {
     scheduleUpdateNow();
     getPrefs();
 
-    mTSC.updateTimeSeriesMetaLocking(false);
-    fillCategoryData(mFlipper.getDisplayedChild());
-    setCurrentViews(false);
-
-    if (mDataUpdater != null) {
-      mDataUpdater.setZerofill(true);
-      mDataUpdater.setUpdateTrend(true);
-      GUITaskQueue.getInstance().addTask(mProgress, this);
-    }
     super.onResume();
   }
 
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
-    if (resultCode == RESULT_DELETED)
-      mTSC.clearSeriesLocking();
   }
 
   // *** clock ***//

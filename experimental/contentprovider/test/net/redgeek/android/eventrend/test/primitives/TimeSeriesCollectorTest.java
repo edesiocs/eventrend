@@ -19,8 +19,8 @@ package net.redgeek.android.eventrend.test.primitives;
 import junit.framework.TestCase;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
-import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.test.common.DbTestReader;
 import net.redgeek.android.eventrend.test.common.MockEvenTrendDbAdapter;

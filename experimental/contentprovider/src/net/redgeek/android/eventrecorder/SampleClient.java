@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrecorder;
 
-import net.redgeek.android.eventrend.input.R;
+import net.redgeek.android.eventrend.R;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
