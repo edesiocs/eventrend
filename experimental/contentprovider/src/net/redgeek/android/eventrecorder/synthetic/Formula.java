@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.synthetic;
+package net.redgeek.android.eventrecorder.synthetic;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.synthetic.AST.BinaryOperation;
-import net.redgeek.android.eventrend.synthetic.AST.GroupOperand;
-import net.redgeek.android.eventrend.synthetic.AST.Operand;
-import net.redgeek.android.eventrend.synthetic.AST.Operation;
-import net.redgeek.android.eventrend.synthetic.AST.UnaryOperation;
-import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.input.synthetic.AST.BinaryOperation;
+import net.redgeek.android.eventrend.input.synthetic.AST.GroupOperand;
+import net.redgeek.android.eventrend.input.synthetic.AST.Operand;
+import net.redgeek.android.eventrend.input.synthetic.AST.Operation;
+import net.redgeek.android.eventrend.input.synthetic.AST.UnaryOperation;
+import net.redgeek.android.eventrend.input.util.DateUtil;
 import net.redgeek.android.timeseries.Datapoint;
 import net.redgeek.android.timeseries.TimeSeries;
 

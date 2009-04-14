@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.synthetic;
+package net.redgeek.android.eventrecorder.synthetic;
 
 import java.util.HashMap;
 
