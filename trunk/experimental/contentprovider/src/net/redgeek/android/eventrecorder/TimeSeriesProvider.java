@@ -36,6 +36,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 // TODO:  support calculated series
+// TODO:  flesh out interpolator plugins
 public class TimeSeriesProvider extends ContentProvider {
   private static final String TAG = "TimeSeriesProvider";
 

@@ -21,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-
 /**
  * Various number-related routines and classes that are frequently used.
  * 
@@ -219,46 +217,46 @@ public class Number {
       return TrendState.UNKNOWN;
   }
 
-  public static String mapTrendStateToString(TrendState state) {
-    String trendStr;
-    
-    if (state == TrendState.DOWN_45_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_GOOD;
-    else if (state == TrendState.DOWN_45_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_BAD;
-    else if (state == TrendState.DOWN_15_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_GOOD;
-    else if (state == TrendState.DOWN_30_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_30_BAD;
-    else if (state == TrendState.DOWN_30_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_30_GOOD;
-    else if (state == TrendState.DOWN_15_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_BAD;
-    else if (state == TrendState.UP_45_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_45_GOOD;
-    else if (state == TrendState.UP_45_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_45_BAD;
-    else if (state == TrendState.UP_30_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_30_GOOD;
-    else if (state == TrendState.UP_30_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_30_BAD;
-    else if (state == TrendState.UP_15_GOOD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_15_GOOD;
-    else if (state == TrendState.UP_15_BAD)
-      trendStr = CategoryDbTable.KEY_TREND_UP_15_BAD;
-    else if (state == TrendState.DOWN_15)
-      trendStr = CategoryDbTable.KEY_TREND_DOWN_15;
-    else if (state == TrendState.UP_15)
-      trendStr = CategoryDbTable.KEY_TREND_UP_15;
-    else if (state == TrendState.FLAT)
-      trendStr = CategoryDbTable.KEY_TREND_FLAT;
-    else if (state == TrendState.FLAT_GOAL)
-      trendStr = CategoryDbTable.KEY_TREND_FLAT_GOAL;
-    else
-      // if (state == TrendState.UNKNOWN)
-      trendStr = CategoryDbTable.KEY_TREND_UNKNOWN;
-    return trendStr;
-  }
+//  public static String mapTrendStateToString(TrendState state) {
+//    String trendStr;
+//    
+//    if (state == TrendState.DOWN_45_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_GOOD;
+//    else if (state == TrendState.DOWN_45_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_45_BAD;
+//    else if (state == TrendState.DOWN_15_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_GOOD;
+//    else if (state == TrendState.DOWN_30_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_30_BAD;
+//    else if (state == TrendState.DOWN_30_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_30_GOOD;
+//    else if (state == TrendState.DOWN_15_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_15_BAD;
+//    else if (state == TrendState.UP_45_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_45_GOOD;
+//    else if (state == TrendState.UP_45_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_45_BAD;
+//    else if (state == TrendState.UP_30_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_30_GOOD;
+//    else if (state == TrendState.UP_30_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_30_BAD;
+//    else if (state == TrendState.UP_15_GOOD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_15_GOOD;
+//    else if (state == TrendState.UP_15_BAD)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_15_BAD;
+//    else if (state == TrendState.DOWN_15)
+//      trendStr = CategoryDbTable.KEY_TREND_DOWN_15;
+//    else if (state == TrendState.UP_15)
+//      trendStr = CategoryDbTable.KEY_TREND_UP_15;
+//    else if (state == TrendState.FLAT)
+//      trendStr = CategoryDbTable.KEY_TREND_FLAT;
+//    else if (state == TrendState.FLAT_GOAL)
+//      trendStr = CategoryDbTable.KEY_TREND_FLAT_GOAL;
+//    else
+//      // if (state == TrendState.UNKNOWN)
+//      trendStr = CategoryDbTable.KEY_TREND_UNKNOWN;
+//    return trendStr;
+//  }
 
   /**
    * An exponentially smoothed weighted moving average. Not thread safe. Trend

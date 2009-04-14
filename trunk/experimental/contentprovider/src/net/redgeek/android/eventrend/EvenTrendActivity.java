@@ -18,17 +18,17 @@ package net.redgeek.android.eventrend;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.graph.plugins.CubicInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.StepEarlyInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.StepLateInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.StepMidInterpolator;
-import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepEarlyInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepLateInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.StepMidInterpolator;
+import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.util.DialogUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import android.app.ListActivity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -52,35 +52,9 @@ import android.os.Bundle;
 public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final String TAG = "EvenTrend";
   
-  public static final int CATEGORY_LIST = 0;
-  public static final int CATEGORY_CREATE = 1;
-  public static final int CATEGORY_EDIT = 2;
-  public static final int ENTRY_LIST = 3;
-  public static final int ENTRY_EDIT = 4;
-  public static final int GRAPH_VIEW = 5;
-  public static final int CALENDAR_VIEW = 6;
-  public static final int IMPORT_REPLACE = 7;
-  // protected static final int IMORT_MERGE = 8;
-  public static final int PREFS_EDIT = 9;
-  public static final int FORMULA_EDIT = 10;
-
-  public static final String CATEGORY_ID = "CategoryId";
-  public static final String FORMULA = "Formula";
-  public static final String VIEW_DEFAULT_CATIDS = "ViewIdsDefault";
-  public static final String GRAPH_START_MS = "GraphStartMS";
-  public static final String GRAPH_END_MS = "GraphEndMS";
-  public static final String GRAPH_AGGREGATION = "GraphAggregation";
-  public static final String CALENDAR_PERIOD = "CalendarPeriod";
-  public static final String FORMULA_TEXT = "FormulaText";
-  
-  public static final int    RESULT_DELETED = 100;
-
   private Context mCtx;
-  private EvenTrendDbAdapter mDbh;
+  private ContentResolver mContent;
   private DialogUtil mDialogUtil;
-
-  // Plugings
-  private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -88,11 +62,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
 
     mCtx = this;
     mDialogUtil = new DialogUtil(mCtx);
-    mDbh = new EvenTrendDbAdapter.SqlAdapter(this);
-    mDbh.open();
-
-    mInterpolators = new ArrayList<TimeSeriesInterpolator>();
-    registerPlugins();
+    mContent = getContentResolver();
   }
 
   @Override
@@ -109,7 +79,6 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
 
   @Override
   protected void onDestroy() {
-    mDbh.close();
     super.onResume();
   }
 
@@ -126,53 +95,11 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
     return mCtx;
   }
 
-  public EvenTrendDbAdapter getDbh() {
-    return mDbh;
+  public ContentResolver getContent() {
+    return mContent;
   }
 
   public DialogUtil getDialogUtil() {
     return mDialogUtil;
-  }
-
-  public ArrayList<TimeSeriesInterpolator> getInterpolators() {
-    return mInterpolators;
-  }
-
-  public static ArrayList<TimeSeriesInterpolator> getInterpolatorsCopy() {
-    ArrayList<TimeSeriesInterpolator> list = new ArrayList<TimeSeriesInterpolator>();
-    registerInterpolators(list);
-    return list;
-  }
-
-  public TimeSeriesInterpolator getInterpolator(String name) {
-    TimeSeriesInterpolator tsi = null;
-
-    if (name == null)
-      return null;
-
-    for (int i = 0; i < mInterpolators.size(); i++) {
-      tsi = mInterpolators.get(i);
-      if (name.equals(tsi.getName()))
-        return tsi;
-    }
-
-    return null;
-  }
-  
-  private void registerPlugins() {
-    registerInterpolators(mInterpolators);
-  }
-
-  private static void registerInterpolators(ArrayList<TimeSeriesInterpolator> list) {
-    registerInterpolator(list, new LinearInterpolator());
-    registerInterpolator(list, new CubicInterpolator());
-    registerInterpolator(list, new StepEarlyInterpolator());
-    registerInterpolator(list, new StepMidInterpolator());
-    registerInterpolator(list, new StepLateInterpolator());
-  }
-
-  private static void registerInterpolator(ArrayList<TimeSeriesInterpolator> list,
-      TimeSeriesInterpolator tsi) {
-    list.add(tsi);
   }
 }
