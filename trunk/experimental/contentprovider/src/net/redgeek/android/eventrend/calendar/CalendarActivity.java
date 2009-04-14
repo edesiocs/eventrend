@@ -37,11 +37,11 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.graph.GraphActivity;
+import net.redgeek.android.eventrend.input.EvenTrendActivity;
+import net.redgeek.android.eventrend.input.Preferences;
+import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.primitives.Datapoint;
 import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;

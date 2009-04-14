@@ -14,7 +14,7 @@
  * the License.
  */
 
-package net.redgeek.android.eventrend;
+package net.redgeek.android.eventrend.input;
 
 import java.util.ArrayList;
 

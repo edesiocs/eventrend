@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend;
+package net.redgeek.android.eventrend.input;
 
 import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrecorder.synthetic.Tokenizer;
