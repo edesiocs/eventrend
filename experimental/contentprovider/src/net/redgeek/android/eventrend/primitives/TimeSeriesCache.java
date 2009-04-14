@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.timeseries;
+package net.redgeek.android.eventrend.primitives;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,20 +22,18 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 
-public class CategoryDatapointCache {
-  private long mCatId;
+public class TimeSeriesCache {
+  private long mSeriesId;
   private boolean mValid;
   private TreeMap<Long, Datapoint> mCache;
   private long mStart;
   private long mEnd;
-  private int mHistory;
 
-  public CategoryDatapointCache(long catId, int history) {
-    mCatId = catId;
+  public TimeSeriesCache(long seriesId) {
+    mSeriesId = seriesId;
     mValid = false;
     mCache = new TreeMap<Long, Datapoint>();
     resetRangeMarkers();
-    mHistory = history;
   }
 
   public void clear() {
@@ -47,8 +45,8 @@ public class CategoryDatapointCache {
     return mValid;
   }
 
-  public long getCategoryId() {
-    return mCatId;
+  public long getSeriesId() {
+    return mSeriesId;
   }
 
   public long getStart() {
@@ -69,14 +67,6 @@ public class CategoryDatapointCache {
       mEnd = end;
   }
 
-  public void setHistory(int history) {
-    mHistory = history;
-  }
-
-  public int getHistory() {
-    return mHistory;
-  }
-
   public Datapoint addDatapoint(Datapoint d) {
     if (d.mMillis < mStart)
       mStart = d.mMillis;
@@ -90,6 +80,12 @@ public class CategoryDatapointCache {
     if (mCache.get(d.mMillis) == null)
       return null;
     return mCache.put(d.mMillis, d);
+  }
+  
+  public void deleteDatapoint(Long id) {
+    if (mCache.get(id) == null)
+      return;
+    mCache.remove(id);    
   }
 
   public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {

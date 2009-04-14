@@ -18,18 +18,18 @@ package net.redgeek.android.eventrend.graph;
 
 import java.util.ArrayList;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.datum.EntryEditActivity;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.EntryDbTable;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.Datapoint;
-import net.redgeek.android.timeseries.EntryDbTable;
-import net.redgeek.android.timeseries.TimeSeries;
-import net.redgeek.android.timeseries.TimeSeriesCollector;
-import net.redgeek.android.timeseries.Tuple;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;

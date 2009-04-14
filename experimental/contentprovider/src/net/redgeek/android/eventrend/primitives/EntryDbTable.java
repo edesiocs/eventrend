@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.timeseries;
+package net.redgeek.android.eventrend.primitives;
 
 import android.database.Cursor;
 

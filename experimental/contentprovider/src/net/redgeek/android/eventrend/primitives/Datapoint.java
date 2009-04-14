@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.timeseries;
+package net.redgeek.android.eventrend.primitives;
 
 import java.util.Calendar;
 import java.util.Comparator;
+
+import net.redgeek.android.eventrend.primitives.EntryDbTable.Row;
 
 
 /**

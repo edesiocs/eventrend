@@ -18,12 +18,12 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import junit.framework.TestCase;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
 import net.redgeek.android.eventrend.util.DateUtil;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.Datapoint;
-import net.redgeek.android.timeseries.TimeSeries;
 
 import java.util.ArrayList;
 

@@ -19,12 +19,12 @@ package net.redgeek.android.eventrend.backgroundtasks;
 import java.util.Calendar;
 
 import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.EntryDbTable;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import net.redgeek.android.timeseries.Datapoint;
-import net.redgeek.android.timeseries.EntryDbTable;
-import net.redgeek.android.timeseries.TimeSeries;
-import net.redgeek.android.timeseries.TimeSeriesCollector;
 import android.util.Log;
 
 /**

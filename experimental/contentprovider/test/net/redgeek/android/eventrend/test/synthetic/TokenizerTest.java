@@ -16,9 +16,9 @@
 
 package net.redgeek.android.eventrend.test.synthetic;
 
-import net.redgeek.android.eventrend.synthetic.Tokenizer;
-import net.redgeek.android.eventrend.synthetic.Tokenizer.Token;
-import net.redgeek.android.eventrend.synthetic.Tokenizer.TokenID;
+import net.redgeek.android.eventrecorder.synthetic.Tokenizer;
+import net.redgeek.android.eventrecorder.synthetic.Tokenizer.Token;
+import net.redgeek.android.eventrecorder.synthetic.Tokenizer.TokenID;
 import junit.framework.TestCase;
 
 // This needs more negative case testing and complex tests

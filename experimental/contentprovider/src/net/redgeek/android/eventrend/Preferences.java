@@ -32,11 +32,11 @@ import android.text.method.DigitsKeyListener;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DialogUtil;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.TimeSeries;
-import net.redgeek.android.timeseries.TimeSeriesCollector;
 
 /**
  * Seriously considering replacing this with a custom preferences screen, adding

@@ -2,12 +2,12 @@ package net.redgeek.android.eventrend.db;
 
 import java.util.Calendar;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrecorder.CategoryDbTable.Row;
 import net.redgeek.android.eventrend.importing.CSV;
+import net.redgeek.android.eventrend.primitives.EntryDbTable;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.EntryDbTable;
-import net.redgeek.android.timeseries.CategoryDbTable.Row;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;

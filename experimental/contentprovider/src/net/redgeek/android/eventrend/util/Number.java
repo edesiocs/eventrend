@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import net.redgeek.android.timeseries.CategoryDbTable;
+import net.redgeek.android.eventrend.db.CategoryDbTable;
 
 /**
  * Various number-related routines and classes that are frequently used.

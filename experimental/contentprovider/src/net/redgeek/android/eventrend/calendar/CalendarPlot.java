@@ -20,10 +20,10 @@ import java.util.ArrayList;
 
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.primitives.Tuple;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import net.redgeek.android.timeseries.TimeSeriesCollector;
-import net.redgeek.android.timeseries.Tuple;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;

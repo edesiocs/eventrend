@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.category;
 
-import net.redgeek.android.timeseries.CategoryDbTable;
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 
 public class CategoryRow implements Comparable<CategoryRow> {
   private CategoryDbTable.Row mRow;
