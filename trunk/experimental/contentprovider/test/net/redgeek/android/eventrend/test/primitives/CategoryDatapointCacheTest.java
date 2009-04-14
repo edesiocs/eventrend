@@ -18,8 +18,8 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.timeseries.CategoryDatapointCache;
-import net.redgeek.android.timeseries.Datapoint;
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCache;
 
 import junit.framework.TestCase;
 
@@ -27,8 +27,8 @@ import junit.framework.TestCase;
 // dangerous in general, but should be safe for such small predefined values.
 public class CategoryDatapointCacheTest extends TestCase {
   public void testConstructors() {
-    CategoryDatapointCache cache = new CategoryDatapointCache(1, 10);
-    assertEquals(1, cache.getCategoryId());
+    TimeSeriesCache cache = new TimeSeriesCache(1, 10);
+    assertEquals(1, cache.getSeriesId());
     assertFalse(cache.isValid());
     assertEquals(Long.MAX_VALUE, cache.getStart());
     assertEquals(Long.MIN_VALUE, cache.getEnd());
@@ -38,7 +38,7 @@ public class CategoryDatapointCacheTest extends TestCase {
   public void testAdd() {
     Datapoint d = new Datapoint(100L, 2.0f, 3, 4, 5);
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
     cache.addDatapoint(d);
 
     assertTrue(cache.isValid());
@@ -64,7 +64,7 @@ public class CategoryDatapointCacheTest extends TestCase {
     Datapoint d = new Datapoint(100L, 2.0f, 3, 4, 5);
     ArrayList<Datapoint> out;
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
 
     out = cache.getDataInRange(99, 101);
     assertNotNull(out);
@@ -111,7 +111,7 @@ public class CategoryDatapointCacheTest extends TestCase {
     Datapoint d = new Datapoint(100L, 2.0f, 3, 4, 5);
     ArrayList<Datapoint> out;
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
 
     out = cache.getDataBefore(1, 101);
     assertNotNull(out);
@@ -169,7 +169,7 @@ public class CategoryDatapointCacheTest extends TestCase {
     Datapoint d = new Datapoint(100L, 2.0f, 3, 4, 5);
     ArrayList<Datapoint> out;
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
 
     out = cache.getLast(1);
     assertNotNull(out);
@@ -216,7 +216,7 @@ public class CategoryDatapointCacheTest extends TestCase {
     Datapoint update = new Datapoint(101L, 2.0f, 3, 4, 5);
     Datapoint out;
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
     cache.addDatapoint(in);
 
     out = cache.updateDatapoint(update);
@@ -233,7 +233,7 @@ public class CategoryDatapointCacheTest extends TestCase {
     Datapoint d1 = new Datapoint(100L, 2.0f, 3, 4, 5);
     Datapoint d2 = new Datapoint(101L, 2.0f, 3, 4, 5);
 
-    CategoryDatapointCache cache = new CategoryDatapointCache(3, 10);
+    TimeSeriesCache cache = new TimeSeriesCache(3, 10);
     cache.addDatapoint(d1);
     cache.addDatapoint(d2);
 

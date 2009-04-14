@@ -42,15 +42,15 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
-import net.redgeek.android.eventrend.synthetic.Formula;
 import net.redgeek.android.eventrend.synthetic.FormulaEditorActivity;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
 import net.redgeek.android.eventrend.util.ComboBox;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
-import net.redgeek.android.timeseries.CategoryDbTable;
 
 import java.util.ArrayList;
 

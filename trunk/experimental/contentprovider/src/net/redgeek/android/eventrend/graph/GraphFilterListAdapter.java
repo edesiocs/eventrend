@@ -19,7 +19,7 @@ package net.redgeek.android.eventrend.graph;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.redgeek.android.timeseries.TimeSeriesCollector;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;

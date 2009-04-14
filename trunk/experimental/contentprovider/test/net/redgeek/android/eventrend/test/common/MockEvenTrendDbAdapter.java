@@ -22,11 +22,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.primitives.EntryDbTable;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.EntryDbTable;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;

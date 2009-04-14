@@ -19,9 +19,9 @@ package net.redgeek.android.eventrend.graph.plugins;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.redgeek.android.eventrend.primitives.Datapoint;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.util.Number;
-import net.redgeek.android.timeseries.Datapoint;
-import net.redgeek.android.timeseries.TimeSeries;
 
 public class LinearMatrixCorrelator implements TimeSeriesCorrelator {
   public LinearMatrixCorrelator() {

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.timeseries;
+package net.redgeek.android.eventrend.primitives;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeMap;
 
+import net.redgeek.android.eventrecorder.synthetic.AST;
 import net.redgeek.android.eventrend.graph.GraphView;
 import net.redgeek.android.eventrend.graph.TimeSeriesPainter;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
-import net.redgeek.android.eventrend.synthetic.AST;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
 import android.graphics.Canvas;

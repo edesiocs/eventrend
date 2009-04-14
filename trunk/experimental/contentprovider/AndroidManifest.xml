@@ -19,7 +19,29 @@
 		<activity android:name=".importing.ImportActivity"></activity>
 		<activity android:name="Preferences"></activity>
 		<activity android:name=".category.CategoryEditActivity"></activity>
-	<activity android:name=".calendar.CalendarActivity"></activity>
-<activity android:name=".synthetic.FormulaEditorActivity"></activity>
-</application>
+	  <activity android:name=".calendar.CalendarActivity"></activity>
+    <activity android:name=".synthetic.FormulaEditorActivity"></activity>
+  
+    <service 
+      android:name="net.redgeek.android.eventrecorder.EventRecorder" 
+      android:enabled="true"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="net.redgeek.android.eventrecorder.IEventRecorderService" />
+      </intent-filter>
+    </service>
+    <provider
+      android:name="net.redgeek.android.eventrecorder.TimeSeriesProvider" 
+      android:enabled="true" 
+      android:exported="true" 
+      android:authorities="net.redgeek.android.eventrecorder" 
+      android:multiprocess="true" android:syncable="true">
+    </provider>
+    <activity android:name="net.redgeek.android.eventrecorder.SampleClient">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
 </manifest> 

@@ -24,8 +24,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesCorrelator;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
 import net.redgeek.android.eventrend.util.Number;
-import net.redgeek.android.timeseries.TimeSeries;
 
 /**
  * Performs a correlation of data according the the Correlator that has been set

@@ -23,10 +23,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.importing.CSV;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.EntryDbTable;
+import net.redgeek.android.eventrend.primitives.EntryDbTable;
 
 /**
  * Import a CSV file into the database, replacing existing data. (Merge import

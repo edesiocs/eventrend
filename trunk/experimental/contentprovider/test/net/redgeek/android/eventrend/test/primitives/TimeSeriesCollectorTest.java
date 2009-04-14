@@ -18,13 +18,13 @@ package net.redgeek.android.eventrend.test.primitives;
 
 import junit.framework.TestCase;
 
+import net.redgeek.android.eventrecorder.CategoryDbTable;
 import net.redgeek.android.eventrend.graph.plugins.LinearInterpolator;
 import net.redgeek.android.eventrend.graph.plugins.TimeSeriesInterpolator;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.test.common.DbTestReader;
 import net.redgeek.android.eventrend.test.common.MockEvenTrendDbAdapter;
 import net.redgeek.android.eventrend.test.common.MockTimeSeriesPainter;
-import net.redgeek.android.timeseries.CategoryDbTable;
-import net.redgeek.android.timeseries.TimeSeriesCollector;
 
 import java.util.ArrayList;
 import java.util.HashMap;

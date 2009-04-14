@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrend.backgroundtasks;
 
-import net.redgeek.android.timeseries.TimeSeriesCollector;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import android.util.Log;
 
 /**
