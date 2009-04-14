@@ -18,7 +18,7 @@ package net.redgeek.android.eventgrapher;
 
 import java.util.ArrayList;
 
-import net.redgeek.android.eventrend.input.Preferences;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.input.datum.EntryEditActivity;
 import net.redgeek.android.eventrend.input.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.input.primitives.Datapoint;

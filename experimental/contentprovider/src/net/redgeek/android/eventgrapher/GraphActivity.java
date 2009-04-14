@@ -19,9 +19,9 @@ package net.redgeek.android.eventgrapher;
 import java.util.ArrayList;
 import java.util.Calendar;
 
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.backgroundtasks.CorrelateTask;
-import net.redgeek.android.eventrend.input.EvenTrendActivity;
-import net.redgeek.android.eventrend.input.Preferences;
 import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.input.calendar.CalendarActivity;
 import net.redgeek.android.eventrend.input.db.CategoryDbTable;

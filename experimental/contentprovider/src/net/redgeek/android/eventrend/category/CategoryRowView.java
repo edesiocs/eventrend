@@ -17,10 +17,10 @@
 package net.redgeek.android.eventrend.category;
 
 import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.backgroundtasks.AddEntryTask;
 import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
 import net.redgeek.android.eventrend.input.InputActivity;
-import net.redgeek.android.eventrend.input.Preferences;
 import net.redgeek.android.eventrend.input.R;
 import net.redgeek.android.eventrend.primitives.EntryDbTable;
 import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
