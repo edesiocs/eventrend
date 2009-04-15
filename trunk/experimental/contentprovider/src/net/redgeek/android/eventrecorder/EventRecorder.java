@@ -286,7 +286,7 @@ public class EventRecorder extends Service {
     // Records a discrete event.
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
-    public long recordEvent(long timeSeriesId, float value) {
+    public long recordEvent(long timeSeriesId, long timestamp, float value) {
       LockUtil.waitForLock(mLock);
       long datapointId = currentlyRecordingId(timeSeriesId);
       if (datapointId < 0) { // error
@@ -304,10 +304,9 @@ public class EventRecorder extends Service {
         return -1;
       }
 
-      long now = System.currentTimeMillis();
       values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-      values.put(TimeSeriesData.Datapoint.TS_START, now);
-      values.put(TimeSeriesData.Datapoint.TS_END, now);
+      values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
+      values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
       values.put(TimeSeriesData.Datapoint.VALUE, value);
       values.put(TimeSeriesData.Datapoint.UPDATES, 1);
 
@@ -328,6 +327,14 @@ public class EventRecorder extends Service {
 
       LockUtil.unlock(mLock);
       return datapointId;
+    }
+    
+    // Records a discrete event.
+    // Returns the _id of the datapoint, < 0 for error.
+    // See TimeSeriesProvider
+    public long recordEventNow(long timeSeriesId, float value) {
+      long now = System.currentTimeMillis();
+      return recordEvent(timeSeriesId, now, value);
     }
   };
 

@@ -16,25 +16,30 @@
 
 package net.redgeek.android.eventrend.category;
 
-import net.redgeek.android.eventrecorder.CategoryDbTable;
-
 public class CategoryRow implements Comparable<CategoryRow> {
-  private CategoryDbTable.Row mRow;
-  private long mTimestamp;
+  public long   mId;
+  public String mTimeSeriesName;
+  public long   mRecordingDatapointId;
+  public String mGroup;
+  public float  mDefaultValue;
+  public float  mIncrement;
+  public float  mGoal;
+  public String mColor;
+  public int    mPeriod;
+  public String mUnits;
+  public int    mRank;
+  public String mAggregation;
+  public String mType;
+  public int    mZerofill;
+  public String mFormula;
+  public String mInterpolation;
 
+  public long   mTimestamp;
+  
   private boolean mSelectable = true;
 
   public CategoryRow() {
-  }
-
-  public CategoryRow(CategoryDbTable.Row row) {
-    mRow = new CategoryDbTable.Row(row);
     mTimestamp = 0;
-  }
-
-  public CategoryRow(CategoryDbTable.Row row, long timestamp) {
-    mRow = new CategoryDbTable.Row(row);
-    mTimestamp = timestamp;
   }
 
   public boolean isSelectable() {
@@ -45,26 +50,10 @@ public class CategoryRow implements Comparable<CategoryRow> {
     mSelectable = selectable;
   }
 
-  public CategoryDbTable.Row getDbRow() {
-    return mRow;
-  }
-
-  public void setDbRow(CategoryDbTable.Row row) {
-    mRow = row;
-  }
-
-  public long getTimestamp() {
-    return mTimestamp;
-  }
-
-  public void setTimestamp(long timestamp) {
-    mTimestamp = timestamp;
-  }
-
   public int compareTo(CategoryRow other) {
-    if (this.mRow.getRank() < other.mRow.getRank())
+    if (this.mRank < other.mRank)
       return -1;
-    else if (this.mRow.getRank() > other.mRow.getRank())
+    else if (this.mRank > other.mRank)
       return 1;
     return 0;
   }

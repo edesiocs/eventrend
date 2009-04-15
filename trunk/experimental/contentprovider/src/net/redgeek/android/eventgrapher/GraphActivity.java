@@ -1,59 +1,25 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// * 
-// * Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// * use this file except in compliance with the License. You may obtain a copy of
-// * the License at
-// * 
-// * http://www.apache.org/licenses/LICENSE-2.0
-// * 
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// * License for the specific language governing permissions and limitations under
-// * the License.
-// */
-//
-//package net.redgeek.android.eventgrapher;
-//
-//import java.util.ArrayList;
-//import java.util.Calendar;
-//
-//import net.redgeek.android.eventrend.EvenTrendActivity;
-//import net.redgeek.android.eventrend.Preferences;
-//import net.redgeek.android.eventrend.backgroundtasks.CorrelateTask;
-//import net.redgeek.android.eventrend.input.R;
-//import net.redgeek.android.eventrend.input.calendar.CalendarActivity;
-//import net.redgeek.android.eventrend.input.db.CategoryDbTable;
-//import net.redgeek.android.eventrend.input.graph.plugins.LinearMatrixCorrelator;
-//import net.redgeek.android.eventrend.input.primitives.TimeSeries;
-//import net.redgeek.android.eventrend.input.primitives.TimeSeriesCollector;
-//import net.redgeek.android.eventrend.input.util.DateUtil;
-//import net.redgeek.android.eventrend.input.util.DynamicSpinner;
-//import net.redgeek.android.eventrend.input.util.GUITaskQueue;
-//import net.redgeek.android.eventrend.input.util.ProgressIndicator;
-//import android.app.AlertDialog;
-//import android.app.Dialog;
-//import android.app.AlertDialog.Builder;
-//import android.content.DialogInterface;
-//import android.content.Intent;
-//import android.os.Bundle;
-//import android.view.Gravity;
-//import android.view.Menu;
-//import android.view.MenuItem;
-//import android.view.View;
-//import android.view.Window;
-//import android.view.ViewGroup.LayoutParams;
-//import android.widget.AdapterView;
-//import android.widget.CompoundButton;
-//import android.widget.FrameLayout;
-//import android.widget.LinearLayout;
-//import android.widget.Spinner;
-//import android.widget.TextView;
-//import android.widget.ToggleButton;
-//import android.widget.ZoomControls;
-//
-//public class GraphActivity extends EvenTrendActivity {
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package net.redgeek.android.eventgrapher;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import android.os.Bundle;
+
+public class GraphActivity extends EvenTrendActivity {
 //  // Menu items
 //  private static final int MENU_GRAPH_FILTER_ID = Menu.FIRST;
 //  private static final int MENU_GRAPH_CORRELATE_ID = Menu.FIRST + 1;
@@ -105,18 +71,18 @@
 //
 //  // Tasks
 //  private CorrelateTask mCorrelator;
-//
-//  @Override
-//  public void onCreate(Bundle icicle) {
-//    super.onCreate(icicle);
+
+  @Override
+  public void onCreate(Bundle icicle) {
+    super.onCreate(icicle);
 //
 //    getPrefs();
 //    setupData(icicle);
 //    setupTasks();
 //    setupUI();
 //    populateFields();
-//  }
-//
+  }
+
 //  private void getPrefs() {
 //    mHistory = Preferences.getHistory(getCtx());
 //    mSmoothing = Preferences.getSmoothingConstant(getCtx());
@@ -460,4 +426,4 @@
 //  protected void onPause() {
 //    super.onPause();
 //  }
-//}
+}

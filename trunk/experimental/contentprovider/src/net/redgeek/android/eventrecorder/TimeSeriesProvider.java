@@ -76,6 +76,7 @@ public class TimeSeriesProvider extends ContentProvider {
     sTimeSeriesProjection = new HashMap<String, String>();
     sTimeSeriesProjection.put(TimeSeries._ID, TimeSeries._ID);
     sTimeSeriesProjection.put(TimeSeries.TIMESERIES_NAME, TimeSeries.TIMESERIES_NAME);
+    sTimeSeriesProjection.put(TimeSeries.RECORDING_DATAPOINT_ID, TimeSeries.RECORDING_DATAPOINT_ID);
     sTimeSeriesProjection.put(TimeSeries.GROUP_NAME, TimeSeries.GROUP_NAME);
     sTimeSeriesProjection.put(TimeSeries.DEFAULT_VALUE, TimeSeries.DEFAULT_VALUE);
     sTimeSeriesProjection.put(TimeSeries.INCREMENT, TimeSeries.INCREMENT);

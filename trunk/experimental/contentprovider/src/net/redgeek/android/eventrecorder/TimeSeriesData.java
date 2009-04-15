@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventrecorder;
 
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -105,6 +106,26 @@ public class TimeSeriesData {
         + MONTH + " byte key not null, "
         + DOW + " byte key not null, " 
         + MILLISECONDS + " long key not null);";
+    
+    public static long getId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.DateMap._ID));
+    }
+
+    public static int getYear(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.YEAR));
+    }
+
+    public static int getMonth(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.MONTH));
+    }
+
+    public static int getDOW(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.DOW));
+    }
+
+    public static long getMilliseconds(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.MILLISECONDS));
+    }
   }
   
   public static final class Datapoint implements BaseColumns {
@@ -195,6 +216,30 @@ public class TimeSeriesData {
         + " integer key not null, " + TS_START + " long key not null, "
         + TS_END + " long key not null, " + VALUE + " float not null, "
         + UPDATES + " integer not null);";
+    
+    public static long getId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint._ID));
+    }
+
+    public static long getTimeSeriesId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TIMESERIES_ID));
+    }
+
+    public static long getTsStart(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_START));
+    }
+
+    public static long getTsEnd(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_END));
+    }
+
+    public static float getValue(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.VALUE));
+    }
+
+    public static int getUpdates(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.UPDATES));
+    }
   }
 
   public static final class TimeSeries implements BaseColumns {
@@ -373,5 +418,69 @@ public class TimeSeriesData {
         + " integer not null, " + AGGREGATION + " text not null, " + TYPE
         + " string not null, " + ZEROFILL + " integer not null, " + FORMULA
         + " text, " + INTERPOLATION + " text not null, " + UNITS + " text);";
+    
+    public static long getId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries._ID));
+    }
+    
+    public static String getTimeSeriesName(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.TIMESERIES_NAME));
+    }
+
+    public static long getRecordingDatapointId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID));
+    }
+
+    public static String getGroupName(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.GROUP_NAME));
+    }
+
+    public static float getDefaultValue(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.DEFAULT_VALUE));
+    }
+    
+    public static float getIncrement(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.INCREMENT));
+    }
+    
+    public static float getGoal(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.GOAL));
+    }
+    
+    public static String getColor(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.COLOR));
+    }
+    
+    public static int getPeriod(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.PERIOD));
+    }
+    
+    public static String getUnits(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.UNITS));
+    }
+    
+    public static int getRank(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.RANK));
+    }
+    
+    public static String getAggregation(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.AGGREGATION));
+    }
+    
+    public static String getType(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.TYPE));
+    }
+    
+    public static int getZerofill(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.ZEROFILL));
+    }
+    
+    public static String getFormula(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.FORMULA));
+    }
+    
+    public static String getInterpolation(Cursor c) {
+      return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.INTERPOLATION));
+    }
   }
 }

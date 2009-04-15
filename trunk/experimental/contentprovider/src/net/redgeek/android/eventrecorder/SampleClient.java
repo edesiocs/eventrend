@@ -139,10 +139,10 @@ public class SampleClient extends Activity {
     try {
       String data = "";
       String projection[] = new String[] { TimeSeriesData.TimeSeries.TIMESERIES_NAME };
-      Uri mTimeSeries = TimeSeriesData.TimeSeries.CONTENT_URI;
+      Uri timeSeries = TimeSeriesData.TimeSeries.CONTENT_URI;
 
       // Query the content provider
-      Cursor c = managedQuery(mTimeSeries, projection, null, null, null);
+      Cursor c = managedQuery(timeSeries, projection, null, null, null);
       if (c.moveToFirst()) {
         String name = null;
         do {

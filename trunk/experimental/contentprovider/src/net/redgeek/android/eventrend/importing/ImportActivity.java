@@ -1,50 +1,37 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// *
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// *
-// *      http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//
-//package net.redgeek.android.eventrend.importing;
-//
-//import java.io.File;
-//
-//import net.redgeek.android.eventrend.EvenTrendActivity;
-//import net.redgeek.android.eventrend.Preferences;
-//import net.redgeek.android.eventrend.backgroundtasks.ImportTask;
-//import net.redgeek.android.eventrend.input.R;
-//import net.redgeek.android.eventrend.util.GUITaskQueue;
-//import net.redgeek.android.eventrend.util.ProgressIndicator;
-//import android.app.Dialog;
-//import android.content.Intent;
-//import android.os.Bundle;
-//import android.view.View;
-//import android.view.Window;
-//import android.widget.ListView;
-//import android.widget.TextView;
-//
-///**
-// * ImportActivity handles the listing of importable files, spawning the actual
-// * importing into a background task, and displaying progress dialogs and
-// * results.
-// * 
-// * <p>
-// * Currenlty only supports importing from a pre-defined directory, and only
-// * replace-importing, not merge-importing.
-// * 
-// * @author barclay
-// * 
-// */
-//public class ImportActivity extends EvenTrendActivity {
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.redgeek.android.eventrend.importing;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import android.os.Bundle;
+
+/**
+ * ImportActivity handles the listing of importable files, spawning the actual
+ * importing into a background task, and displaying progress dialogs and
+ * results.
+ * 
+ * <p>
+ * Currenlty only supports importing from a pre-defined directory, and only
+ * replace-importing, not merge-importing.
+ * 
+ * @author barclay
+ * 
+ */
+public class ImportActivity extends EvenTrendActivity {
 //  // Dialogs
 //  private static final int DIALOG_IMPORT_SUCCESS = 0;
 //  private static final int DIALOG_ERR_FILEREAD = 1;
@@ -64,15 +51,15 @@
 //  // Tasks
 //  private ImportTask mImporter;
 //
-//  @Override
-//  public void onCreate(Bundle icicle) {
-//    super.onCreate(icicle);
+  @Override
+  public void onCreate(Bundle icicle) {
+    super.onCreate(icicle);
 //    getPrefs();
 //    setupTasks();
 //    setupUI();
 //    populateFilenameList();
-//  }
-//
+  }
+
 //  private void getPrefs() {
 //    mHistory = Preferences.getHistory(getCtx());
 //  }
@@ -155,4 +142,4 @@
 //    }
 //    return null;
 //  }
-//}
+}

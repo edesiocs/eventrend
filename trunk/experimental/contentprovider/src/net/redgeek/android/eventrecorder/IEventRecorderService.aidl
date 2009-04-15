@@ -39,5 +39,11 @@ interface IEventRecorderService {
    *  Returns the _id of the datapoint.
    *  See TimeSeriesProvider
    */
-  long recordEvent( in long timeSeriesId, in float value );
+  long recordEventNow( in long timeSeriesId, in float value );
+
+  /** Records a discrete event.
+   *  Returns the _id of the datapoint.
+   *  See TimeSeriesProvider
+   */
+  long recordEvent( in long timeSeriesId, in long timestamp, in float value );
 }

@@ -16,21 +16,19 @@
 
 package net.redgeek.android.eventrend;
 
-import java.util.ArrayList;
-
-import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
-import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
-import net.redgeek.android.eventrecorder.interpolators.StepEarlyInterpolator;
-import net.redgeek.android.eventrecorder.interpolators.StepLateInterpolator;
-import net.redgeek.android.eventrecorder.interpolators.StepMidInterpolator;
-import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
+import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrend.util.DialogUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import android.app.ListActivity;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.widget.Toast;
 
 /**
  * Base class for all activities in the application. Note that not all activity
@@ -51,10 +49,12 @@ import android.os.Bundle;
  */
 public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final String TAG = "EvenTrend";
-  
-  private Context mCtx;
-  private ContentResolver mContent;
-  private DialogUtil mDialogUtil;
+
+  protected Context mCtx;
+  protected ContentResolver mContent;
+  protected DialogUtil mDialogUtil;
+  protected IEventRecorderService mRecorderService;
+  protected EventRecorderConnection mRecorderConnection = null;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -91,15 +91,52 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public void onFailure(Throwable t) {
   }
 
-  public Context getCtx() {
-    return mCtx;
+  public void startAndBind() {
+    if (mRecorderConnection == null) {
+      mRecorderConnection = new EventRecorderConnection();
+      ComponentName name = startService(new Intent(IEventRecorderService.class
+          .getName()));
+      if (name != null) {
+        Toast.makeText(this, "Started service: " + name, Toast.LENGTH_SHORT)
+            .show();
+      } else {
+        Toast.makeText(this, "Unable to start service.", Toast.LENGTH_SHORT)
+            .show();
+      }
+
+      if (bindService(new Intent(new Intent(IEventRecorderService.class
+          .getName())), mRecorderConnection, Context.BIND_AUTO_CREATE)) {
+        Toast.makeText(this, "Bound to service.", Toast.LENGTH_SHORT).show();
+      } else {
+        Toast.makeText(this, "Unable to bind to service.", Toast.LENGTH_SHORT)
+            .show();
+      }
+    } else {
+      Toast.makeText(this, "Cannot bind, service already bound.",
+          Toast.LENGTH_SHORT).show();
+    }
   }
 
-  public ContentResolver getContent() {
-    return mContent;
+  public void unbindFromService() {
+    if (mRecorderConnection != null) {
+      unbindService(mRecorderConnection);
+      Toast.makeText(this, "Unbound from service.", Toast.LENGTH_SHORT).show();
+      mRecorderConnection = null;
+    } else {
+      Toast.makeText(this, "Cannot unbind, service not bound.",
+          Toast.LENGTH_SHORT).show();
+    }
   }
 
-  public DialogUtil getDialogUtil() {
-    return mDialogUtil;
-  }
+  class EventRecorderConnection implements ServiceConnection {
+    public void onServiceConnected(ComponentName className, IBinder service) {
+      mRecorderService = IEventRecorderService.Stub.asInterface(service);
+      Toast.makeText(mCtx, "onServiceConnected.", Toast.LENGTH_SHORT).show();
+    }
+
+    public void onServiceDisconnected(ComponentName className) {
+      mRecorderService = null;
+      Toast.makeText(mCtx, "onServiceDisconnected.", Toast.LENGTH_SHORT).show();
+    }
+  };
 }
