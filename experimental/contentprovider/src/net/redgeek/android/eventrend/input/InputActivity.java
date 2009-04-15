@@ -42,6 +42,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Debug;
 import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
@@ -145,11 +146,15 @@ public class InputActivity extends EvenTrendActivity {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
+    Debug.startMethodTracing("initWithCP");
+    
     getPrefs();
     setupTasksAndData();
     setupUI();
 
     fillCategoryData(-1);
+
+    Debug.stopMethodTracing();
 
     setCurrentViews(true);
   }
@@ -574,6 +579,7 @@ public class InputActivity extends EvenTrendActivity {
         cla.addItem(row);
       }
     }
+    c.close();
 
     for (int i = 0; i < list; i++) {
       lv = mCategories.get(i);

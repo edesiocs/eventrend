@@ -105,6 +105,7 @@ public class EventRecorder extends Service {
       }
     };
     
+    mInterpolators = new ArrayList<TimeSeriesInterpolator>();
     registerInterpolators(mInterpolators);
         
     IntentFilter filter = new IntentFilter();
