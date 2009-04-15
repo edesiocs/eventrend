@@ -94,23 +94,9 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public void startAndBind() {
     if (mRecorderConnection == null) {
       mRecorderConnection = new EventRecorderConnection();
-      ComponentName name = startService(new Intent(IEventRecorderService.class
-          .getName()));
-      if (name != null) {
-        Toast.makeText(this, "Started service: " + name, Toast.LENGTH_SHORT)
-            .show();
-      } else {
-        Toast.makeText(this, "Unable to start service.", Toast.LENGTH_SHORT)
-            .show();
-      }
-
-      if (bindService(new Intent(new Intent(IEventRecorderService.class
-          .getName())), mRecorderConnection, Context.BIND_AUTO_CREATE)) {
-        Toast.makeText(this, "Bound to service.", Toast.LENGTH_SHORT).show();
-      } else {
-        Toast.makeText(this, "Unable to bind to service.", Toast.LENGTH_SHORT)
-            .show();
-      }
+      startService(new Intent(IEventRecorderService.class.getName()));
+      bindService(new Intent(new Intent(IEventRecorderService.class
+          .getName())), mRecorderConnection, Context.BIND_AUTO_CREATE);
     } else {
       Toast.makeText(this, "Cannot bind, service already bound.",
           Toast.LENGTH_SHORT).show();
@@ -120,23 +106,17 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public void unbindFromService() {
     if (mRecorderConnection != null) {
       unbindService(mRecorderConnection);
-      Toast.makeText(this, "Unbound from service.", Toast.LENGTH_SHORT).show();
       mRecorderConnection = null;
-    } else {
-      Toast.makeText(this, "Cannot unbind, service not bound.",
-          Toast.LENGTH_SHORT).show();
     }
   }
 
   class EventRecorderConnection implements ServiceConnection {
     public void onServiceConnected(ComponentName className, IBinder service) {
       mRecorderService = IEventRecorderService.Stub.asInterface(service);
-      Toast.makeText(mCtx, "onServiceConnected.", Toast.LENGTH_SHORT).show();
     }
 
     public void onServiceDisconnected(ComponentName className) {
       mRecorderService = null;
-      Toast.makeText(mCtx, "onServiceDisconnected.", Toast.LENGTH_SHORT).show();
     }
   };
 }
