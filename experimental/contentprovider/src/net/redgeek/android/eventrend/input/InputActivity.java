@@ -22,24 +22,25 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.category.CategoryEditActivity;
 import net.redgeek.android.eventrend.category.CategoryListAdapter;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
 import net.redgeek.android.eventrend.util.DateUtil;
-import net.redgeek.android.eventrend.util.GUITask;
-import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.ContentObserver;
+import android.database.Cursor;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.ContextMenu;
@@ -64,7 +65,6 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 // TODO:  change everything to content providers
@@ -106,6 +106,10 @@ public class InputActivity extends EvenTrendActivity {
   ProgressIndicator.Titlebar mProgress;
   private GestureDetector mGestureDetector;
 
+  // Content observers
+  private Handler mContentChangeHandler = new Handler();
+  private TimeSeriesContentObserver mTimeSeriesObserver = null;
+  
   // For undo
   private long mLastAddId = -1;
   private float mLastAddValue = 0.0f;
@@ -173,14 +177,15 @@ public class InputActivity extends EvenTrendActivity {
 
   // *** main setup routines ***/
   private void getPrefs() {
-    mHistory = Preferences.getHistory(getCtx());
-    mSmoothing = Preferences.getSmoothingConstant(getCtx());
-    mSensitivity = Preferences.getStdDevSensitivity(getCtx());
+    mHistory = Preferences.getHistory(mCtx);
+    mSmoothing = Preferences.getSmoothingConstant(mCtx);
+    mSensitivity = Preferences.getStdDevSensitivity(mCtx);
   }
 
   private void setupTasksAndData() {
     mUndoLock = new ReentrantLock();
 
+    startAndBind();
     mTimestamp = new DateUtil.DateItem();
     mCal = Calendar.getInstance();
     mOldHour = mCal.get(Calendar.HOUR_OF_DAY);
@@ -205,7 +210,7 @@ public class InputActivity extends EvenTrendActivity {
     requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
     setContentView(R.layout.category_list);
 
-    mProgress = new ProgressIndicator.Titlebar(getCtx());
+    mProgress = new ProgressIndicator.Titlebar(mCtx);
 
     mCategories = new ArrayList<ListView>();
     mCLAs = new ArrayList<CategoryListAdapter>();
@@ -340,12 +345,14 @@ public class InputActivity extends EvenTrendActivity {
   @Override
   protected void onPause() {
     scheduleUpdateStop();
+    unregisterContentObservers();
     super.onPause();
   }
 
   @Override
   protected void onResume() {
     scheduleUpdateNow();
+    registerContentObservers();
     getPrefs();
 
     super.onResume();
@@ -364,6 +371,19 @@ public class InputActivity extends EvenTrendActivity {
 
   private void scheduleUpdateStop() {
     mNowHandler.removeCallbacks(mUpdateNowTime);
+  }
+  
+  private void registerContentObservers() {
+    mTimeSeriesObserver = new TimeSeriesContentObserver(mContentChangeHandler);
+    mContent.registerContentObserver(TimeSeriesData.TimeSeries.CONTENT_URI, 
+        true, mTimeSeriesObserver);
+  }
+
+  private void unregisterContentObservers() {
+    if (mTimeSeriesObserver != null) {
+      mContent.unregisterContentObserver(mTimeSeriesObserver);
+      mTimeSeriesObserver = null;
+    }
   }
 
   // *** oh, the menus .... ***//
@@ -397,21 +417,21 @@ public class InputActivity extends EvenTrendActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-      case MENU_ADD_ID:
-        createCategory();
-        return true;
-      case MENU_EDIT_ID:
-        editEntries();
-        return true;
-      case MENU_GRAPH_ID:
-        graphEntries();
-        return true;
-      case MENU_CALENDAR_ID:
-        calendarView();
-        return true;
-      case MENU_PREFS_ID:
-        editPrefs();
-        return true;
+//      case MENU_ADD_ID:
+//        createCategory();
+//        return true;
+//      case MENU_EDIT_ID:
+//        editEntries();
+//        return true;
+//      case MENU_GRAPH_ID:
+//        graphEntries();
+//        return true;
+//      case MENU_CALENDAR_ID:
+//        calendarView();
+//        return true;
+//      case MENU_PREFS_ID:
+//        editPrefs();
+//        return true;
       case MENU_HELP_ID:
         showDialog(HELP_DIALOG_ID);
         return true;
@@ -435,10 +455,10 @@ public class InputActivity extends EvenTrendActivity {
     CategoryListAdapter cla = mCLAs.get(child);
 
     switch (item.getItemId()) {
-      case CONTEXT_EDIT:
-        long catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
-        editCategory(catId);
-        break;
+//      case CONTEXT_EDIT:
+//        long catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
+//        editCategory(catId);
+//        break;
       case CONTEXT_MOVE_UP:
         if (position > 0)
           swapCategoryPositions(cla, position - 1, position);
@@ -467,7 +487,7 @@ public class InputActivity extends EvenTrendActivity {
             mTimestamp.mMonth, mTimestamp.mDay);
       case HELP_DIALOG_ID:
         String str = getResources().getString(R.string.overview);
-        return getDialogUtil().newOkDialog("Help", str);
+        return mDialogUtil.newOkDialog("Help", str);
     }
     return null;
   }
@@ -495,49 +515,64 @@ public class InputActivity extends EvenTrendActivity {
     if (mVisibleCategoriesLayout != null) {
       mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
       if (animate == true)
-        slideDown(mVisibleCategoriesLayout, getCtx());
+        slideDown(mVisibleCategoriesLayout, mCtx);
     }
 
-    setEnabledSeries();
+//    setEnabledSeries();
   }
 
   private void fillCategoryData(int switchToView) {
     int list = 0;
     HashMap<String, Integer> hm = new HashMap<String, Integer>();
-    CategoryDbTable.Row row;
     CategoryListAdapter cla = null;
     ListView lv = null;
     TimeSeries ts;
 
     int defaultGroupId = 0;
 
-    mCLAs.clear();
-    mCategories.clear();
-    mFlipper.removeAllViews();
-
-    for (int i = 0; i < mTSC.numSeries(); i++) {
-      row = mTSC.getSeriesMetaLocking(i);
-      if (row == null)
-        continue;
+    Uri timeSeries = TimeSeriesData.TimeSeries.CONTENT_URI;
+    Cursor c = managedQuery(timeSeries, null, null, null, null);
+    if (c.moveToFirst()) {
+      int count = c.getCount();
+      for (int i = 0; i < count; i++) {
+        String group = c.getString(c.getColumnIndex(TimeSeriesData.TimeSeries.GROUP_NAME));
       
-      Integer listNum = hm.get(row.getGroupName());
-      if (listNum == null) {
-        listNum = new Integer(list);
-        cla = new CategoryListAdapter(this, mTSC);
-        mCLAs.add(cla);
-        lv = new ListView(this);
-        lv.setId(LIST_VIEW_ID_BASE + i);
-        mCategories.add(lv);
-        mFlipper.addView(lv);
-        hm.put(row.getGroupName(), listNum);
-        if (row.getGroupName().equals(mDefaultGroup)) {
-          defaultGroupId = list;
+        Integer listNum = hm.get(group);
+        if (listNum == null) {
+          listNum = new Integer(list);
+          cla = new CategoryListAdapter(this, mRecorderService);
+          mCLAs.add(cla);
+          lv = new ListView(this);
+          lv.setId(LIST_VIEW_ID_BASE + i);
+          mCategories.add(lv);
+          mFlipper.addView(lv);
+          hm.put(group, listNum);
+          list++;
         }
-        list++;
-      }
 
-      cla = mCLAs.get(listNum.intValue());
-      cla.addItem(new CategoryRow(row, mTimestamp.mMillis));
+        cla = mCLAs.get(listNum.intValue());
+        
+        CategoryRow row = new CategoryRow();
+        row.mTimestamp = mTimestamp.mMillis;
+        row.mGroup = group;
+        row.mId = TimeSeriesData.TimeSeries.getId(c);
+        row.mTimeSeriesName = TimeSeriesData.TimeSeries.getTimeSeriesName(c);
+        row.mRecordingDatapointId = TimeSeriesData.TimeSeries.getRecordingDatapointId(c);
+        row.mDefaultValue = TimeSeriesData.TimeSeries.getDefaultValue(c);
+        row.mIncrement = TimeSeriesData.TimeSeries.getIncrement(c);
+        row.mGoal = TimeSeriesData.TimeSeries.getGoal(c);
+        row.mColor = TimeSeriesData.TimeSeries.getColor(c);
+        row.mPeriod = TimeSeriesData.TimeSeries.getPeriod(c);
+        row.mUnits = TimeSeriesData.TimeSeries.getUnits(c);
+        row.mRank = TimeSeriesData.TimeSeries.getRank(c);
+        row.mAggregation = TimeSeriesData.TimeSeries.getAggregation(c);
+        row.mType = TimeSeriesData.TimeSeries.getType(c);
+        row.mZerofill = TimeSeriesData.TimeSeries.getZerofill(c);
+        row.mFormula = TimeSeriesData.TimeSeries.getFormula(c);
+        row.mInterpolation = TimeSeriesData.TimeSeries.getInterpolation(c);
+        
+        cla.addItem(row);
+      }
     }
 
     for (int i = 0; i < list; i++) {
@@ -553,72 +588,82 @@ public class InputActivity extends EvenTrendActivity {
       mFlipper.setDisplayedChild(switchToView);
   }
 
-  public void redrawSyntheticViews() {
-    for (int i = 0; i < mFlipper.getChildCount(); i++) {
-      ListView lv = (ListView) mFlipper.getChildAt(i);
+  class TimeSeriesContentObserver extends ContentObserver {
+    public TimeSeriesContentObserver(Handler h) {
+      super(h);
+    }
 
-      for (int j = 0; j < lv.getChildCount(); j++) {
-        CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
-        if (row.getDbRow().getSynthetic() == true) {
-          row.populateFields();
-          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, getCtx());
-        }
-      }
+    public void onChange(boolean selfChange) {
+      // TODO: implement
     }
   }
+
+  //  public void redrawSyntheticViews() {
+//    for (int i = 0; i < mFlipper.getChildCount(); i++) {
+//      ListView lv = (ListView) mFlipper.getChildAt(i);
+//
+//      for (int j = 0; j < lv.getChildCount(); j++) {
+//        CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
+//        if (row.getDbRow().getSynthetic() == true) {
+//          row.populateFields();
+//          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, getCtx());
+//        }
+//      }
+//    }
+//  }
 
   // *** Transitions elsewhere ... ***//
 
-  private void createCategory() {
-    Intent i = new Intent(this, CategoryEditActivity.class);
-    startActivityForResult(i, CATEGORY_CREATE);
-  }
-
-  private void editCategory(long catId) {
-    Intent i = new Intent(this, CategoryEditActivity.class);
-    i.putExtra(CategoryDbTable.KEY_ROWID, catId);
-    startActivityForResult(i, CATEGORY_EDIT);
-  }
-
-  private void editEntries() {
-    Intent i = new Intent(this, EntryListActivity.class);
-    mTSC.clearSeriesLocking();
-    startActivityForResult(i, ENTRY_LIST);
-  }
-
-  private void editPrefs() {
-    Intent i = new Intent(this, Preferences.class);
-    startActivityForResult(i, PREFS_EDIT);
-  }
-
-  private void graphEntries() {
-    Intent i = new Intent(this, GraphActivity.class);
-    ArrayList<Integer> catIds = new ArrayList<Integer>();
-
-    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
-    for (int j = 0; j < series.size(); j++) {
-      TimeSeries ts = series.get(j);
-      if (ts.isEnabled())
-        catIds.add(new Integer((int) ts.getDbRow().getId()));
-    }
-
-    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
-    startActivityForResult(i, GRAPH_VIEW);
-  }
-
-  private void calendarView() {
-    Intent i = new Intent(this, CalendarActivity.class);
-    ArrayList<Integer> catIds = new ArrayList<Integer>();
-
-    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
-    for (int j = 0; j < series.size(); j++) {
-      TimeSeries ts = series.get(j);
-      catIds.add(new Integer((int) ts.getDbRow().getId()));
-    }
-
-    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
-    startActivityForResult(i, CALENDAR_VIEW);
-  }
+//  private void createCategory() {
+//    Intent i = new Intent(this, CategoryEditActivity.class);
+//    startActivityForResult(i, CATEGORY_CREATE);
+//  }
+//
+//  private void editCategory(long catId) {
+//    Intent i = new Intent(this, CategoryEditActivity.class);
+//    i.putExtra(CategoryDbTable.KEY_ROWID, catId);
+//    startActivityForResult(i, CATEGORY_EDIT);
+//  }
+//
+//  private void editEntries() {
+//    Intent i = new Intent(this, EntryListActivity.class);
+//    mTSC.clearSeriesLocking();
+//    startActivityForResult(i, ENTRY_LIST);
+//  }
+//
+//  private void editPrefs() {
+//    Intent i = new Intent(this, Preferences.class);
+//    startActivityForResult(i, PREFS_EDIT);
+//  }
+//
+//  private void graphEntries() {
+//    Intent i = new Intent(this, GraphActivity.class);
+//    ArrayList<Integer> catIds = new ArrayList<Integer>();
+//
+//    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
+//    for (int j = 0; j < series.size(); j++) {
+//      TimeSeries ts = series.get(j);
+//      if (ts.isEnabled())
+//        catIds.add(new Integer((int) ts.getDbRow().getId()));
+//    }
+//
+//    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
+//    startActivityForResult(i, GRAPH_VIEW);
+//  }
+//
+//  private void calendarView() {
+//    Intent i = new Intent(this, CalendarActivity.class);
+//    ArrayList<Integer> catIds = new ArrayList<Integer>();
+//
+//    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
+//    for (int j = 0; j < series.size(); j++) {
+//      TimeSeries ts = series.get(j);
+//      catIds.add(new Integer((int) ts.getDbRow().getId()));
+//    }
+//
+//    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
+//    startActivityForResult(i, CALENDAR_VIEW);
+//  }
 
   // *** display update routines ***/
 
@@ -662,64 +707,64 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   public void undo() {
-    while (mUndoLock.tryLock() == false) {
-    }
-    EntryDbTable.Row entry = getDbh().fetchEntry(mLastAddId);
-    if (entry == null)
-      return;
-
-    CategoryDbTable.Row cat = getDbh().fetchCategory(entry.getCategoryId());
-    if (cat == null)
-      return;
-
-    float oldValue = entry.getValue();
-    String newValueStr;
-    if (entry.getNEntries() == 1) {
-      getDbh().deleteEntry(mLastAddId);
-      newValueStr = "(deleted)";
-    } else {
-      newValueStr = "" + mLastAddValue;
-      entry.setValue(mLastAddValue);
-      entry.setNEntries(entry.getNEntries() - 1);
-      getDbh().updateEntry(entry);
-    }
-    mUndoLock.unlock();
-
-    mTSC.updateCategoryTrend(cat.getId());
-
-    String shortStr = "Undid @ " + DateUtil.toShortTimestamp(mLastAddTimestamp)
-        + ": " + oldValue + " -> " + newValueStr;
-    String longStr = "Undid " + cat.getCategoryName() + " @ "
-        + DateUtil.toTimestamp(mLastAddTimestamp) + ": " + oldValue + " -> "
-        + newValueStr;
-    mLastAddTextView.setText(shortStr);
-    Toast.makeText(this, longStr, Toast.LENGTH_LONG).show();
-    slideOutRightIn(mLastAddRowView, getCtx());
-
-    mUndo.setClickable(false);
-    mUndo.setTextColor(Color.LTGRAY);
+//    while (mUndoLock.tryLock() == false) {
+//    }
+//    EntryDbTable.Row entry = getDbh().fetchEntry(mLastAddId);
+//    if (entry == null)
+//      return;
+//
+//    CategoryDbTable.Row cat = getDbh().fetchCategory(entry.getCategoryId());
+//    if (cat == null)
+//      return;
+//
+//    float oldValue = entry.getValue();
+//    String newValueStr;
+//    if (entry.getNEntries() == 1) {
+//      getDbh().deleteEntry(mLastAddId);
+//      newValueStr = "(deleted)";
+//    } else {
+//      newValueStr = "" + mLastAddValue;
+//      entry.setValue(mLastAddValue);
+//      entry.setNEntries(entry.getNEntries() - 1);
+//      getDbh().updateEntry(entry);
+//    }
+//    mUndoLock.unlock();
+//
+//    mTSC.updateCategoryTrend(cat.getId());
+//
+//    String shortStr = "Undid @ " + DateUtil.toShortTimestamp(mLastAddTimestamp)
+//        + ": " + oldValue + " -> " + newValueStr;
+//    String longStr = "Undid " + cat.getCategoryName() + " @ "
+//        + DateUtil.toTimestamp(mLastAddTimestamp) + ": " + oldValue + " -> "
+//        + newValueStr;
+//    mLastAddTextView.setText(shortStr);
+//    Toast.makeText(this, longStr, Toast.LENGTH_LONG).show();
+//    slideOutRightIn(mLastAddRowView, getCtx());
+//
+//    mUndo.setClickable(false);
+//    mUndo.setTextColor(Color.LTGRAY);
   }
 
-  private void setEnabledSeries() {
-    if (mTSC.numSeries() > 0) {
-      for (int i = 0; i < mTSC.numSeries(); i++) {
-        long id = mTSC.getSeriesIdLocking(i);
-        mTSC.setSeriesEnabled(id, false);
-      }
-
-      int childIndex = mFlipper.getDisplayedChild();
-      CategoryListAdapter cla = mCLAs.get(childIndex);
-
-      if (cla != null) {
-        for (int i = 0; i < cla.getCount(); i++) {
-          CategoryRow row = (CategoryRow) cla.getItem(i);
-          mTSC.setSeriesEnabled(row.getDbRow().getId(), true);
-        }
-      }
-    }
-
-    return;
-  }
+//  private void setEnabledSeries() {
+//    if (mTSC.numSeries() > 0) {
+//      for (int i = 0; i < mTSC.numSeries(); i++) {
+//        long id = mTSC.getSeriesIdLocking(i);
+//        mTSC.setSeriesEnabled(id, false);
+//      }
+//
+//      int childIndex = mFlipper.getDisplayedChild();
+//      CategoryListAdapter cla = mCLAs.get(childIndex);
+//
+//      if (cla != null) {
+//        for (int i = 0; i < cla.getCount(); i++) {
+//          CategoryRow row = (CategoryRow) cla.getItem(i);
+//          mTSC.setSeriesEnabled(row.getDbRow().getId(), true);
+//        }
+//      }
+//    }
+//
+//    return;
+//  }
 
   // *** Animations ***//
   private void swapCategoryPositions(CategoryListAdapter cla, int higher,
@@ -728,28 +773,28 @@ public class InputActivity extends EvenTrendActivity {
     CategoryRow above = (CategoryRow) cla.getItem(higher);
     CategoryRow below = (CategoryRow) cla.getItem(lower);
 
-    int rank = below.getDbRow().getRank();
-    below.getDbRow().setRank(above.getDbRow().getRank());
-    above.getDbRow().setRank(rank);
-
-    getDbh().updateCategoryRank(below.getDbRow().getId(),
-        below.getDbRow().getRank());
-    getDbh().updateCategoryRank(above.getDbRow().getId(),
-        above.getDbRow().getRank());
-
-    ts = mTSC.getSeriesByIdLocking(above.getDbRow().getId());
-    if (ts != null)
-      ts.getDbRow().setRank(above.getDbRow().getRank());
-    ts = mTSC.getSeriesByIdLocking(below.getDbRow().getId());
-    if (ts != null)
-      ts.getDbRow().setRank(below.getDbRow().getRank());
+//    int rank = below.getDbRow().getRank();
+//    below.getDbRow().setRank(above.getDbRow().getRank());
+//    above.getDbRow().setRank(rank);
+//
+//    getDbh().updateCategoryRank(below.getDbRow().getId(),
+//        below.getDbRow().getRank());
+//    getDbh().updateCategoryRank(above.getDbRow().getId(),
+//        above.getDbRow().getRank());
+//
+//    ts = mTSC.getSeriesByIdLocking(above.getDbRow().getId());
+//    if (ts != null)
+//      ts.getDbRow().setRank(above.getDbRow().getRank());
+//    ts = mTSC.getSeriesByIdLocking(below.getDbRow().getId());
+//    if (ts != null)
+//      ts.getDbRow().setRank(below.getDbRow().getRank());
     
     CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(higher);
     CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(lower);
 
-    swapUpDown(top, bottom, getCtx());    
+    swapUpDown(top, bottom, mCtx);    
     fillCategoryData(mFlipper.getDisplayedChild());
   }
 

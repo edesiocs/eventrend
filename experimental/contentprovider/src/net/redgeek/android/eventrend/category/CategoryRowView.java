@@ -16,19 +16,15 @@
 
 package net.redgeek.android.eventrend.category;
 
-import net.redgeek.android.eventrecorder.CategoryDbTable;
+import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.backgroundtasks.AddEntryTask;
-import net.redgeek.android.eventrend.db.EntryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
-import net.redgeek.android.eventrend.input.R;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
-import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -45,11 +41,11 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class CategoryRowView extends LinearLayout implements GUITask {
   // UI elements
   private CategoryRowView mRowView;
-  private CategoryDbTable.Row mDbRow;
   private EditText mDefaultValue;
   private Button mPlusButton;
   private Button mMinusButton;
@@ -67,9 +63,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private View.OnClickListener mAddListener;
 
   // Private data
-  private TimeSeriesCollector mTSC;
+  private CategoryRow mRow;
+
   private int mColorInt;
-  private long mTimestamp;
   private float mAddValue;
 
   // Prefs
@@ -77,20 +73,17 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private int mHistory;
 
   private Context mCtx;
-  private EvenTrendDbAdapter mDbh;
-  private AddEntryTask mAddEntryTask;
+  private ContentResolver mContent;
+  protected IEventRecorderService mEventRecorder;
+
   private boolean mSelectable = true;
 
-  public CategoryRowView(Context context, CategoryRow viewRow,
-      TimeSeriesCollector tsc) {
+  public CategoryRowView(Context context, CategoryRow viewRow, IEventRecorderService service) {
     super(context);
-    mTSC = tsc;
     mCtx = context;
     mRowView = this;
-    mDbh = ((InputActivity) mCtx).getDb();
-    mDbRow = viewRow.getDbRow();
-
-    mTimestamp = viewRow.getTimestamp();
+    mRow = viewRow;
+    mEventRecorder = service;
 
     setupPrefs();
     setupTasks();
@@ -106,56 +99,64 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mSelectable = selectable;
   }
 
-  public CategoryDbTable.Row getDbRow() {
-    return mDbRow;
+  public CategoryRow getRow() {
+    return mRow;
   }
 
   public void executeNonGuiTask() throws Exception {
-    mAddEntryTask.AddEntry(mDbRow, mTimestamp, mAddValue);
+    // TODO:  move to constant
+    if (mRow.mType.equals("discrete")) {
+      mEventRecorder.recordEvent(mRow.mId, mRow.mTimestamp, mAddValue);
+    } else {
+      if (mRow.mRecordingDatapointId > 0)
+        mEventRecorder.recordEventStart(mRow.mId);
+      else
+        mEventRecorder.recordEventStop(mRow.mId, mAddValue);
+    }
   }
 
   public void afterExecute() {
-    String status;
-    String toast;
-
-    float newValue = mAddEntryTask.mLastAddValue;
-    float oldValue = mAddEntryTask.mLastAddOldValue;
-    long timestamp = mAddEntryTask.mLastAddTimestamp;
-
-    if (mAddEntryTask.mLastAddUpdate == true) {
-      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, oldValue,
-          timestamp, mCategoryUpdateView, mRowView);
-      status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
-          + oldValue + " -> " + newValue;
-      mCategoryUpdateView.setText(status);
-//      toast = "Update @ " + DateUtil.toTimestamp(timestamp) + ": " + oldValue
-//          + " -> " + newValue;
-//      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-//          Toast.LENGTH_SHORT).show();
-    } else {
-      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
-          timestamp, mCategoryUpdateView, mRowView);
-
-      status = "Add @ "
-          + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
-          + newValue;
-      mCategoryUpdateView.setText(status);
-//      toast = "Add @ " + DateUtil.toTimestamp(mAddEntryTask.mLastAddTimestamp)
-//          + ": " + newValue;
-//      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-//          Toast.LENGTH_SHORT).show();
-    }
-
-    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
-    updateTrendIcon(cat.getTrendState());
-    float trendValue = Number.Round(cat.getLastTrend(), Preferences
-        .getDecimalPlaces(mCtx));
-    mTrendValueView.setText(Float.valueOf(trendValue).toString());
-
-    mAddButton.setClickable(true);
-    mAddButton.setTextColor(Color.BLACK);
-
-    ((InputActivity) mCtx).redrawSyntheticViews();
+//    String status;
+//    String toast;
+//
+//    float newValue = mAddEntryTask.mLastAddValue;
+//    float oldValue = mAddEntryTask.mLastAddOldValue;
+//    long timestamp = mAddEntryTask.mLastAddTimestamp;
+//
+//    if (mAddEntryTask.mLastAddUpdate == true) {
+//      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, oldValue,
+//          timestamp, mCategoryUpdateView, mRowView);
+//      status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
+//          + oldValue + " -> " + newValue;
+//      mCategoryUpdateView.setText(status);
+////      toast = "Update @ " + DateUtil.toTimestamp(timestamp) + ": " + oldValue
+////          + " -> " + newValue;
+////      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
+////          Toast.LENGTH_SHORT).show();
+//    } else {
+//      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
+//          timestamp, mCategoryUpdateView, mRowView);
+//
+//      status = "Add @ "
+//          + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
+//          + newValue;
+//      mCategoryUpdateView.setText(status);
+////      toast = "Add @ " + DateUtil.toTimestamp(mAddEntryTask.mLastAddTimestamp)
+////          + ": " + newValue;
+////      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
+////          Toast.LENGTH_SHORT).show();
+//    }
+//
+//    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
+//    updateTrendIcon(cat.getTrendState());
+//    float trendValue = Number.Round(cat.getLastTrend(), Preferences
+//        .getDecimalPlaces(mCtx));
+//    mTrendValueView.setText(Float.valueOf(trendValue).toString());
+//
+//    mAddButton.setClickable(true);
+//    mAddButton.setTextColor(Color.BLACK);
+//
+//    ((InputActivity) mCtx).redrawSyntheticViews();
   }
 
   public void onFailure(Throwable t) {
@@ -167,7 +168,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   private void setupTasks() {
-    mAddEntryTask = new AddEntryTask(mTSC, mDecimals, mHistory);
+//    mAddEntryTask = new AddEntryTask(mTSC, mDecimals, mHistory);
   }
 
   private void setupUI() {
@@ -204,10 +205,10 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       public void onClick(View v) {
         float value = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
-        value += mDbRow.getIncrement();
+        value += mRow.mIncrement;
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
         mDefaultValue.setText(Float.toString(value));
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
+//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
 
@@ -215,19 +216,19 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       public void onClick(View v) {
         float value = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
-        value -= mDbRow.getIncrement();
+        value -= mRow.mIncrement;
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
         mDefaultValue.setText(Float.toString(value));
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
+//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
 
     mAddListener = new OnClickListener() {
       public void onClick(View v) {
         addEntry();
-        float value = mDbRow.getDefaultValue();
-        mDbRow.setLastValue(value);
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
+        float value = mRow.mDefaultValue;
+//        mDbRow.setLastValue(value);
+//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
         mDefaultValue.setText(Float.valueOf(value).toString());
       }
     };
@@ -235,44 +236,45 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
   public void populateFields() {
     try {
-      mColorInt = Color.parseColor(mDbRow.getColor());
+      mColorInt = Color.parseColor(mRow.mColor);
     } catch (IllegalArgumentException e) {
       mColorInt = Color.WHITE;
     }
 
-    mCategoryNameView.setText(mDbRow.getCategoryName());
+    mCategoryNameView.setText(mRow.mTimeSeriesName);
     mCategoryNameView.setTextColor(mColorInt);
 
-    if (mDbRow.getSynthetic() == false) {
-      EntryDbTable.Row row = mDbh.fetchLastCategoryEntry(mDbRow.getId());
-      if (row != null) {
-        String str = DateUtil.toTimestamp(row.getTimestamp()) + ": "
-            + Float.valueOf(row.getValue()).toString();
-        mCategoryUpdateView.setText(str);
-      }
-
-      float inputValue = mDbRow.getLastValue();
-      mDefaultValue.setText(Float.valueOf(inputValue).toString());
-      float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
-          .getDecimalPlaces(mCtx));
-      mTrendValueView.setText(Float.valueOf(trendValue).toString());
-
-      String trendState = mDbRow.getTrendState();
-      updateTrendIcon(trendState);
+    // TODO: move to constant
+    if (mRow.mType.equals("synthetic") == false) {
+//      EntryDbTable.Row row = mDbh.fetchLastCategoryEntry(mDbRow.getId());
+//      if (row != null) {
+//        String str = DateUtil.toTimestamp(row.getTimestamp()) + ": "
+//            + Float.valueOf(row.getValue()).toString();
+//        mCategoryUpdateView.setText(str);
+//      }
+//
+//      float inputValue = mDbRow.getLastValue();
+//      mDefaultValue.setText(Float.valueOf(inputValue).toString());
+//      float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
+//          .getDecimalPlaces(mCtx));
+//      mTrendValueView.setText(Float.valueOf(trendValue).toString());
+//
+//      String trendState = mDbRow.getTrendState();
+//      updateTrendIcon(trendState);
     } else {
-      mDbRow = mDbh.fetchCategory(mDbRow.getId());
+//      mDbRow = mDbh.fetchCategory(mDbRow.getId());
 
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
       mDefaultValue.setVisibility(View.INVISIBLE);
       mAddButton.setVisibility(View.INVISIBLE);
 
-      float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
-          .getDecimalPlaces(mCtx));
-      mTrendValueView.setText(Float.valueOf(trendValue).toString());
-
-      String trendState = mDbRow.getTrendState();
-      updateTrendIcon(trendState);
+//      float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
+//          .getDecimalPlaces(mCtx));
+//      mTrendValueView.setText(Float.valueOf(trendValue).toString());
+//
+//      String trendState = mDbRow.getTrendState();
+//      updateTrendIcon(trendState);
     }
   }
 
@@ -297,55 +299,69 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     panel.setLayoutAnimation(controller);
   }
 
-  public void updateTrendIcon(String trendState) {
-    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_30_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_30_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_30_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_30_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_bad);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_good);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat);
-    else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT_GOAL))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat_goal_glow);    
-    else
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_unknown);
-
-    mTrendIconImage.setImageDrawable(mTrendIconDrawable);
-  }
+//  public void updateTrendIcon(String trendState) {
+//    if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_45_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_30_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_30_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_45_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_30_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_30_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_BAD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_bad);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15_GOOD))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_good);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_DOWN_15))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_UP_15))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat);
+//    else if (trendState.equals(CategoryDbTable.KEY_TREND_FLAT_GOAL))
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat_goal_glow);    
+//    else
+//      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_unknown);
+//
+//    mTrendIconImage.setImageDrawable(mTrendIconDrawable);
+//  }
 
   public void addEntry() {
-    mTimestamp = ((InputActivity) mCtx).getTimestampMs();
+    // TODO:  move to constant
+    try {
+      if (mRow.mType.equals("discrete")) {
+        mEventRecorder.recordEvent(mRow.mId, mRow.mTimestamp, mAddValue);
+      } else {
+        if (mRow.mRecordingDatapointId > 0)
+          mEventRecorder.recordEventStart(mRow.mId);
+        else
+          mEventRecorder.recordEventStop(mRow.mId, mAddValue);
+      }
+    } catch (Exception e) {
+      Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
+    }
+
+    mRow.mTimestamp = ((InputActivity) mCtx).getTimestampMs();
     mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
-    GUITaskQueue.getInstance().addTask(mProgress, this);
+//    GUITaskQueue.getInstance().addTask(mProgress, this);
 
     mAddButton.setClickable(false);
     mAddButton.setTextColor(Color.LTGRAY);
 
-    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
-    updateTrendIcon(cat.getTrendState());
+//    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
+//    updateTrendIcon(cat.getTrendState());
     setLayoutAnimationSlideOutLeftIn(mRowView, mCtx);
   }
 }

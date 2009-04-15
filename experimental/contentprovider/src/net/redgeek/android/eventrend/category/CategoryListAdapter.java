@@ -19,7 +19,7 @@ package net.redgeek.android.eventrend.category;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrecorder.IEventRecorderService;
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
@@ -27,13 +27,13 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 public class CategoryListAdapter extends BaseAdapter {
-  private TimeSeriesCollector mTSC;
   private Context mCtx;
+  private IEventRecorderService mRecorderService;
   private List<CategoryRow> mItems = new ArrayList<CategoryRow>();
 
-  public CategoryListAdapter(Context context, TimeSeriesCollector tsc) {
+  public CategoryListAdapter(Context context, IEventRecorderService service) {
     mCtx = context;
-    mTSC = tsc;
+    mRecorderService = service;
   }
 
   public void addItem(CategoryRow it) {
@@ -76,7 +76,7 @@ public class CategoryListAdapter extends BaseAdapter {
   }
 
   public View getView(int position, View convertView, ViewGroup parent) {
-    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position), mTSC);
+    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position), mRecorderService);
     row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
     return row;
   }

@@ -1,59 +1,25 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// * 
-// * Licensed under the Apache License, Version 2.0 (the "License"); you may not
-// * use this file except in compliance with the License. You may obtain a copy of
-// * the License at
-// * 
-// * http://www.apache.org/licenses/LICENSE-2.0
-// * 
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-// * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-// * License for the specific language governing permissions and limitations under
-// * the License.
-// */
-//
-//package net.redgeek.android.eventcalendar;
-//
-//import java.util.ArrayList;
-//import java.util.Calendar;
-//
-//import net.redgeek.android.eventgrapher.GraphActivity;
-//import net.redgeek.android.eventrend.EvenTrendActivity;
-//import net.redgeek.android.eventrend.Preferences;
-//import net.redgeek.android.eventrend.R;
-//import net.redgeek.android.eventrend.db.CategoryDbTable;
-//import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-//import net.redgeek.android.eventrend.primitives.Datapoint;
-//import net.redgeek.android.eventrend.primitives.TimeSeries;
-//import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-//import net.redgeek.android.eventrend.util.DateUtil;
-//import net.redgeek.android.eventrend.util.DynamicSpinner;
-//import net.redgeek.android.eventrend.util.Number;
-//import net.redgeek.android.eventrend.util.ProgressIndicator;
-//import net.redgeek.android.eventrend.util.DateUtil.Period;
-//import android.app.AlertDialog;
-//import android.app.Dialog;
-//import android.app.AlertDialog.Builder;
-//import android.content.DialogInterface;
-//import android.content.Intent;
-//import android.database.Cursor;
-//import android.os.Bundle;
-//import android.view.GestureDetector;
-//import android.view.Menu;
-//import android.view.MenuItem;
-//import android.view.MotionEvent;
-//import android.view.View;
-//import android.view.Window;
-//import android.view.View.OnTouchListener;
-//import android.view.ViewGroup.LayoutParams;
-//import android.widget.AdapterView;
-//import android.widget.LinearLayout;
-//import android.widget.Spinner;
-//import android.widget.TextView;
-//
-//public class CalendarActivity extends EvenTrendActivity {
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+package net.redgeek.android.eventcalendar;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import android.os.Bundle;
+
+public class CalendarActivity extends EvenTrendActivity {
 //  // Menu items
 //  private static final int MENU_CALENDAR_RANGE_ID = Menu.FIRST;
 //  private static final int MENU_CALENDAR_GRAPH_ID = Menu.FIRST + 1;
@@ -93,17 +59,17 @@
 //
 //  // Saved across orientation changes
 //  private long mStartMs;
-//
-//  @Override
-//  public void onCreate(Bundle icicle) {
-//    super.onCreate(icicle);
+
+  @Override
+  public void onCreate(Bundle icicle) {
+    super.onCreate(icicle);
 //
 //    getPrefs();
 //    setupData(icicle);
 //    setupUI();
 //    populateFields();
-//  }
-//
+  }
+
 //  private void getPrefs() {
 //    mHistory = Preferences.getHistory(getCtx());
 //    mSmoothing = Preferences.getSmoothingConstant(getCtx());
@@ -511,4 +477,4 @@
 //    mCalendarView.nextPeriod();
 //    display();
 //  }
-//}
+}

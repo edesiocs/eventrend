@@ -81,7 +81,7 @@
 		</activity>
 
     <activity 
-     android:name="net.redgeek.android.eventrend.calendar.CalendarActivity">
+     android:name="net.redgeek.android.eventcalendar.CalendarActivity">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.PICK" />
@@ -97,7 +97,7 @@
 		  android:name="net.redgeek.android.eventrend.Preferences">
 		</activity>
     <activity 
-      android:name="net.redgeek.android.eventrend.synthetic.FormulaEditorActivity">
+      android:name="net.redgeek.android.eventrend.input.FormulaEditorActivity">
     </activity>
       
     <service 

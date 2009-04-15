@@ -1,51 +1,25 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// *
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// *
-// *      http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//
-//package net.redgeek.android.eventrend.datum;
-//
-//import java.util.Calendar;
-//
-//import net.redgeek.android.eventrecorder.CategoryDbTable;
-//import net.redgeek.android.eventrend.EvenTrendActivity;
-//import net.redgeek.android.eventrend.Preferences;
-//import net.redgeek.android.eventrend.db.EntryDbTable;
-//import net.redgeek.android.eventrend.input.R;
-//import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-//import net.redgeek.android.eventrend.util.DateUtil;
-//import net.redgeek.android.eventrend.util.DynamicSpinner;
-//import android.app.DatePickerDialog;
-//import android.app.Dialog;
-//import android.app.TimePickerDialog;
-//import android.database.Cursor;
-//import android.graphics.Color;
-//import android.os.Bundle;
-//import android.view.Gravity;
-//import android.view.KeyEvent;
-//import android.view.View;
-//import android.widget.AdapterView;
-//import android.widget.Button;
-//import android.widget.DatePicker;
-//import android.widget.EditText;
-//import android.widget.LinearLayout;
-//import android.widget.TextView;
-//import android.widget.TimePicker;
-//import android.widget.AdapterView.OnItemSelectedListener;
-//import android.widget.TableRow.LayoutParams;
-//
-//public class EntryEditActivity extends EvenTrendActivity {
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.redgeek.android.eventrend.datum;
+
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import android.os.Bundle;
+
+public class EntryEditActivity extends EvenTrendActivity {
 //  // Dialog IDs
 //  static final int TIME_DIALOG_ID = 0;
 //  static final int DATE_DIALOG_ID = 1;
@@ -98,10 +72,10 @@
 //  // picker values
 //  private DateUtil.DateItem mPickerTimestamp;
 //  private Calendar mCal;
-//
-//  @Override
-//  public void onCreate(Bundle icicle) {
-//    super.onCreate(icicle);
+
+  @Override
+  public void onCreate(Bundle icicle) {
+    super.onCreate(icicle);
 //    setContentView(R.layout.entry_edit);
 //
 //    setupData(icicle);
@@ -111,8 +85,8 @@
 //
 //    setTimestamp();
 //
-//  }
-//
+  }
+
 //  private void setupData(Bundle icicle) {
 //    if (icicle != null) {
 //      mRowId = icicle.getLong(EntryDbTable.KEY_ROWID);
@@ -468,4 +442,4 @@
 //      }
 //    }
 //  }
-//}
+}
