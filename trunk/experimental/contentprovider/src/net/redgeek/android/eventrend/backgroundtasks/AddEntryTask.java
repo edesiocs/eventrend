@@ -16,20 +16,13 @@
 //
 //package net.redgeek.android.eventrend.backgroundtasks;
 //
-//import java.util.Calendar;
-//
-//import net.redgeek.android.eventrecorder.CategoryDbTable;
-//import net.redgeek.android.eventrend.db.EntryDbTable;
-//import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
 //import net.redgeek.android.eventrend.util.DateUtil;
 //import net.redgeek.android.eventrend.util.Number;
-//import android.os.Debug;
+//
+//import java.util.Calendar;
 //
 ///**
-// * Task to add an entry to the database. This may also trigger an instantiation
-// * of UpdateRecentDataTask in order to zero-fill data for any missing periods,
-// * although that task will be run sequentially in the same thread as this task,
-// * not as a separate background task.
+// * Task to add an entry to the database.
 // * 
 // * <p>
 // * Adding an entry require checking the category to see if any datapoints should
@@ -37,7 +30,7 @@
 // * trend is also recalculated for the category.
 // * 
 // * <p>
-// * The previous values are also stored int some public member variables (which
+// * The previous values are also stored in some public member variables (which
 // * should be encapsulated and accessors established, but I haven't gotten around
 // * to it yet) that can be referenced by the calling activity in order to "undo"
 // * this addition.
@@ -50,37 +43,31 @@
 // */
 //public class AddEntryTask {
 //  // Input
-//  private TimeSeriesCollector mTSC;
 //  private int mHistory;
 //  private int mDecimals;
 //
 //  // Output
-//  public long mLastAddId;
-//  public float mLastAddValue;
-//  public float mLastAddOldValue;
-//  public long mLastAddTimestamp;
+//  public long    mLastAddId;
+//  public float   mLastAddValue;
+//  public float   mLastAddOldValue;
+//  public long    mLastAddTimestamp;
 //  public boolean mLastAddUpdate;
 //
-//  public AddEntryTask(TimeSeriesCollector tsc) {
-//    mTSC = tsc;
+//  public AddEntryTask() {
 //  }
 //
-//  public AddEntryTask(TimeSeriesCollector tsc, int decimals, int history) {
-//    mTSC = tsc;
+//  public AddEntryTask(int decimals, int history) {
 //    mHistory = history;
 //    mDecimals = decimals;
 //  }
 //
-//  public void AddEntry(CategoryDbTable.Row category, long timestamp, float value) {
-//    EntryDbTable.Row entry;
+//  public void AddEntry(long timeSeriesId, int period, long timestamp, float value) {
 //    Calendar entryTScal = Calendar.getInstance();
 //    Calendar lastTScal;
-//    long periodInMs = category.getPeriodMs();
 //
-//    // float value = Float.valueOf(mComboBox.getText().toString()).floatValue();
 //    entryTScal.setTimeInMillis(timestamp);
 //
-//    if (periodInMs > 0) {
+//    if (period > 0) {
 //      UpdateRecentDataTask updater = new UpdateRecentDataTask(mTSC, mHistory);
 //      updater.setZerofill(true);
 //      updater.setUpdateTrend(false);

@@ -54,7 +54,7 @@ public class TimeSeriesData {
     /**
      * The default sort order for this table
      */
-    public static final String DEFAULT_SORT_ORDER = "ts_end ASC";
+    public static final String DEFAULT_SORT_ORDER = "milliseconds ASC";
 
     /**
      * The _id of the datapoint
@@ -369,6 +369,8 @@ public class TimeSeriesData {
      * </p>
      */
     public static final String AGGREGATION = "aggregation";
+    public static final String AGGREGATION_SUM = "sum";
+    public static final String AGGREGATION_AVG = "average";
 
     /**
      * The type of the series: discrete: represents a single point in time,
@@ -379,6 +381,9 @@ public class TimeSeriesData {
      * </p>
      */
     public static final String TYPE = "type";
+    public static final String TYPE_DISCRETE = "discrete";
+    public static final String TYPE_RANGE = "range";
+    public static final String TYPE_SYNTHETIC = "synthetic";
 
     /**
      * If aggregation periods without entries should have an entry automatically
