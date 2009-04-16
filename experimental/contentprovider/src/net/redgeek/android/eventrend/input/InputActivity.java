@@ -107,6 +107,25 @@ public class InputActivity extends EvenTrendActivity {
   ProgressIndicator.Titlebar mProgress;
   private GestureDetector mGestureDetector;
 
+  // Trend state:
+  public static final String TREND_DOWN_15_GOOD = "trend_down_15_good";
+  public static final String TREND_DOWN_15_BAD = "trend_down_15_bad";
+  public static final String TREND_DOWN_30_GOOD = "trend_down_30_good";
+  public static final String TREND_DOWN_30_BAD = "trend_down_30_bad";
+  public static final String TREND_DOWN_45_GOOD = "trend_down_45_good";
+  public static final String TREND_DOWN_45_BAD = "trend_down_45_bad";
+  public static final String TREND_UP_15_GOOD = "trend_up_15_good";
+  public static final String TREND_UP_15_BAD = "trend_up_15_bad";
+  public static final String TREND_UP_30_GOOD = "trend_up_30_good";
+  public static final String TREND_UP_30_BAD = "trend_up_30_bad";
+  public static final String TREND_UP_45_GOOD = "trend_up_45_good";
+  public static final String TREND_UP_45_BAD = "trend_up_45_bad";
+  public static final String TREND_FLAT = "trend_flat";
+  public static final String TREND_FLAT_GOAL = "trend_flat_goal";
+  public static final String TREND_DOWN_15 = "trend_down_15";
+  public static final String TREND_UP_15 = "trend_up_15";
+  public static final String TREND_UNKNOWN = "trend_unknown";
+  
   // Content observers
   private Handler mContentChangeHandler = new Handler();
   private TimeSeriesContentObserver mTimeSeriesObserver = null;

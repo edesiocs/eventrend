@@ -16,10 +16,12 @@
 
 package net.redgeek.android.eventrecorder;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import net.redgeek.android.eventrecorder.DateMapCache.DateMapCacheEntry;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
@@ -48,11 +50,14 @@ public class TimeSeriesProvider extends ContentProvider {
   private static final int DATAPOINTS_ID = 4;
   private static final int DATAPOINTS_RECENT = 5;
   private static final int DATAPOINTS_RANGE = 6;
+  private static final int DATEMAP = 7;
+  private static final int DATEMAP_ID = 8;
 
   private DatabaseHelper mDbHelper;
   private static UriMatcher sURIMatcher;
   private static HashMap<String, String> sTimeSeriesProjection;
   private static HashMap<String, String> sDatapointProjection;
+  private static HashMap<String, String> sDatemapProjection;
   private DatabaseCache mCache;
   private DateMapCache mDateMap;
   private Lock mLock;
@@ -62,6 +67,7 @@ public class TimeSeriesProvider extends ContentProvider {
   public static final int PATH_SEGMENT_DATAPOINT_RECENT_COUNT = 3;
   public static final int PATH_SEGMENT_DATAPOINT_RANGE_START = 3;
   public static final int PATH_SEGMENT_DATAPOINT_RANGE_END = 4;
+  public static final int PATH_SEGMENT_DATEMAP_ID = 1;
   
   static {
     sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -72,7 +78,9 @@ public class TimeSeriesProvider extends ContentProvider {
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints/#", DATAPOINTS_ID);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#", DATAPOINTS_RECENT);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#", DATAPOINTS_RANGE);
-    
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/", DATEMAP);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/#", DATEMAP_ID);
+
     sTimeSeriesProjection = new HashMap<String, String>();
     sTimeSeriesProjection.put(TimeSeries._ID, TimeSeries._ID);
     sTimeSeriesProjection.put(TimeSeries.TIMESERIES_NAME, TimeSeries.TIMESERIES_NAME);
@@ -98,6 +106,13 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
     sDatapointProjection.put(Datapoint.UPDATES, Datapoint.UPDATES);
+
+    sDatemapProjection = new HashMap<String, String>();
+    sDatemapProjection.put(DateMap._ID, DateMap._ID);
+    sDatemapProjection.put(DateMap.YEAR, DateMap.YEAR);
+    sDatemapProjection.put(DateMap.MONTH, DateMap.MONTH);
+    sDatemapProjection.put(DateMap.DOW, DateMap.DOW);
+    sDatemapProjection.put(DateMap.MILLISECONDS, DateMap.MILLISECONDS);
   }
 
   @Override
@@ -105,7 +120,6 @@ public class TimeSeriesProvider extends ContentProvider {
     mDbHelper = new DatabaseHelper(getContext());
     mCache = new DatabaseCache();
     mLock = new ReentrantLock();
-    mDateMap = new DateMapCache(mDbHelper.getWritableDatabase());
     return true;
   }
   
@@ -122,6 +136,10 @@ public class TimeSeriesProvider extends ContentProvider {
         return Datapoint.CONTENT_TYPE;
       case DATAPOINTS_ID:
         return Datapoint.CONTENT_ITEM_TYPE;
+      case DATEMAP:
+        return DateMap.CONTENT_TYPE;
+      case DATEMAP_ID:
+        return DateMap.CONTENT_ITEM_TYPE;
       default:
         throw new IllegalArgumentException("getType: Unknown URI " + uri);
     }      
@@ -307,6 +325,19 @@ public class TimeSeriesProvider extends ContentProvider {
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
         break;
+      case DATEMAP:
+        qb.setTables(DateMap.TABLE_NAME);
+        qb.setProjectionMap(sDatemapProjection);
+        if (TextUtils.isEmpty(sortOrder))
+          orderBy = DateMap.DEFAULT_SORT_ORDER;
+        break;
+      case DATEMAP_ID:
+        qb.setTables(DateMap.TABLE_NAME);
+        qb.setProjectionMap(sDatemapProjection);
+        qb.appendWhere("_id=" + uri.getPathSegments().get(PATH_SEGMENT_DATEMAP_ID));
+        if (TextUtils.isEmpty(sortOrder))
+          orderBy = DateMap.DEFAULT_SORT_ORDER;
+        break;
       default:
         throw new IllegalArgumentException("query: Unknown URI " + uri);
     } 
@@ -395,6 +426,10 @@ public class TimeSeriesProvider extends ContentProvider {
     return count;
   }
   
+  public long millisecondsOfPeriodStart(long ms, long period) {
+    return mDateMap.millisecondsOfPeriodStart(ms, period);
+  }
+  
   private static class DatabaseHelper extends SQLiteOpenHelper {
     DatabaseHelper(Context context) {
       super(context, TimeSeriesData.DATABASE_NAME, null, DATABASE_VERSION);
@@ -405,6 +440,7 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
       db.execSQL(DateMap.TABLE_CREATE);
+      generateDateMapCacheData(db);
     }
 
     @Override
@@ -415,6 +451,39 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
       db.execSQL(DateMap.TABLE_CREATE);
+    }
+    
+    private void generateDateMapCacheData(SQLiteDatabase db) {
+      Calendar cal = Calendar.getInstance();
+      
+      int dow;
+      long ms;
+      
+      cal.set(Calendar.MONTH, 0);
+      cal.set(Calendar.DAY_OF_MONTH, 1);
+      cal.set(Calendar.HOUR_OF_DAY, 0);
+      cal.set(Calendar.MINUTE, 0);
+      cal.set(Calendar.SECOND, 0);
+      cal.set(Calendar.MILLISECOND, 0);
+
+      ContentValues values = new ContentValues();
+
+      for (int yyyy = 2000; yyyy < 2020; yyyy++) {
+        cal.set(Calendar.YEAR, yyyy);
+        for (int mm = 0; mm < 12; mm++) {
+          cal.set(Calendar.MONTH, mm);
+          dow = cal.get(Calendar.DAY_OF_WEEK);
+          ms = cal.getTimeInMillis();
+          
+          values.clear();
+          values.put(TimeSeriesData.DateMap.YEAR, yyyy);
+          values.put(TimeSeriesData.DateMap.MONTH, mm);
+          values.put(TimeSeriesData.DateMap.DOW, dow);
+          values.put(TimeSeriesData.DateMap.MILLISECONDS, ms);
+
+          db.insert(TimeSeriesData.DateMap.TABLE_NAME, null, values);
+        }
+      }
     }
   }
 }

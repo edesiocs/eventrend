@@ -35,13 +35,13 @@ interface IEventRecorderService {
    */
   long recordEventStop( in long timeSeriesId, in float value );
 
-  /** Records a discrete event.
+  /** Records a discrete event for the current time.
    *  Returns the _id of the datapoint.
    *  See TimeSeriesProvider
    */
   long recordEventNow( in long timeSeriesId, in float value );
 
-  /** Records a discrete event.
+  /** Records a discrete event with the timestamp specified.
    *  Returns the _id of the datapoint.
    *  See TimeSeriesProvider
    */
