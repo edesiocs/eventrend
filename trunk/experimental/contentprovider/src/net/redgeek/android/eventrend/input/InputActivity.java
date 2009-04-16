@@ -577,6 +577,7 @@ public class InputActivity extends EvenTrendActivity {
         row.mInterpolation = TimeSeriesData.TimeSeries.getInterpolation(c);
         
         cla.addItem(row);
+        c.moveToNext();
       }
     }
     c.close();

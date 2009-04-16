@@ -353,12 +353,15 @@ public class EventRecorder extends Service {
     Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
     if (c == null)
       return -1;
-    if (c.getCount() < 1)
+    if (c.getCount() < 1) {
+      c.close();
       return -1;
+    }
 
     c.moveToFirst();
     long id = c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID));
     c.close();
+    
     return id;
   }
 
@@ -386,7 +389,12 @@ public class EventRecorder extends Service {
         TimeSeriesData.TimeSeries.ZEROFILL + " != 0 and " +
         TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID + " > 0 and " +
         TimeSeriesData.TimeSeries.PERIOD + " != 0 ", null, null);
-    if (tsCur == null || tsCur.getCount() < 1) {
+    if (tsCur == null) {
+      LockUtil.unlock(mLock);
+      return;
+    }
+    if (tsCur.getCount() < 1) {
+      tsCur.close();
       LockUtil.unlock(mLock);
       return;
     }
@@ -449,13 +457,15 @@ public class EventRecorder extends Service {
           mCal.add(Calendar.MILLISECOND, period);
           setToPeriodStart(mCal, period);
         }
-        dpCur.close();
       }
-      tsCur.close();
-      LockUtil.unlock(mLock);
-
-      return;
+      dpCur.close();
+      tsCur.moveToNext();
     }
+    
+    tsCur.close();
+    LockUtil.unlock(mLock);
+
+    return;
   }
   
   private void setToPeriodStart(Calendar c, int period) {
