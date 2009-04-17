@@ -52,6 +52,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ViewFlipper;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
@@ -796,6 +797,10 @@ public class InputActivity extends EvenTrendActivity {
 
   public IEventRecorderService getRecorderService() {
     return mRecorderService;
+  }  
+
+  public DateMapCache getDateMapCache() {
+    return mDateMapCache;
   }  
 
   // *** Animations ***//

@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventrend;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrend.util.DialogUtil;
 import net.redgeek.android.eventrend.util.GUITask;
@@ -55,6 +56,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   protected DialogUtil mDialogUtil;
   protected IEventRecorderService mRecorderService;
   protected EventRecorderConnection mRecorderConnection = null;
+  protected DateMapCache mDateMapCache;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -63,6 +65,8 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
     mCtx = this;
     mDialogUtil = new DialogUtil(mCtx);
     mContent = getContentResolver();
+    mDateMapCache = new DateMapCache();
+    mDateMapCache.populateCache(mCtx);
   }
 
   @Override

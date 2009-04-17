@@ -58,7 +58,6 @@ public class TimeSeriesProvider extends ContentProvider {
   private static HashMap<String, String> sTimeSeriesProjection;
   private static HashMap<String, String> sDatapointProjection;
   private static HashMap<String, String> sDatemapProjection;
-  private DatabaseCache mCache;
   private DateMapCache mDateMap;
   private Lock mLock;
   
@@ -105,20 +104,18 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
     sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
-    sDatapointProjection.put(Datapoint.UPDATES, Datapoint.UPDATES);
 
     sDatemapProjection = new HashMap<String, String>();
     sDatemapProjection.put(DateMap._ID, DateMap._ID);
     sDatemapProjection.put(DateMap.YEAR, DateMap.YEAR);
     sDatemapProjection.put(DateMap.MONTH, DateMap.MONTH);
     sDatemapProjection.put(DateMap.DOW, DateMap.DOW);
-    sDatemapProjection.put(DateMap.MILLISECONDS, DateMap.MILLISECONDS);
+    sDatemapProjection.put(DateMap.SECONDS, DateMap.SECONDS);
   }
 
   @Override
   public boolean onCreate() {
     mDbHelper = new DatabaseHelper(getContext());
-    mCache = new DatabaseCache();
     mLock = new ReentrantLock();
     return true;
   }
@@ -165,7 +162,6 @@ public class TimeSeriesProvider extends ContentProvider {
           count = db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
-          mCache.removeTimeSeries(Long.valueOf(seriesId));
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -181,19 +177,13 @@ public class TimeSeriesProvider extends ContentProvider {
         datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
         
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
-
         try {
           count = db.delete(Datapoint.TABLE_NAME, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
-
-          mCache.removeDatapoint(Long.valueOf(seriesId), Long.valueOf(datapointId));
-          db.setTransactionSuccessful();
         } catch (Exception e) {
           count = -1;
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
 
@@ -215,20 +205,15 @@ public class TimeSeriesProvider extends ContentProvider {
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
         try {
           id = db.insert(TimeSeries.TABLE_NAME, null, values);
           if (id == -1) {
             outputUri = null;
           } else {
             outputUri = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, id);
-          }
-          
-          mCache.insertTimeSeries(Long.valueOf(id), values);           
-          db.setTransactionSuccessful();
+          }          
         } catch (Exception e) {
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         
@@ -240,7 +225,6 @@ public class TimeSeriesProvider extends ContentProvider {
         }
 
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
         try {
           id = db.insert(Datapoint.TABLE_NAME, null, values);
           if (id == -1) {
@@ -250,12 +234,8 @@ public class TimeSeriesProvider extends ContentProvider {
                 TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
                 .appendPath("datapoints").appendPath(""+id).build();
           }
-          
-          mCache.insertDatapoint(timeSeriesId, Long.valueOf(id), values);           
-          db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
 
@@ -280,14 +260,12 @@ public class TimeSeriesProvider extends ContentProvider {
     
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
-        // TODO:  reference the cache
         qb.setTables(TimeSeries.TABLE_NAME);
         qb.setProjectionMap(sTimeSeriesProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
         break;
       case TIMESERIES_ID:
-        // TODO:  reference the cache
         qb.setTables(TimeSeries.TABLE_NAME);
         qb.setProjectionMap(sTimeSeriesProjection);
         qb.appendWhere("_id=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
@@ -295,7 +273,6 @@ public class TimeSeriesProvider extends ContentProvider {
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
         break;
       case DATAPOINTS:
-        // TODO:  reference the cache
         qb.setTables(Datapoint.TABLE_NAME);
         qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         qb.setProjectionMap(sDatapointProjection);
@@ -303,7 +280,6 @@ public class TimeSeriesProvider extends ContentProvider {
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
         break;
       case DATAPOINTS_RECENT:
-        // TODO:  reference the cache
         String count = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_COUNT);
         qb.setTables(Datapoint.TABLE_NAME);
         qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
@@ -311,16 +287,15 @@ public class TimeSeriesProvider extends ContentProvider {
         limit = count;
         break;
       case DATAPOINTS_RANGE:
-        // TODO:  reference the cache
         String start = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_START);
         String end = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_END);
         qb.setTables(Datapoint.TABLE_NAME);
-        qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
-        qb.appendWhere(Datapoint.TS_START + ">=" + start);
-        qb.appendWhere(Datapoint.TS_END + "<" + end);
+        qb.appendWhere(TimeSeries._ID + " = " 
+            + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
+        qb.appendWhere(Datapoint.TS_START + " >= " + start + " AND ");
+        qb.appendWhere(Datapoint.TS_START + " < " + end + " ");
         break;
       case DATAPOINTS_ID:
-        // TODO:  reference the cache
         qb.setTables(Datapoint.TABLE_NAME);
         qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         qb.appendWhere(Datapoint._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID));
@@ -361,14 +336,10 @@ public class TimeSeriesProvider extends ContentProvider {
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
         try {
           count = db.update(TimeSeries.TABLE_NAME, values, where, whereArgs);
-          mCache.removeAllTimeSeries();
-          db.setTransactionSuccessful();
         } catch (Exception e) {          
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -376,16 +347,12 @@ public class TimeSeriesProvider extends ContentProvider {
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
 
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
         try {
           count = db.update(TimeSeries.TABLE_NAME, values, TimeSeries._ID + "="
               + timeSeriesId + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
-          mCache.removeTimeSeries(Long.valueOf(timeSeriesId));
-          db.setTransactionSuccessful();
         } catch (Exception e) {          
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -394,11 +361,8 @@ public class TimeSeriesProvider extends ContentProvider {
         db.beginTransaction();
         try {
           count = db.update(Datapoint.TABLE_NAME, values, where, whereArgs);
-          mCache.removeAllTimeSeries();
-          db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -407,16 +371,12 @@ public class TimeSeriesProvider extends ContentProvider {
         datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
         
         LockUtil.waitForLock(mLock);
-        db.beginTransaction();
         try {
           count = db.update(Datapoint.TABLE_NAME, values, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
-          mCache.removeDatapoint(Long.valueOf(timeSeriesId), Long.valueOf(datapointId));
-          db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
-          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -426,10 +386,6 @@ public class TimeSeriesProvider extends ContentProvider {
 
     getContext().getContentResolver().notifyChange(uri, null);
     return count;
-  }
-  
-  public long millisecondsOfPeriodStart(long ms, long period) {
-    return mDateMap.millisecondsOfPeriodStart(ms, period);
   }
   
   private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -459,14 +415,13 @@ public class TimeSeriesProvider extends ContentProvider {
       Calendar cal = Calendar.getInstance();
       
       int dow;
-      long ms;
+      int secs;
       
       cal.set(Calendar.MONTH, 0);
       cal.set(Calendar.DAY_OF_MONTH, 1);
       cal.set(Calendar.HOUR_OF_DAY, 0);
       cal.set(Calendar.MINUTE, 0);
       cal.set(Calendar.SECOND, 0);
-      cal.set(Calendar.MILLISECOND, 0);
 
       ContentValues values = new ContentValues();
 
@@ -475,13 +430,13 @@ public class TimeSeriesProvider extends ContentProvider {
         for (int mm = 0; mm < 12; mm++) {
           cal.set(Calendar.MONTH, mm);
           dow = cal.get(Calendar.DAY_OF_WEEK);
-          ms = cal.getTimeInMillis();
+          secs = (int) (cal.getTimeInMillis() / DateMapCache.SECOND_MS);
           
           values.clear();
           values.put(TimeSeriesData.DateMap.YEAR, yyyy);
           values.put(TimeSeriesData.DateMap.MONTH, mm);
           values.put(TimeSeriesData.DateMap.DOW, dow);
-          values.put(TimeSeriesData.DateMap.MILLISECONDS, ms);
+          values.put(TimeSeriesData.DateMap.SECONDS, secs);
 
           db.insert(TimeSeriesData.DateMap.TABLE_NAME, null, values);
         }

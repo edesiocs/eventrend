@@ -54,7 +54,7 @@ public class TimeSeriesData {
     /**
      * The default sort order for this table
      */
-    public static final String DEFAULT_SORT_ORDER = "milliseconds ASC";
+    public static final String DEFAULT_SORT_ORDER = "seconds ASC";
 
     /**
      * The _id of the datapoint
@@ -89,13 +89,13 @@ public class TimeSeriesData {
     public static final String DOW = "dow";
 
     /**
-     * The time in milliseconds since epoch for the start of year and month
+     * The time in seconds since epoch for the start of year and month
      * specified.
      * <p>
-     * Type: LONG, milliseconds since epoch from System.currentTimeInMillis()
+     * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
      * </p>
      */
-    public static final String MILLISECONDS = "milliseconds";
+    public static final String SECONDS = "seconds";
 
     /**
      * The table creation sql
@@ -105,7 +105,7 @@ public class TimeSeriesData {
         + YEAR + " integer key not null, " 
         + MONTH + " byte key not null, "
         + DOW + " byte key not null, " 
-        + MILLISECONDS + " long key not null);";
+        + SECONDS + " integer key not null);";
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.DateMap._ID));
@@ -123,8 +123,8 @@ public class TimeSeriesData {
       return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.DOW));
     }
 
-    public static long getMilliseconds(Cursor c) {
-      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.MILLISECONDS));
+    public static int getSeconds(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.DateMap.SECONDS));
     }
   }
   
@@ -179,21 +179,21 @@ public class TimeSeriesData {
     /**
      * The start timestamp of the datapoint
      * <p>
-     * Type: LONG, milliseconds since epoch from System.currentTimeInMillis()
+     * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
      * </p>
      */
     public static final String TS_START = "ts_start";
 
     /**
-     * The end timestamp of the datapoint
+     * The end timestamp of the datapoint (== ts_start for discrete events)
      * <p>
-     * Type: LONG, milliseconds since epoch from System.currentTimeInMillis()
+     * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
      * </p>
      */
     public static final String TS_END = "ts_end";
 
     /**
-     * The value of the datapoint
+     * The value of the datapoint (duration in seconds for ranges)
      * <p>
      * Type: FLOAT
      * </p>
@@ -201,21 +201,12 @@ public class TimeSeriesData {
     public static final String VALUE = "value";
 
     /**
-     * The number of updates to the datapoint
-     * <p>
-     * Type: INTEGER
-     * </p>
-     */
-    public static final String UPDATES = "updates";
-
-    /**
      * The table creation sql
      */
     public static final String TABLE_CREATE = "create table " + TABLE_NAME
         + " (" + _ID + " integer primary key autoincrement, " + TIMESERIES_ID
-        + " integer key not null, " + TS_START + " long key not null, "
-        + TS_END + " long key not null, " + VALUE + " float not null, "
-        + UPDATES + " integer not null);";
+        + " integer key not null, " + TS_START + " integer key not null, "
+        + TS_END + " integer key not null, " + VALUE + " float not null);";
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint._ID));
@@ -225,20 +216,16 @@ public class TimeSeriesData {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TIMESERIES_ID));
     }
 
-    public static long getTsStart(Cursor c) {
-      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_START));
+    public static int getTsStart(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_START));
     }
 
-    public static long getTsEnd(Cursor c) {
-      return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_END));
+    public static int getTsEnd(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_END));
     }
 
     public static float getValue(Cursor c) {
       return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.VALUE));
-    }
-
-    public static int getUpdates(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.UPDATES));
     }
   }
 
@@ -339,7 +326,7 @@ public class TimeSeriesData {
     public static final String COLOR = "color";
 
     /**
-     * The aggregation period of the series in milliseconds
+     * The aggregation period of the series in seconds
      * <p>
      * Type: INTEGER
      * </p>

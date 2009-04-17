@@ -60,7 +60,6 @@ public class DatabaseCache {
     public long  mTsStart;
     public long  mTsEnd;
     public float mValue;
-    public int   mUpdates;
     
     public DatapointEntry() {      
     }
@@ -133,7 +132,6 @@ public class DatabaseCache {
       dpe.mTsStart = values.getAsLong(Datapoint.TS_START);
       dpe.mTsEnd = values.getAsLong(Datapoint.TS_END);
       dpe.mValue = values.getAsFloat(Datapoint.VALUE);
-      dpe.mUpdates = values.getAsInteger(Datapoint.UPDATES);
 
       cache.mDatapointCache.put(timestamp, dpe);
       cache.mIdTimestampMap.put(datapointId, timestamp);
