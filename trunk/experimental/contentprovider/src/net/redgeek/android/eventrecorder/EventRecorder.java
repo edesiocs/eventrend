@@ -69,17 +69,17 @@ public class EventRecorder extends Service {
         if (action.equals(Intent.ACTION_TIMEZONE_CHANGED)
             || action.equals(Intent.ACTION_TIME_TICK)
             || action.equals(Intent.ACTION_TIME_CHANGED)) {
-          boolean updateZerofills = true;
-          mCal.setTimeInMillis(System.currentTimeMillis());
+          boolean hourChanged = true;
+          mCal.setTimeInMillis(System.currentTimeMillis() / DateMapCache.SECOND_MS);
 
           // if it's just a time tick (minute), don't try to update unless the
           // hour has changed
           if (action.equals(Intent.ACTION_TIME_TICK) && 
               mCal.get(Calendar.HOUR_OF_DAY) == mLastHr) {
-            updateZerofills = false;
+            hourChanged = false;
           }
 
-          if (updateZerofills == true) {
+          if (hourChanged == true) {
             mLastHr = mCal.get(Calendar.HOUR_OF_DAY);
             zerofill();
           }
@@ -96,7 +96,7 @@ public class EventRecorder extends Service {
     filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
     this.registerReceiver(mIntentReceiver, filter, null, mHandler);
 
-    mCal.setTimeInMillis(System.currentTimeMillis());    
+    mCal.setTimeInMillis(System.currentTimeMillis() / DateMapCache.SECOND_MS);    
     mDateMap = new DateMapCache();
 
     mLastHr = mCal.get(Calendar.HOUR_OF_DAY);
@@ -173,12 +173,11 @@ public class EventRecorder extends Service {
         return -2;
       }
 
-      long now = System.currentTimeMillis();
+      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
       values.put(TimeSeriesData.Datapoint.TS_START, now);
       values.put(TimeSeriesData.Datapoint.TS_END, 0);
       values.put(TimeSeriesData.Datapoint.VALUE, 0);
-      values.put(TimeSeriesData.Datapoint.UPDATES, 1);
 
       Uri uri = ContentUris.withAppendedId(
           TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
@@ -224,7 +223,7 @@ public class EventRecorder extends Service {
     // Returns the _id of the datapoint, 0 if no datapoint is recording, < 0 for
     // error.
     // See TimeSeriesProvider
-    public long recordEventStop(long timeSeriesId, float value) {
+    public long recordEventStop(long timeSeriesId) {
       if (timeSeriesId < 1)
         return 0;
 
@@ -253,9 +252,10 @@ public class EventRecorder extends Service {
         return -1;
       }
 
-      long now = System.currentTimeMillis();
+      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       values.put(TimeSeriesData.Datapoint.TS_END, now);
-      values.put(TimeSeriesData.Datapoint.VALUE, value);
+      values.put(TimeSeriesData.Datapoint.VALUE, 
+          "" + now + " - " + TimeSeriesData.Datapoint.TS_START);
       int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
@@ -281,148 +281,40 @@ public class EventRecorder extends Service {
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
     public long recordEvent(long timeSeriesId, long timestamp, float value) {
-      String[] projection = new String[] { 
-        TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID,
-        TimeSeriesData.TimeSeries.TYPE,
-        TimeSeriesData.TimeSeries.PERIOD,
-        TimeSeriesData.TimeSeries.AGGREGATION,
-      };
-      if (projection == null)
-        return -1;
-
-      // don't add an event if there's one currently record
-      Uri timeseries = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId);
-      if (timeseries == null)
-        return -1;
-      
-      LockUtil.waitForLock(mLock);
-      Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
-      if (c == null) {
-        LockUtil.unlock(mLock);
-        return -1;
-      }
-      if (c.getCount() < 1) {
-        LockUtil.unlock(mLock);
-        c.close();
-        return -1;
-      }
-
-      c.moveToFirst();
-      long datapointId = TimeSeriesData.TimeSeries.getRecordingDatapointId(c);
-      
+      long datapointId = currentlyRecordingId(timeSeriesId);
       if (datapointId < 0) { // error
         LockUtil.unlock(mLock);
-        c.close();
         return datapointId;
       }
       if (datapointId != 0) { // datapoint currently recording
         LockUtil.unlock(mLock);
-        c.close();
         return -2;
       }
-
+        
       ContentValues values = new ContentValues();
       if (values == null) {
         LockUtil.unlock(mLock);
-        c.close();
         return -1;
       }
 
-      // If we're updating, the series must be discrete and have an aggregation
-      // period.
-      //   a) If there's no aggregation period, each event is completely
-      // independent, so 'update' really has no meaning.
-      //   b) It's unclear what the appropriate action to perform is if you're
-      // attempting to aggregate a range with a discrete update
-      int period = TimeSeriesData.TimeSeries.getPeriod(c);
-      String type = TimeSeriesData.TimeSeries.getType(c);
-      
-      if (period > 0 && type.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-        String aggregation = TimeSeriesData.TimeSeries.getAggregation(c);
-        c.close();
-        
-        // try to find an existing datapoint in the range
-        long periodStart = mDateMap.millisecondsOfPeriodStart(timestamp, period);
-        long periodEnd = periodStart + period;
-        
-        Uri dataInRange = ContentUris.withAppendedId(
-            TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-            .appendPath("datapoints").build();
-        if (dataInRange == null) {
-          LockUtil.unlock(mLock);
-          return -1;
-        }
+      values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+      values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
+      values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
+      values.put(TimeSeriesData.Datapoint.VALUE, value);
 
-        c = getContentResolver().query(dataInRange, null, 
-            TimeSeriesData.Datapoint.TS_START + " >= ? AND " +
-            TimeSeriesData.Datapoint.TS_END + " >= ? AND " +
-            TimeSeriesData.Datapoint.TS_START + " < ? AND " +
-            TimeSeriesData.Datapoint.TS_END + " < ?",
-            new String[] { ""  + periodStart, ""  + periodEnd, 
-              ""  + periodStart,""  + periodEnd }, null);
-        if (c == null) {
-          LockUtil.unlock(mLock);
-          return -1;
-        }
-        if (c.getCount() != 1) {
-          LockUtil.unlock(mLock);
-          c.close();
-          return -1;
-        }
-        
-        float newValue = 0.0f;
-        long id = TimeSeriesData.Datapoint.getId(c);
-        float oldValue = TimeSeriesData.Datapoint.getValue(c);
-        int oldUpdates = TimeSeriesData.Datapoint.getUpdates(c);
-        c.close();
+      Uri uri = getContentResolver().insert(
+          TimeSeriesData.Datapoint.CONTENT_URI, values);
+      if (uri == null) {
+        LockUtil.unlock(mLock);
+        return -1;
+      }
 
-        if (aggregation.equals(TimeSeriesData.TimeSeries.AGGREGATION_SUM)) {
-          newValue = oldValue + value;
-        } else if (aggregation.equals(TimeSeriesData.TimeSeries.AGGREGATION_AVG)) {
-          newValue = ((oldValue * oldUpdates) + value) / (oldUpdates + 1);
-        }
-          
-        values.put(TimeSeriesData.Datapoint.VALUE, newValue);
-        values.put(TimeSeriesData.Datapoint.UPDATES, oldUpdates + 1);
-          
-        Uri update = ContentUris.withAppendedId(
-            TimeSeriesData.Datapoint.CONTENT_URI, timeSeriesId).buildUpon()
-            .appendPath("datapoints").appendPath("" + id).build();
-
-        int rows = getContentResolver().update(update, values, 
-            TimeSeriesData.Datapoint._ID + " >= ? ",
-            new String[] { "" + id, "" });
-        if (rows != 1) {
-          LockUtil.unlock(mLock);
-          return -1;
-        }
-
-        return id;
-      }      
-      else {
-        c.close();
-        
-        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-        values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
-        values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
-        values.put(TimeSeriesData.Datapoint.VALUE, value);
-        values.put(TimeSeriesData.Datapoint.UPDATES, 1);
-
-        Uri uri = getContentResolver().insert(
-            TimeSeriesData.Datapoint.CONTENT_URI, values);
-        if (uri == null) {
-          LockUtil.unlock(mLock);
-          return -1;
-        }
-
-        try {
-          datapointId = Integer.parseInt(uri.getPathSegments().get(
-              TimeSeriesProvider.PATH_SEGMENT_DATAPOINT_ID));
-        } catch (Exception e) {
-          LockUtil.unlock(mLock);
-          return -1;
-        }
+      try {
+        datapointId = Integer.parseInt(uri.getPathSegments().get(
+            TimeSeriesProvider.PATH_SEGMENT_DATAPOINT_ID));
+      } catch (Exception e) {
+        LockUtil.unlock(mLock);
+        return -1;
       }
 
       LockUtil.unlock(mLock);
@@ -433,7 +325,7 @@ public class EventRecorder extends Service {
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
     public long recordEventNow(long timeSeriesId, float value) {
-      long now = System.currentTimeMillis();
+      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       return recordEvent(timeSeriesId, now, value);
     }
   };
@@ -469,8 +361,9 @@ public class EventRecorder extends Service {
     Cursor dpCur;
     String[] timeSeriesProjection = new String[] {
         TimeSeriesData.TimeSeries._ID,
+        TimeSeriesData.TimeSeries.TYPE,
         TimeSeriesData.TimeSeries.PERIOD, };
-    String[] datapointProjection = new String[] { TimeSeriesData.Datapoint.TS_END, };
+    String[] datapointProjection = new String[] { TimeSeriesData.Datapoint.TS_END };
 
     if (timeSeriesProjection == null || datapointProjection == null)
       return;
@@ -498,18 +391,20 @@ public class EventRecorder extends Service {
       return;
     }
 
-    long now = System.currentTimeMillis();
+    int now = (int) (System.currentTimeMillis() / DateMapCache.SECOND_MS);
+    
     int count = tsCur.getCount();
     tsCur.moveToFirst();
     for (int i = 0; i < count; i++) {
-      int period = tsCur.getInt(tsCur.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.PERIOD));
+      int period = TimeSeriesData.TimeSeries.getPeriod(tsCur);
+      int periodStart = mDateMap.secondsOfPeriodStart(now, period);
+
       if (period < 1) {
         tsCur.moveToNext();
         continue;
       }
 
-      long timeSeriesId = tsCur.getLong(tsCur.getColumnIndexOrThrow(TimeSeriesData.TimeSeries._ID));
-
+      long timeSeriesId = TimeSeriesData.TimeSeries.getId(tsCur);
       Uri lastDatapoint = ContentUris.withAppendedId(
           TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
           .appendPath("range").appendPath("1").build();
@@ -521,35 +416,39 @@ public class EventRecorder extends Service {
       if (dpCur == null)
         continue;
 
+      String type = TimeSeriesData.TimeSeries.getType(tsCur);
+
       if (dpCur.getCount() < 1) {
         values.clear();
         values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-        values.put(TimeSeriesData.Datapoint.TS_START, now);
-        values.put(TimeSeriesData.Datapoint.TS_END, now);
+        values.put(TimeSeriesData.Datapoint.TS_START, periodStart);
+        if (type.equals(TimeSeriesData.TimeSeries.TYPE_RANGE))
+          values.put(TimeSeriesData.Datapoint.TS_END, periodStart + period - 1);
         values.put(TimeSeriesData.Datapoint.VALUE, 0);
-        values.put(TimeSeriesData.Datapoint.UPDATES, 1);
 
         getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
             values);
       } else {
-        long tsEnd = TimeSeriesData.Datapoint.getTsEnd(dpCur);
-        long ms = mDateMap.millisecondsOfPeriodStart(tsEnd + period, period);
+        int tsEnd = TimeSeriesData.Datapoint.getTsEnd(dpCur);        
+        int secs = mDateMap.secondsOfPeriodStart(tsEnd + period, period);
 
         while (true) {
-          if (ms + period >= now)
+          if (secs + period >= now)
             break;
 
           values.clear();
           values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.TS_START, ms);
-          values.put(TimeSeriesData.Datapoint.TS_END, ms);
+          values.put(TimeSeriesData.Datapoint.TS_START, secs);
+          if (type.equals(TimeSeriesData.TimeSeries.TYPE_RANGE))         
+            values.put(TimeSeriesData.Datapoint.TS_END, secs + period - 1);
+          else
+            values.put(TimeSeriesData.Datapoint.TS_END, secs);
           values.put(TimeSeriesData.Datapoint.VALUE, 0);
-          values.put(TimeSeriesData.Datapoint.UPDATES, 1);
 
           getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
               values);
 
-          ms = mDateMap.millisecondsOfPeriodStart(ms + period, period);
+          secs = mDateMap.secondsOfPeriodStart(secs + period, period);
         }
       }
       dpCur.close();

@@ -267,7 +267,7 @@ public class Number {
    * 
    * @author barclay
    */
-  public static class Trend {
+  public static class SmoothedTrend {
     /**
      * Default smoothing percentage. This value will be used to scale the
      * previous entry by multiplying the previous entry's value and adding that
@@ -292,7 +292,7 @@ public class Number {
      * 
      * @see #DEFAULT_SMOOTHING
      */
-    public Trend() {
+    public SmoothedTrend() {
     }
 
     /**
@@ -302,7 +302,7 @@ public class Number {
      *          Sets the smoothing percentage to the specified value.
      * @see #DEFAULT_SMOOTHING
      */
-    public Trend(float smoothing) {
+    public SmoothedTrend(float smoothing) {
       mSmoothing = smoothing;
     }
 
@@ -313,7 +313,7 @@ public class Number {
      *          Returns a new instance of Trend with all data set to source.
      * @see #DEFAULT_SMOOTHING
      */
-    public Trend(Trend source) {
+    public SmoothedTrend(SmoothedTrend source) {
       mNEntries = source.mNEntries;
       mSmoothing = source.mSmoothing;
       mSum = source.mSum;

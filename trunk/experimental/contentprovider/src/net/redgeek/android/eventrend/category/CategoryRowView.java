@@ -38,15 +38,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
+import net.redgeek.android.eventrend.util.Aggregator;
 import net.redgeek.android.eventrend.util.GUITask;
-import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
+import net.redgeek.android.eventrend.util.Trend;
 
 public class CategoryRowView extends LinearLayout implements GUITask {
   // UI elements
@@ -70,6 +72,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   // Private data
   private CategoryRow mRow;
   private long mNewDatapointId;
+  private Aggregator mAggregator;
+  private Trend mTrend;
   
   private int mColorInt;
   private float mAddValue;
@@ -77,9 +81,11 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   // Prefs
   private int mDecimals;
   private int mHistory;
+  private float mSmoothing;
 
   private Context mCtx;
   private ContentResolver mContent;
+  private DateMapCache mDateCache;
 
   private boolean mSelectable = true;
 
@@ -90,6 +96,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mRow = viewRow;
     mNewDatapointId = 0;
     mContent = mCtx.getContentResolver();
+    mDateCache = ((InputActivity) mCtx).getDateMapCache();
+    mAggregator = new Aggregator(mDateCache);
+    mTrend = new Trend(mCtx, mAggregator, mDateCache);
     
     setupPrefs();
     setupTasks();
@@ -126,10 +135,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 //      status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
 //          + oldValue + " -> " + newValue;
 //      mCategoryUpdateView.setText(status);
-////      toast = "Update @ " + DateUtil.toTimestamp(timestamp) + ": " + oldValue
-////          + " -> " + newValue;
-////      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-////          Toast.LENGTH_SHORT).show();
 //    } else {
 //      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
 //          timestamp, mCategoryUpdateView, mRowView);
@@ -138,10 +143,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 //          + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
 //          + newValue;
 //      mCategoryUpdateView.setText(status);
-////      toast = "Add @ " + DateUtil.toTimestamp(mAddEntryTask.mLastAddTimestamp)
-////          + ": " + newValue;
-////      Toast.makeText(mCtx, mDbRow.getCategoryName() + ": " + toast,
-////          Toast.LENGTH_SHORT).show();
 //    }
 //
 //    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
@@ -164,6 +165,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private void setupPrefs() {
     mDecimals = Preferences.getDecimalPlaces(mCtx);
     mHistory = Preferences.getHistory(mCtx);
+    mSmoothing = Preferences.getSmoothingConstant(mCtx);
   }
 
   private void setupTasks() {
@@ -241,6 +243,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
       mAddButton.setText("Add");
     } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+      mMinusButton.setVisibility(View.INVISIBLE);
+      mPlusButton.setVisibility(View.INVISIBLE);
+      mDefaultValue.setVisibility(View.INVISIBLE);
       if (mRow.mRecordingDatapointId > 0)
         mAddButton.setText("Stop");
       else
@@ -252,23 +257,14 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       mAddButton.setVisibility(View.INVISIBLE);
     }
 
-    Uri lastDatapoint = ContentUris.withAppendedId(
-        TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId).buildUpon()
-        .appendPath("range").appendPath("1").build();
-    if (lastDatapoint != null) {
-      Cursor c = mContent.query(lastDatapoint, null, null, null, null);
-      if (c != null && c.getCount() > 0 && c.moveToFirst()) {
-        float value = TimeSeriesData.Datapoint.getValue(c);
-        mDefaultValue.setText(Float.valueOf(value).toString());
-//      float trendValue = Number.Round(mDbRow.getLastTrend(), mDecimals);
-//      mTrendValueView.setText(Float.valueOf(trendValue).toString());
-//
-//      String trendState = mDbRow.getTrendState();
-//      updateTrendIcon(trendState);
-        if (c != null)
-          c.close();
-      }
-    }
+    Trend.TrendState state = mTrend.getTrendState(mRow.mId, mRow.mType, 
+        mRow.mGoal, mRow.mPeriod, mHistory, mSmoothing);
+    
+    mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
+    float trendValue = Number.Round(state.mTrendValue, mDecimals);
+    mTrendValueView.setText(Float.valueOf(trendValue).toString());
+
+    updateTrendIcon(state.mTrendState);
   }
 
   public static void setLayoutAnimationSlideOutLeftIn(ViewGroup panel,
@@ -292,41 +288,75 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     panel.setLayoutAnimation(controller);
   }
 
-  public void updateTrendIcon(String trendState) {
-    if (trendState.equals(InputActivity.TREND_DOWN_45_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_bad);
-    else if (trendState.equals(InputActivity.TREND_DOWN_45_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_45_good);
-    else if (trendState.equals(InputActivity.TREND_DOWN_30_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_bad);
-    else if (trendState.equals(InputActivity.TREND_DOWN_30_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_30_good);
-    else if (trendState.equals(InputActivity.TREND_DOWN_15_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_bad);
-    else if (trendState.equals(InputActivity.TREND_DOWN_15_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15_good);
-    else if (trendState.equals(InputActivity.TREND_UP_45_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_bad);
-    else if (trendState.equals(InputActivity.TREND_UP_45_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_45_good);
-    else if (trendState.equals(InputActivity.TREND_UP_30_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_bad);
-    else if (trendState.equals(InputActivity.TREND_UP_30_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_30_good);
-    else if (trendState.equals(InputActivity.TREND_UP_15_BAD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_bad);
-    else if (trendState.equals(InputActivity.TREND_UP_15_GOOD))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15_good);
-    else if (trendState.equals(InputActivity.TREND_DOWN_15))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_down_15);
-    else if (trendState.equals(InputActivity.TREND_UP_15))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15);
-    else if (trendState.equals(InputActivity.TREND_FLAT))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat);
-    else if (trendState.equals(InputActivity.TREND_FLAT_GOAL))
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat_goal_glow);    
-    else
-      mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_unknown);
+  public void updateTrendIcon(int trendState) {
+    switch (trendState) {
+      case Trend.TREND_DOWN_45_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_45_bad);
+        break;
+      case Trend.TREND_DOWN_45_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_45_good);
+        break;
+      case Trend.TREND_DOWN_30_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_30_bad);
+        break;
+      case Trend.TREND_DOWN_30_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_30_good);
+        break;
+      case Trend.TREND_DOWN_15_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_15_bad);
+        break;
+      case Trend.TREND_DOWN_15_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_15_good);
+        break;
+      case Trend.TREND_UP_45_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_45_bad);
+        break;
+      case Trend.TREND_UP_45_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_45_good);
+        break;
+      case Trend.TREND_UP_30_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_30_bad);
+        break;
+      case Trend.TREND_UP_30_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_30_good);
+        break;
+      case Trend.TREND_UP_15_BAD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_15_bad);
+        break;
+      case Trend.TREND_UP_15_GOOD:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_up_15_good);
+        break;
+      case Trend.TREND_DOWN_15:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_down_15);
+        break;
+      case Trend.TREND_UP_15:
+        mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_up_15);
+        break;
+      case Trend.TREND_FLAT:
+        mTrendIconDrawable = getResources().getDrawable(R.drawable.trend_flat);
+        break;
+      case Trend.TREND_FLAT_GOAL:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_flat_goal_glow);
+        break;
+      default:
+        mTrendIconDrawable = getResources().getDrawable(
+            R.drawable.trend_unknown);
+        break;
+    }
 
     mTrendIconImage.setImageDrawable(mTrendIconDrawable);
   }
@@ -343,7 +373,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
               mAddValue);
         } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
           if (mRow.mRecordingDatapointId > 0) {
-            mNewDatapointId = service.recordEventStop(mRow.mId, mAddValue);
+            mNewDatapointId = service.recordEventStop(mRow.mId);
             if (mNewDatapointId > 0)
               mRow.mRecordingDatapointId = 0;
           } else {
