@@ -32,7 +32,7 @@ public class TimeSeriesData {
      * The content:// style URL for this table
      */
     public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
-        + "/datamap");
+        + "/datemap");
 
     /**
      * The MIME type of {@link #CONTENT_URI} providing a directory of
