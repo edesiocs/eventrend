@@ -16,22 +16,6 @@
 
 package net.redgeek.android.eventrend.input;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import net.redgeek.android.eventrecorder.TimeSeriesData;
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.category.CategoryListAdapter;
-import net.redgeek.android.eventrend.category.CategoryRow;
-import net.redgeek.android.eventrend.category.CategoryRowView;
-import net.redgeek.android.eventrend.util.DateUtil;
-import net.redgeek.android.eventrend.util.ProgressIndicator;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
@@ -67,6 +51,24 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ViewFlipper;
+
+import net.redgeek.android.eventrecorder.IEventRecorderService;
+import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
+import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.category.CategoryListAdapter;
+import net.redgeek.android.eventrend.category.CategoryRow;
+import net.redgeek.android.eventrend.category.CategoryRowView;
+import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.ProgressIndicator;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // TODO:  change everything to content providers
 // TODO:  setup listeners for CP changes
@@ -564,7 +566,7 @@ public class InputActivity extends EvenTrendActivity {
         Integer listNum = hm.get(group);
         if (listNum == null) {
           listNum = new Integer(list);
-          cla = new CategoryListAdapter(this, mRecorderService);
+          cla = new CategoryListAdapter(this);
           mCLAs.add(cla);
           lv = new ListView(this);
           lv.setId(LIST_VIEW_ID_BASE + i);
@@ -791,6 +793,10 @@ public class InputActivity extends EvenTrendActivity {
 //
 //    return;
 //  }
+
+  public IEventRecorderService getRecorderService() {
+    return mRecorderService;
+  }  
 
   // *** Animations ***//
   private void swapCategoryPositions(CategoryListAdapter cla, int higher,

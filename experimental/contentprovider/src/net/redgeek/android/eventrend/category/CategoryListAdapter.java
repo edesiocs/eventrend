@@ -28,12 +28,10 @@ import android.widget.BaseAdapter;
 
 public class CategoryListAdapter extends BaseAdapter {
   private Context mCtx;
-  private IEventRecorderService mRecorderService;
   private List<CategoryRow> mItems = new ArrayList<CategoryRow>();
 
-  public CategoryListAdapter(Context context, IEventRecorderService service) {
+  public CategoryListAdapter(Context context) {
     mCtx = context;
-    mRecorderService = service;
   }
 
   public void addItem(CategoryRow it) {
@@ -76,7 +74,7 @@ public class CategoryListAdapter extends BaseAdapter {
   }
 
   public View getView(int position, View convertView, ViewGroup parent) {
-    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position), mRecorderService);
+    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position));
     row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
     return row;
   }

@@ -27,7 +27,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.RemoteException;
 
 import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
 import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
@@ -181,8 +180,10 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.VALUE, 0);
       values.put(TimeSeriesData.Datapoint.UPDATES, 1);
 
-      Uri uri = getContentResolver().insert(
-          TimeSeriesData.Datapoint.CONTENT_URI, values);
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          .appendPath("datapoints").build();
+      uri = getContentResolver().insert(uri, values);
       if (uri == null) {
         LockUtil.unlock(mLock);
         return -1;
@@ -207,7 +208,7 @@ public class EventRecorder extends Service {
       }
 
       int count = getContentResolver().update(
-          TimeSeriesData.Datapoint.CONTENT_URI, values,
+          TimeSeriesData.TimeSeries.CONTENT_URI, values,
           TimeSeriesData.TimeSeries._ID + " = ? ",
           new String[] { "" + timeSeriesId } );
       if (count != 1) {
@@ -244,13 +245,18 @@ public class EventRecorder extends Service {
         return -1;
       }
 
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          .appendPath("datapoints").appendPath("" + datapointId).build();
+      if (uri == null) {
+        LockUtil.unlock(mLock);
+        return -1;
+      }
+
       long now = System.currentTimeMillis();
       values.put(TimeSeriesData.Datapoint.TS_END, now);
       values.put(TimeSeriesData.Datapoint.VALUE, value);
-      int count = getContentResolver().update(
-          TimeSeriesData.Datapoint.CONTENT_URI, values,
-          TimeSeriesData.Datapoint._ID + " = ? ", 
-          new String[] { "" + datapointId });
+      int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
         return -1;
@@ -341,7 +347,7 @@ public class EventRecorder extends Service {
         long periodEnd = periodStart + period;
         
         Uri dataInRange = ContentUris.withAppendedId(
-            TimeSeriesData.Datapoint.CONTENT_URI, timeSeriesId).buildUpon()
+            TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
             .appendPath("datapoints").build();
         if (dataInRange == null) {
           LockUtil.unlock(mLock);
@@ -505,7 +511,7 @@ public class EventRecorder extends Service {
       long timeSeriesId = tsCur.getLong(tsCur.getColumnIndexOrThrow(TimeSeriesData.TimeSeries._ID));
 
       Uri lastDatapoint = ContentUris.withAppendedId(
-          TimeSeriesData.Datapoint.CONTENT_URI, timeSeriesId).buildUpon()
+          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
           .appendPath("range").appendPath("1").build();
       if (lastDatapoint == null)
         continue;
@@ -526,14 +532,10 @@ public class EventRecorder extends Service {
         getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
             values);
       } else {
-        long tsEnd = dpCur.getLong(dpCur.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TS_END));
-
-        mCal.setTimeInMillis(tsEnd);
-        mCal.add(Calendar.MILLISECOND, period);
-        setToPeriodStart(mCal, period);
+        long tsEnd = TimeSeriesData.Datapoint.getTsEnd(dpCur);
+        long ms = mDateMap.millisecondsOfPeriodStart(tsEnd + period, period);
 
         while (true) {
-          long ms = mCal.getTimeInMillis();
           if (ms + period >= now)
             break;
 
@@ -547,8 +549,7 @@ public class EventRecorder extends Service {
           getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
               values);
 
-          mCal.add(Calendar.MILLISECOND, period);
-          setToPeriodStart(mCal, period);
+          ms = mDateMap.millisecondsOfPeriodStart(ms + period, period);
         }
       }
       dpCur.close();
@@ -560,67 +561,7 @@ public class EventRecorder extends Service {
 
     return;
   }
-  
-  private void setToPeriodStart(Calendar c, int period) {
-    if (period > DateMapCache.YEAR_MS) {
-      c.set(Calendar.MONTH, 0);
-      c.set(Calendar.DAY_OF_MONTH, 1);
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.QUARTER_MS) {
-      int month = c.get(Calendar.MONTH);
-      if (month >= 9)
-        c.set(Calendar.MONTH, 9);
-      else if (month >= 9)
-        c.set(Calendar.MONTH, 6);
-      else if (month >= 9)
-        c.set(Calendar.MONTH, 3);
-      else
-        c.set(Calendar.MONTH, 0);
-      c.set(Calendar.DAY_OF_MONTH, 0);
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.MONTH_MS) {
-      c.set(Calendar.DAY_OF_MONTH, 1);
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.WEEK_MS) {
-      c.set(Calendar.DAY_OF_WEEK, c.getFirstDayOfWeek());
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.DAY_MS) {
-      c.set(Calendar.HOUR_OF_DAY, 0);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.AMPM_MS) {
-      if (c.get(Calendar.AM_PM) == Calendar.AM)
-        c.set(Calendar.HOUR_OF_DAY, 0);
-      else
-        c.set(Calendar.HOUR_OF_DAY, 12);
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.HOUR_MS) {
-      c.set(Calendar.MINUTE, 0);
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    } else if (period > DateMapCache.MINUTE_MS) {
-      c.set(Calendar.SECOND, 0);
-      c.set(Calendar.MILLISECOND, 0);
-    }
-
-    return;
-  }
-  
+    
   public ArrayList<TimeSeriesInterpolator> getInterpolators() {
     return mInterpolators;
   }

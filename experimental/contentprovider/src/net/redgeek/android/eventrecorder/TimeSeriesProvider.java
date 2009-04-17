@@ -80,7 +80,7 @@ public class TimeSeriesProvider extends ContentProvider {
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#", DATAPOINTS_RANGE);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/", DATEMAP);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/#", DATEMAP_ID);
-
+      
     sTimeSeriesProjection = new HashMap<String, String>();
     sTimeSeriesProjection.put(TimeSeries._ID, TimeSeries._ID);
     sTimeSeriesProjection.put(TimeSeries.TIMESERIES_NAME, TimeSeries.TIMESERIES_NAME);
@@ -233,7 +233,7 @@ public class TimeSeriesProvider extends ContentProvider {
         }
         
         break;
-      case DATAPOINTS_ID:
+      case DATAPOINTS:
         Long timeSeriesId = values.getAsLong(Datapoint.TIMESERIES_ID);
         if (timeSeriesId < 1) {
           throw new IllegalArgumentException("insert: Invalid URI " + uri);
@@ -246,7 +246,9 @@ public class TimeSeriesProvider extends ContentProvider {
           if (id == -1) {
             outputUri = null;
           } else {
-            outputUri = ContentUris.withAppendedId(Datapoint.CONTENT_URI, id);
+            outputUri = ContentUris.withAppendedId(
+                TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+                .appendPath("datapoints").appendPath(""+id).build();
           }
           
           mCache.insertDatapoint(timeSeriesId, Long.valueOf(id), values);           
@@ -306,7 +308,7 @@ public class TimeSeriesProvider extends ContentProvider {
         qb.setTables(Datapoint.TABLE_NAME);
         qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
-        limit = " limit " + count;
+        limit = count;
         break;
       case DATAPOINTS_RANGE:
         // TODO:  reference the cache

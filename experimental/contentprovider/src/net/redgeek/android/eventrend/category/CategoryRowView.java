@@ -17,9 +17,12 @@
 package net.redgeek.android.eventrend.category;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,6 +44,7 @@ import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
 import net.redgeek.android.eventrend.util.GUITask;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 
@@ -76,17 +80,16 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
   private Context mCtx;
   private ContentResolver mContent;
-  protected IEventRecorderService mEventRecorder;
 
   private boolean mSelectable = true;
 
-  public CategoryRowView(Context context, CategoryRow viewRow, IEventRecorderService service) {
+  public CategoryRowView(Context context, CategoryRow viewRow) {
     super(context);
     mCtx = context;
     mRowView = this;
     mRow = viewRow;
-    mEventRecorder = service;
     mNewDatapointId = 0;
+    mContent = mCtx.getContentResolver();
     
     setupPrefs();
     setupTasks();
@@ -107,14 +110,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void executeNonGuiTask() throws Exception {
-    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-      mNewDatapointId = mEventRecorder.recordEvent(mRow.mId, mRow.mTimestamp, mAddValue);
-    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
-      if (mRow.mRecordingDatapointId > 0)
-        mNewDatapointId = mEventRecorder.recordEventStop(mRow.mId, mAddValue);
-      else
-        mNewDatapointId = mEventRecorder.recordEventStart(mRow.mId);
-    }
   }
 
   public void afterExecute() {
@@ -154,14 +149,16 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 //    float trendValue = Number.Round(cat.getLastTrend(), mDecimals);
 //    mTrendValueView.setText(Float.valueOf(trendValue).toString());
 //
-//    mAddButton.setClickable(true);
-//    mAddButton.setTextColor(Color.BLACK);
-//
-//    ((InputActivity) mCtx).redrawSyntheticViews();
+//  ((InputActivity) mCtx).redrawSyntheticViews();
+
+    mAddButton.setClickable(true);
+    mAddButton.setTextColor(Color.BLACK);
   }
 
   public void onFailure(Throwable t) {
     Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
+    mAddButton.setClickable(true);
+    mAddButton.setTextColor(Color.BLACK);
   }
 
   private void setupPrefs() {
@@ -210,7 +207,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         value += mRow.mIncrement;
         value = Number.Round(value, mDecimals);
         mDefaultValue.setText(Float.toString(value));
-//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
 
@@ -221,17 +217,13 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         value -= mRow.mIncrement;
         value = Number.Round(value, mDecimals);
         mDefaultValue.setText(Float.toString(value));
-//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
 
     mAddListener = new OnClickListener() {
       public void onClick(View v) {
         addEntry();
-        float value = mRow.mDefaultValue;
-//        mDbRow.setLastValue(value);
-//        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
-        mDefaultValue.setText(Float.valueOf(value).toString());
+        mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
       }
     };
   }
@@ -246,43 +238,36 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mCategoryNameView.setText(mRow.mTimeSeriesName);
     mCategoryNameView.setTextColor(mColorInt);
 
-    if (mRow.mType.equals("discrete")) {
+    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
       mAddButton.setText("Add");
-    } else {
+    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
       if (mRow.mRecordingDatapointId > 0)
         mAddButton.setText("Stop");
       else
         mAddButton.setText("Start");
-    }
-
-    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC) == false) {
-//      EntryDbTable.Row row = mDbh.fetchLastCategoryEntry(mDbRow.getId());
-//      if (row != null) {
-//        String str = DateUtil.toTimestamp(row.getTimestamp()) + ": "
-//            + Float.valueOf(row.getValue()).toString();
-//        mCategoryUpdateView.setText(str);
-//      }
-//
-//      float inputValue = mDbRow.getLastValue();
-//      mDefaultValue.setText(Float.valueOf(inputValue).toString());
-//      float trendValue = Number.Round(mDbRow.getLastTrend(), mDecimals);
-//      mTrendValueView.setText(Float.valueOf(trendValue).toString());
-//
-//      String trendState = mDbRow.getTrendState();
-//      updateTrendIcon(trendState);
-    } else {
-//      mDbRow = mDbh.fetchCategory(mDbRow.getId());
-
+    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
       mDefaultValue.setVisibility(View.INVISIBLE);
       mAddButton.setVisibility(View.INVISIBLE);
+    }
 
+    Uri lastDatapoint = ContentUris.withAppendedId(
+        TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId).buildUpon()
+        .appendPath("range").appendPath("1").build();
+    if (lastDatapoint != null) {
+      Cursor c = mContent.query(lastDatapoint, null, null, null, null);
+      if (c != null && c.getCount() > 0 && c.moveToFirst()) {
+        float value = TimeSeriesData.Datapoint.getValue(c);
+        mDefaultValue.setText(Float.valueOf(value).toString());
 //      float trendValue = Number.Round(mDbRow.getLastTrend(), mDecimals);
 //      mTrendValueView.setText(Float.valueOf(trendValue).toString());
 //
 //      String trendState = mDbRow.getTrendState();
 //      updateTrendIcon(trendState);
+        if (c != null)
+          c.close();
+      }
     }
   }
 
@@ -347,25 +332,47 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void addEntry() {
-    try {
-      if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-        mEventRecorder.recordEvent(mRow.mId, mRow.mTimestamp, mAddValue);
-      } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
-        if (mRow.mRecordingDatapointId > 0)
-          mEventRecorder.recordEventStart(mRow.mId);
-        else
-          mEventRecorder.recordEventStop(mRow.mId, mAddValue);
+    IEventRecorderService service = ((InputActivity) mCtx).getRecorderService();
+    if (service == null) {
+      Toast.makeText(mCtx, "RecorderService not available.", 
+          Toast.LENGTH_SHORT).show();
+    } else {
+      try {
+        if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+          mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
+              mAddValue);
+        } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+          if (mRow.mRecordingDatapointId > 0) {
+            mNewDatapointId = service.recordEventStop(mRow.mId, mAddValue);
+            if (mNewDatapointId > 0)
+              mRow.mRecordingDatapointId = 0;
+          } else {
+            mNewDatapointId = service.recordEventStart(mRow.mId);
+            if (mNewDatapointId > 0)
+              mRow.mRecordingDatapointId = mNewDatapointId;
+          }
+        }
+      } catch (Exception e) {
+        Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
       }
-    } catch (Exception e) {
-      Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
     }
-
+    
     mRow.mTimestamp = ((InputActivity) mCtx).getTimestampMs();
     mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
 //    GUITaskQueue.getInstance().addTask(mProgress, this);
 
-    mAddButton.setClickable(false);
-    mAddButton.setTextColor(Color.LTGRAY);
+    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+      mAddButton.setClickable(false);
+      mAddButton.setTextColor(Color.LTGRAY);
+    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+      if (mRow.mRecordingDatapointId == 0) {
+        mAddButton.setText("Stop");
+        mAddButton.setTextColor(Color.RED);
+      } else {
+        mAddButton.setText("Start");
+        mAddButton.setTextColor(Color.BLACK);        
+      }
+    }
 
 //    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
 //    updateTrendIcon(cat.getTrendState());
