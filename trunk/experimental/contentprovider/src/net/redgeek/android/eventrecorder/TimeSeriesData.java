@@ -201,12 +201,77 @@ public class TimeSeriesData {
     public static final String VALUE = "value";
 
     /**
-     * The table creation sql
+     * The number of entries that comprise the datapoint
+     * <p>
+     * Type: FLOAT
+     * </p>
      */
-    public static final String TABLE_CREATE = "create table " + TABLE_NAME
-        + " (" + _ID + " integer primary key autoincrement, " + TIMESERIES_ID
+    public static final String ENTRIES = "entries";
+
+    /**
+     * The trend value of the datapoint (based on sensitivity and smoothing)
+     * at that point in time.
+     * <p>
+     * Type: FLOAT
+     * </p>
+     */
+    public static final String TREND = "trend";
+
+    /**
+     * The standard deviation of the datapoint values at that time.
+     * <p>
+     * Type: FLOAT
+     * </p>
+     */
+    public static final String STDDEV = "stddev";
+
+    /**
+     * The table creation sql
+     * We create tables for each aggregation level.
+     */
+    public static final String TABLE_CONTENTS = " (" + _ID
+        + " integer primary key autoincrement, " + TIMESERIES_ID
         + " integer key not null, " + TS_START + " integer key not null, "
-        + TS_END + " integer key not null, " + VALUE + " float not null);";
+        + TS_END + " integer key not null, " + VALUE + " float not null, "
+        + ENTRIES + " integer not null, " + STDDEV + " float not null, "
+        + TREND + " float not null" + ");";
+    
+    public static final String TABLE_CREATE = "create table " 
+        + TABLE_NAME + TABLE_CONTENTS;
+
+    public static final String[] AGGREGATE_TABLE_SUFFIX = {
+      "hour",
+      "ampm",
+      "day",
+      "week",
+      "month",
+      "quarter",
+      "year",
+    };
+    public static final long[] AGGREGATE_TABLE_PERIOD = {
+      DateMapCache.HOUR_MS / DateMapCache.SECOND_MS,
+      DateMapCache.AMPM_MS / DateMapCache.SECOND_MS,
+      DateMapCache.DAY_MS / DateMapCache.SECOND_MS,
+      DateMapCache.WEEK_MS / DateMapCache.SECOND_MS,
+      DateMapCache.MONTH_MS / DateMapCache.SECOND_MS,
+      DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS,
+      DateMapCache.YEAR_MS / DateMapCache.SECOND_MS,
+    };
+    
+    public static final String TABLE_CREATE_HOUR = "create table " + TABLE_NAME
+        + "_hour" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_AMPM = "create table " + TABLE_NAME
+        + "_ampm" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_DAY = "create table " + TABLE_NAME
+        + "_day" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_WEEK = "create table " + TABLE_NAME
+        + "_week" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_MONTH = "create table "
+        + TABLE_NAME + "_month" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_QUARTER = "create table "
+        + TABLE_NAME + "_quarter" + TABLE_CONTENTS;
+    public static final String TABLE_CREATE_YEAR = "create table " + TABLE_NAME
+        + "_year" + TABLE_CONTENTS;
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint._ID));
@@ -226,6 +291,10 @@ public class TimeSeriesData {
 
     public static float getValue(Cursor c) {
       return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.VALUE));
+    }
+
+    public static int getEntries(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.ENTRIES));
     }
   }
 
@@ -399,6 +468,30 @@ public class TimeSeriesData {
     public static final String INTERPOLATION = "interpolation";
 
     /**
+     * The sensitivity of the timeseries.
+     * <p>
+     * Type: FLOAT
+     * </p>
+     */
+    public static final String SENSITIVITY = "sensitivity";
+
+    /**
+     * The smoothing constant of the timeseries.
+     * <p>
+     * Type: FLOAT
+     * </p>
+     */
+    public static final String SMOOTHING = "smoothing";
+
+    /**
+     * The number of datapoints to take into account when calculating trend.
+     * <p>
+     * Type: INTEGER
+     * </p>
+     */
+    public static final String HISTORY = "history";
+
+    /**
      * The table creation sql
      */
     public static final String TABLE_CREATE = "create table " + TABLE_NAME
@@ -409,7 +502,9 @@ public class TimeSeriesData {
         + " text not null, " + PERIOD + " integer not null, " + RANK
         + " integer not null, " + AGGREGATION + " text not null, " + TYPE
         + " string not null, " + ZEROFILL + " integer not null, " + FORMULA
-        + " text, " + INTERPOLATION + " text not null, " + UNITS + " text);";
+        + " text, " + INTERPOLATION + " text not null, " + UNITS + " text, "
+        + SENSITIVITY + " float not null, " + SMOOTHING + " float not null, "
+        + HISTORY + " integer not null " + ");";
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries._ID));
@@ -473,6 +568,18 @@ public class TimeSeriesData {
     
     public static String getInterpolation(Cursor c) {
       return c.getString(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.INTERPOLATION));
+    }
+
+    public static float getSensitivity(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.SENSITIVITY));
+    }
+
+    public static float getSmoothing(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.SMOOTHING));
+    }
+
+    public static int getHistory(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.HISTORY));
     }
   }
 }
