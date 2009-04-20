@@ -64,8 +64,10 @@ public class TimeSeriesProvider extends ContentProvider {
   public static final int PATH_SEGMENT_TIMERSERIES_ID = 1;
   public static final int PATH_SEGMENT_DATAPOINT_ID = 3;
   public static final int PATH_SEGMENT_DATAPOINT_RECENT_COUNT = 3;
+  public static final int PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION = 4;
   public static final int PATH_SEGMENT_DATAPOINT_RANGE_START = 3;
   public static final int PATH_SEGMENT_DATAPOINT_RANGE_END = 4;
+  public static final int PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION = 5;
   public static final int PATH_SEGMENT_DATEMAP_ID = 1;
   
   static {
@@ -75,8 +77,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#", TIMESERIES_ID);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints", DATAPOINTS);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints/#", DATAPOINTS_ID);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#", DATAPOINTS_RECENT);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#", DATAPOINTS_RECENT);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#/*", DATAPOINTS_RECENT);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#", DATAPOINTS_RANGE);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#/*", DATAPOINTS_RANGE);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/", DATEMAP);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/#", DATEMAP_ID);
       
@@ -142,60 +146,125 @@ public class TimeSeriesProvider extends ContentProvider {
     }      
   }
 
-  @Override
-  public int delete(Uri uri, String where, String[] whereArgs) {
-    SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    String seriesId, datapointId;
-    int count;
-    switch (sURIMatcher.match(uri)) {
-      case TIMESERIES_ID:
-        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
+  private void updateAggregations(SQLiteDatabase db, long timeSeriesId, 
+      int oldStart, int newStart, float oldValue, float newValue, 
+      boolean update) throws Exception {
+    Cursor c;
+    ContentValues values = new ContentValues();
+    String table;
+    long id;
+    int period, oldPeriodStart, newPeriodStart;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
 
-        LockUtil.waitForLock(mLock);        
-        db.beginTransaction();
+    for (int i = 0; i < tables.length; i++) {
+      SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+      qb.setProjectionMap(sDatapointProjection);
 
-        try {
-          // Delete datapoints associated with the timeseries
-          count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "=" 
-              + seriesId, null);
-          // and the timeseries meta-data
-          count = db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
-              + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
-              whereArgs);
+      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+      qb.setTables(table);
 
-          db.setTransactionSuccessful();
-        } catch (Exception e) {
-          count = -1;
-        } finally {
-          db.endTransaction();
-          LockUtil.unlock(mLock);
+      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+      newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
+
+      if (update == true) {
+        // updating or deleting, not inserting
+        oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
+ 
+        if (oldPeriodStart == newPeriodStart) {
+          qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+          qb.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
+          c = qb.query(db, null, null, null, null, null, null, null);
+          if (c == null || c.getCount() < 1) {
+            if (c != null)
+              c.close();
+            throw new Exception("update: could not find old aggregate");
+          }
+
+          id = TimeSeriesData.Datapoint.getId(c);
+          oldValue = TimeSeriesData.Datapoint.getValue(c);
+          c.close();
+
+          values.clear();
+          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+          values.put(TimeSeriesData.Datapoint.VALUE, oldValue + (oldValue - newValue));
+          id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+              new String[] { "" + id });
+          if (id == -1)
+              throw new Exception("insert: couldn't update old aggregate");
         }
+        else {
+          // period has changed, have to subtract from old period and add to new
+          // period.
+          SQLiteQueryBuilder qb2 = new SQLiteQueryBuilder();
+          qb2.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+          qb2.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
+          c = qb2.query(db, null, null, null, null, null, null, null);
+          if (c == null || c.getCount() < 1) {
+            if (c != null)
+              c.close();
+            throw new Exception("update: could not find old aggregate");
+          }
 
-        break;
-      case DATAPOINTS_ID:
-        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
-        datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
-        
-        LockUtil.waitForLock(mLock);
-        try {
-          count = db.delete(Datapoint.TABLE_NAME, Datapoint._ID + "=" + datapointId
-              + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
-              whereArgs);
-        } catch (Exception e) {
-          count = -1;
-        } finally {
-          LockUtil.unlock(mLock);
+          id = TimeSeriesData.Datapoint.getId(c);
+          oldValue = TimeSeriesData.Datapoint.getValue(c);
+          int entries = TimeSeriesData.Datapoint.getEntries(c);
+          c.close();
+
+          values.clear();
+          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+          values.put(TimeSeriesData.Datapoint.TS_START, oldPeriodStart);
+          values.put(TimeSeriesData.Datapoint.TS_END, oldPeriodStart + period - 1);
+          values.put(TimeSeriesData.Datapoint.VALUE, oldValue - newValue);
+          values.put(TimeSeriesData.Datapoint.ENTRIES, entries - 1);
+          id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+              new String[] { "" + id });
+          if (id == -1)
+              throw new Exception("insert: couldn't update old aggregate");
         }
+      }
+          
+      // insert, or update within the same period
+      qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+      qb.appendWhere(Datapoint.TS_START + " == " + newPeriodStart + " ");
 
-        break;
-      default:
-        throw new IllegalArgumentException("delete: Unknown URI " + uri);
+      c = qb.query(db, null, null, null, null, null, null, null);
+      if (c == null || c.getCount() < 1) {
+        // insert
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
+        values
+            .put(TimeSeriesData.Datapoint.TS_END, newPeriodStart + period - 1);
+        values.put(TimeSeriesData.Datapoint.VALUE, newValue);
+        values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+        id = db.insert(table, null, values);
+        if (c != null)
+          c.close();
+        if (id == -1)
+          throw new Exception("insert: couldn't insert new aggregate");
+      } else {
+        // update
+        id = TimeSeriesData.Datapoint.getId(c);
+        int entries = TimeSeriesData.Datapoint.getEntries(c);
+        oldValue = TimeSeriesData.Datapoint.getValue(c);
+
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
+        values
+            .put(TimeSeriesData.Datapoint.TS_END, newPeriodStart + period - 1);
+        values.put(TimeSeriesData.Datapoint.VALUE, oldValue + newValue);
+        values.put(TimeSeriesData.Datapoint.ENTRIES, entries + 1);
+        id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+            new String[] { "" + id });
+        c.close();
+        if (id == -1)
+          throw new Exception("insert: couldn't update old aggregate");
+      }
     }
 
-    getContext().getContentResolver().notifyChange(uri, null);
-    return count;
+    return;
   }
-
+  
   @Override
   public Uri insert(Uri uri, ContentValues values) {
     Uri outputUri = null;
@@ -225,7 +294,10 @@ public class TimeSeriesProvider extends ContentProvider {
         }
 
         LockUtil.waitForLock(mLock);
+        db.beginTransaction();
+
         try {
+          // insert into the base table
           id = db.insert(Datapoint.TABLE_NAME, null, values);
           if (id == -1) {
             outputUri = null;
@@ -234,8 +306,29 @@ public class TimeSeriesProvider extends ContentProvider {
                 TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
                 .appendPath("datapoints").appendPath(""+id).build();
           }
+          
+          int tsStart = 0;
+          int tsEnd = 0;
+          float newValue = 0.0f;
+          
+          if (values.containsKey(Datapoint.TS_START))
+            tsStart = values.getAsInteger(Datapoint.TS_START);
+          if (values.containsKey(Datapoint.VALUE))
+            newValue = values.getAsFloat(TimeSeriesData.Datapoint.VALUE);
+          if (values.containsKey(Datapoint.TS_END))
+            tsEnd = values.getAsInteger(Datapoint.TS_END);
+
+          // Only aggregate if we're adding a discrete event or a range event
+          // that has an endpoint set.  We'll take care of updating aggregations
+          // in 'update' when the end of the range event is set.
+          if (tsEnd >= tsStart && tsEnd != 0) {     
+            updateAggregations(db, timeSeriesId, 0, tsStart, 0, newValue, false);
+          }
+          
+          db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
+          db.endTransaction();
           LockUtil.unlock(mLock);
         }
 
@@ -253,6 +346,7 @@ public class TimeSeriesProvider extends ContentProvider {
   @Override
   public Cursor query(Uri uri, String[] projection, String selection,
       String[] selectionArgs, String sortOrder) {
+    String table, agg;
     String orderBy = sortOrder;
     String limit = "";
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
@@ -281,7 +375,12 @@ public class TimeSeriesProvider extends ContentProvider {
         break;
       case DATAPOINTS_RECENT:
         String count = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_COUNT);
-        qb.setTables(Datapoint.TABLE_NAME);
+        table = Datapoint.TABLE_NAME;
+        agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
+        if (agg != null && TextUtils.isEmpty(agg) == false) {
+          table += "_" + table;
+        }
+        qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
         limit = count;
@@ -289,7 +388,12 @@ public class TimeSeriesProvider extends ContentProvider {
       case DATAPOINTS_RANGE:
         String start = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_START);
         String end = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_END);
-        qb.setTables(Datapoint.TABLE_NAME);
+        table = Datapoint.TABLE_NAME;
+        agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
+        if (agg != null && TextUtils.isEmpty(agg) == false) {
+          table += "_" + table;
+        }
+        qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + " = " 
             + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint.TS_START + " >= " + start + " AND ");
@@ -335,6 +439,7 @@ public class TimeSeriesProvider extends ContentProvider {
     
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
+        // TODO:  if smoothing or history change, recalc trend for whole series
         LockUtil.waitForLock(mLock);
         try {
           count = db.update(TimeSeries.TABLE_NAME, values, where, whereArgs);
@@ -344,6 +449,7 @@ public class TimeSeriesProvider extends ContentProvider {
         }
         break;
       case TIMESERIES_ID:
+        // TODO:  if smoothing or history change, recalc trend for whole series
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
 
         LockUtil.waitForLock(mLock);
@@ -356,27 +462,59 @@ public class TimeSeriesProvider extends ContentProvider {
           LockUtil.unlock(mLock);
         }
         break;
-      case DATAPOINTS:
-        LockUtil.waitForLock(mLock);
-        db.beginTransaction();
-        try {
-          count = db.update(Datapoint.TABLE_NAME, values, where, whereArgs);
-        } catch (Exception e) {
-        } finally {
-          LockUtil.unlock(mLock);
-        }
-        break;
+//      case DATAPOINTS:
+//      // TODO:  recalc trend, stddev for all affected series
+//      // TODO:  fix aggregations on update
+//        LockUtil.waitForLock(mLock);        
+//        try {
+//          count = db.update(Datapoint.TABLE_NAME, values, where, whereArgs);
+//        } catch (Exception e) {
+//        } finally {
+//          LockUtil.unlock(mLock);
+//        }
+//        break;
       case DATAPOINTS_ID:
+        // TODO:  recalc trend, stddev for all affected series
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
         datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
+        long tsId = Long.valueOf(timeSeriesId);
         
         LockUtil.waitForLock(mLock);
+        db.beginTransaction();
+        
         try {
+          SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+          qb.setProjectionMap(sDatapointProjection);
+          qb.setTables(Datapoint.TABLE_NAME);
+          qb.appendWhere(Datapoint._ID + " = " + datapointId + " ");
+
+          Cursor c = qb.query(db, null, null, null, null, null, null, null);
+          if (c == null || c.getCount() < 1) {
+            if (c != null)
+              c.close();
+            throw new Exception("update: couldn't find source datapoint");
+          }
+          
+          int oldStart = Datapoint.getTsStart(c);
+          float oldValue = Datapoint.getTsStart(c);
+
           count = db.update(Datapoint.TABLE_NAME, values, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
+          
+          int newStart = oldStart;
+          float newValue = oldValue;
+          if (values.containsKey(Datapoint.TS_START))
+            newStart = values.getAsInteger(Datapoint.TS_START);
+          if (values.containsKey(Datapoint.VALUE))
+            newValue = values.getAsFloat(TimeSeriesData.Datapoint.VALUE);
+          
+          updateAggregations(db, tsId, oldStart, newStart, oldValue, newValue, true);   
+          
+          db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
+          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -388,6 +526,61 @@ public class TimeSeriesProvider extends ContentProvider {
     return count;
   }
   
+  @Override
+  public int delete(Uri uri, String where, String[] whereArgs) {
+    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+    String seriesId, datapointId;
+    int count;
+    switch (sURIMatcher.match(uri)) {
+      case TIMESERIES_ID:
+        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
+
+        LockUtil.waitForLock(mLock);        
+        db.beginTransaction();
+
+        try {
+          // Delete datapoints associated with the timeseries
+          count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "=" 
+              + seriesId, null);
+          // and the timeseries meta-data
+          count = db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
+              + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
+              whereArgs);
+
+          db.setTransactionSuccessful();
+        } catch (Exception e) {
+          count = -1;
+        } finally {
+          db.endTransaction();
+          LockUtil.unlock(mLock);
+        }
+
+        break;
+      case DATAPOINTS_ID:
+        // TODO:  recalc trend, stddev for all affected series
+        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
+        datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
+        
+        LockUtil.waitForLock(mLock);
+        try {
+          count = db.delete(Datapoint.TABLE_NAME, Datapoint._ID + "=" + datapointId
+              + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
+              whereArgs);
+        } catch (Exception e) {
+          count = -1;
+        } finally {
+          LockUtil.unlock(mLock);
+        }
+
+        break;
+      default:
+        throw new IllegalArgumentException("delete: Unknown URI " + uri);
+    }
+
+    getContext().getContentResolver().notifyChange(uri, null);
+    return count;
+  }
+
   private static class DatabaseHelper extends SQLiteOpenHelper {
     DatabaseHelper(Context context) {
       super(context, TimeSeriesData.DATABASE_NAME, null, DATABASE_VERSION);
@@ -397,7 +590,16 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onCreate(SQLiteDatabase db) {
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
+      db.execSQL(Datapoint.TABLE_CREATE_HOUR);
+      db.execSQL(Datapoint.TABLE_CREATE_AMPM);
+      db.execSQL(Datapoint.TABLE_CREATE_DAY);
+      db.execSQL(Datapoint.TABLE_CREATE_WEEK);
+      db.execSQL(Datapoint.TABLE_CREATE_MONTH);
+      db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
+      db.execSQL(Datapoint.TABLE_CREATE_YEAR);
+      db.execSQL(Datapoint.TABLE_CREATE);
       db.execSQL(DateMap.TABLE_CREATE);
+    
       generateDateMapCacheData(db);
     }
 
@@ -405,9 +607,23 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       db.execSQL("drop table " + TimeSeries.TABLE_CREATE);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_HOUR);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_AMPM);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_DAY);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_WEEK);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_MONTH);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_QUARTER);
+      db.execSQL("drop table " + Datapoint.TABLE_CREATE_YEAR);
       db.execSQL("drop table " + DateMap.TABLE_CREATE);
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
+      db.execSQL(Datapoint.TABLE_CREATE_HOUR);
+      db.execSQL(Datapoint.TABLE_CREATE_AMPM);
+      db.execSQL(Datapoint.TABLE_CREATE_DAY);
+      db.execSQL(Datapoint.TABLE_CREATE_WEEK);
+      db.execSQL(Datapoint.TABLE_CREATE_MONTH);
+      db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
+      db.execSQL(Datapoint.TABLE_CREATE_YEAR);
       db.execSQL(DateMap.TABLE_CREATE);
     }
     
