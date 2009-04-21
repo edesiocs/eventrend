@@ -379,6 +379,14 @@ public class TimeSeriesData {
     public static int getEntries(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.ENTRIES));
     }
+
+    public static float getTrend(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.TREND));
+    }
+
+    public static float getStdDev(Cursor c) {
+      return c.getFloat(c.getColumnIndexOrThrow(TimeSeriesData.Datapoint.STDDEV));
+    }
   }
 
   public static final class TimeSeries implements BaseColumns {
@@ -575,6 +583,14 @@ public class TimeSeriesData {
     public static final String HISTORY = "history";
 
     /**
+     * The number of decimals points to round to.
+     * <p>
+     * Type: INTEGER
+     * </p>
+     */
+    public static final String DECIMALS = "decimals";
+
+    /**
      * The table creation sql
      */
     public static final String TABLE_CREATE = "create table " + TABLE_NAME
@@ -587,7 +603,7 @@ public class TimeSeriesData {
         + " string not null, " + ZEROFILL + " integer not null, " + FORMULA
         + " text, " + INTERPOLATION + " text not null, " + UNITS + " text, "
         + SENSITIVITY + " float not null, " + SMOOTHING + " float not null, "
-        + HISTORY + " integer not null " + ");";
+        + HISTORY + " integer not null, " + DECIMALS + " integer not null" + ");";
     
     public static final String[] TRIGGERS = {
       " create trigger series_delete after delete on timeseries begin " +
@@ -669,6 +685,10 @@ public class TimeSeriesData {
 
     public static int getHistory(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.HISTORY));
+    }
+
+    public static int getDecimals(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.DECIMALS));
     }
   }
 }

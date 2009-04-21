@@ -72,17 +72,10 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   // Private data
   private CategoryRow mRow;
   private long mNewDatapointId;
-  private Aggregator mAggregator;
-  private Trend mTrend;
   
   private int mColorInt;
   private float mAddValue;
   
-  // Prefs
-  private int mDecimals;
-  private int mHistory;
-  private float mSmoothing;
-
   private Context mCtx;
   private ContentResolver mContent;
   private DateMapCache mDateCache;
@@ -97,10 +90,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mNewDatapointId = 0;
     mContent = mCtx.getContentResolver();
     mDateCache = ((InputActivity) mCtx).getDateMapCache();
-    mAggregator = new Aggregator(mDateCache);
-    mTrend = new Trend(mCtx, mAggregator, mDateCache);
     
-    setupPrefs();
     setupTasks();
     setupUI();
     populateFields();
@@ -162,12 +152,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mAddButton.setTextColor(Color.BLACK);
   }
 
-  private void setupPrefs() {
-    mDecimals = Preferences.getDecimalPlaces(mCtx);
-    mHistory = Preferences.getHistory(mCtx);
-    mSmoothing = Preferences.getSmoothingConstant(mCtx);
-  }
-
   private void setupTasks() {
 //    mAddEntryTask = new AddEntryTask(mTSC, mDecimals, mHistory);
   }
@@ -207,7 +191,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         float value = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
         value += mRow.mIncrement;
-        value = Number.Round(value, mDecimals);
+        value = Number.Round(value, mRow.mDecimals);
         mDefaultValue.setText(Float.toString(value));
       }
     };
@@ -217,7 +201,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         float value = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
         value -= mRow.mIncrement;
-        value = Number.Round(value, mDecimals);
+        value = Number.Round(value, mRow.mDecimals);
         mDefaultValue.setText(Float.toString(value));
       }
     };
@@ -256,15 +240,34 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       mDefaultValue.setVisibility(View.INVISIBLE);
       mAddButton.setVisibility(View.INVISIBLE);
     }
-
-    Trend.TrendState state = mTrend.getTrendState(mRow.mId, mRow.mType, 
-        mRow.mGoal, mRow.mPeriod, mHistory, mSmoothing);
     
     mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
-    float trendValue = Number.Round(state.mTrendValue, mDecimals);
-    mTrendValueView.setText(Float.valueOf(trendValue).toString());
 
-    updateTrendIcon(state.mTrendState);
+    int trendState = Trend.TREND_UNKNOWN;
+    Uri lastDatapoint = ContentUris.withAppendedId(
+        TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId).buildUpon()
+        .appendPath("recent").appendPath("2").build();
+    if (lastDatapoint != null) {
+      Cursor c = mCtx.getContentResolver().query(lastDatapoint, null, null, null, null);
+      if (c != null && c.getCount() > 0) {
+        c.moveToFirst();
+        float newTrend = TimeSeriesData.Datapoint.getTrend(c);
+        float displayTrend = Number.Round(newTrend, mRow.mDecimals);
+        mTrendValueView.setText(Float.valueOf(displayTrend).toString());
+
+        c.moveToLast();
+        float oldTrend = TimeSeriesData.Datapoint.getTrend(c);
+        float stdDev = TimeSeriesData.Datapoint.getStdDev(c);
+    
+        trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
+            mRow.mSensitivity, stdDev);
+      }
+      
+      if (c != null)
+        c.close();
+    }
+        
+    updateTrendIcon(trendState);
   }
 
   public static void setLayoutAnimationSlideOutLeftIn(ViewGroup panel,

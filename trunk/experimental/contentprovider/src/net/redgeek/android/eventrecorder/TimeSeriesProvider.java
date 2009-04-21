@@ -737,7 +737,6 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL(Datapoint.TABLE_CREATE_MONTH);
       db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
       db.execSQL(Datapoint.TABLE_CREATE_YEAR);
-      db.execSQL(Datapoint.TABLE_CREATE);
       db.execSQL(DateMap.TABLE_CREATE);
     
       generateDateMapCacheData(db);

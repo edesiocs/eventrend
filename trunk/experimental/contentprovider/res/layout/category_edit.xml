@@ -25,16 +25,6 @@
       </TableRow>
 
 			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:layout_gravity="right|center_vertical">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-					android:text="Group" android:clickable="true"
-					android:id="@+id/category_edit_group_view">
-				</TextView>
-				<LinearLayout android:layout_height="wrap_content"
-					android:layout_width="fill_parent" android:id="@+id/category_edit_group"></LinearLayout>
-			</TableRow>
-			<TableRow android:layout_height="wrap_content"
 				android:layout_width="fill_parent">
 				<TextView android:layout_width="wrap_content"
 					android:layout_height="wrap_content" android:text="Category Name"
@@ -45,6 +35,7 @@
 					android:layout_width="fill_parent" android:id="@+id/category_edit_name">
 				</EditText>
 			</TableRow>
+			
 			<TableRow android:layout_height="wrap_content"
 				android:layout_width="fill_parent">
 				<TextView android:layout_width="wrap_content"
@@ -57,6 +48,7 @@
 					android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
 				</EditText>
 			</TableRow>
+			
 			<TableRow android:layout_width="fill_parent"
 				android:layout_height="wrap_content" android:id="@+id/category_edit_color_row">
 				<TextView android:layout_width="wrap_content"
@@ -68,107 +60,66 @@
 					android:layout_height="wrap_content" android:id="@+id/category_edit_color"
 					android:text="Color"></Button>
 			</TableRow>
-			<TableRow android:layout_width="wrap_content"
-				android:layout_height="wrap_content">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-					android:clickable="true" android:id="@+id/category_edit_agg_view"
-					android:text="Aggregate By"></TextView>
-				<LinearLayout android:layout_height="wrap_content"
-					android:id="@+id/category_edit_agg_menu" android:layout_width="fill_parent"
-					android:layout_gravity="right|center_vertical"></LinearLayout>
-			</TableRow>
+			
 			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-					android:clickable="true" android:text="Connect Points By"
-					android:id="@+id/category_edit_interp_view"></TextView>
-				<LinearLayout android:layout_height="wrap_content"
-					android:id="@+id/category_edit_interp_menu" android:layout_width="fill_parent"
-					android:layout_gravity="right|center_vertical"></LinearLayout>
-			</TableRow>
-
+        android:layout_width="fill_parent" android:id="@+id/category_edit_default_value_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Default Value"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_default_value_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_default_value"
+          android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
+        </EditText>
+      </TableRow>
+      
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_increment_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Buttons +/- By"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_increment_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_increment"
+          android:layout_gravity="right|center_vertical" android:text="1.0" android:numeric="signed|decimal">
+        </EditText>
+      </TableRow>     
+			
 			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_synthetic_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Calculated"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_synthetic_view"></TextView>
-				<CheckBox android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
-					android:id="@+id/category_edit_synthetic"></CheckBox>
-			</TableRow>
-
-			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_formula_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Formula"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_formula_view"></TextView>
-					
-				<Button android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Edit Formula"
-					android:id="@+id/category_edit_formula" android:layout_gravity="right|center_vertical">
-				</Button>
-			</TableRow>
-
-			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_default_value_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Default Value"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_default_value_view">
-				</TextView>
-				<EditText android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:id="@+id/category_edit_default_value"
-					android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
-				</EditText>
-			</TableRow>
-			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_increment_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Increment/Decrement"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_increment_view">
-				</TextView>
-				<EditText android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:id="@+id/category_edit_increment"
-					android:layout_gravity="right|center_vertical" android:text="1.0" android:numeric="signed|decimal">
-				</EditText>
-			</TableRow>			
-			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_type_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Value Type"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_type_view">
-				</TextView>
-				<RadioGroup android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:id="@+id/category_edit_type"
-					android:orientation="horizontal" android:checkedButton="@+id/category_edit_type_sum"
-					android:layout_gravity="right|center_vertical">
-					<RadioButton android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:text="Sum"
-						android:id="@+id/category_edit_type_sum">
-					</RadioButton>
-					<RadioButton android:layout_width="wrap_content"
-						android:layout_height="wrap_content" android:id="@+id/category_edit_type_rating"
-						android:text="Average">
-					</RadioButton>
-				</RadioGroup>
-			</TableRow>
-			<TableRow android:layout_height="wrap_content"
-				android:layout_width="fill_parent" android:id="@+id/category_edit_zerofill_row">
-				<TextView android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:text="Zero Empty Periods"
-					android:layout_gravity="left|center_vertical" android:clickable="true"
-					android:id="@+id/category_edit_zerofill_view"></TextView>
-				<CheckBox android:layout_width="wrap_content"
-					android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
-					android:id="@+id/category_edit_zerofill"></CheckBox>
-			</TableRow>
-
+        android:layout_width="fill_parent" android:id="@+id/category_edit_type_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Value Type"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_type_view">
+        </TextView>
+        <RadioGroup android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_type"
+          android:orientation="horizontal" android:checkedButton="@+id/category_edit_type_sum"
+          android:layout_gravity="right|center_vertical">
+          <RadioButton android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Sum"
+            android:id="@+id/category_edit_type_sum">
+          </RadioButton>
+          <RadioButton android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/category_edit_type_rating"
+            android:text="Average">
+          </RadioButton>
+        </RadioGroup>
+      </TableRow>
+			
+		  <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_advanced_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Show All Options"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_advanced_view"></TextView>
+        <CheckBox android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_advanced"></CheckBox>
+      </TableRow>
+			
 			<TableRow android:layout_width="wrap_content"
 				android:layout_height="wrap_content">
 				<Button android:layout_width="wrap_content"
@@ -179,7 +130,6 @@
 					android:layout_height="wrap_content" android:text="Ok"
 					android:id="@+id/category_edit_ok" android:layout_gravity="right|center_vertical">
 				</Button>
-
 			</TableRow>
 
 		</TableLayout>
