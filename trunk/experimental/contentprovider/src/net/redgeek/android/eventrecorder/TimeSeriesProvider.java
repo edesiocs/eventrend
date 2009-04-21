@@ -211,7 +211,7 @@ public class TimeSeriesProvider extends ContentProvider {
     int entries = 0;
     int count = c.getCount();
     c.moveToFirst();
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count && i < history * 2; i++) {
       id = Datapoint.getId(c);
       value = Datapoint.getValue(c);
       entries = Datapoint.getEntries(c);

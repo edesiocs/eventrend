@@ -16,6 +16,8 @@
 
 package net.redgeek.android.eventrend.util;
 
+import net.redgeek.android.eventrend.R;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
@@ -25,12 +27,15 @@ import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.util.Map;
 
 /**
  * Implements a "ComboBox", that is, an EditText box coupled with an "pop-up"
@@ -86,34 +91,21 @@ public class ComboBox extends LinearLayout {
    */
   private void setup(Context context) {
     mCtx = context;
-    setOrientation(HORIZONTAL);
-
+    
+    LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    View inflatedView = inflater.inflate(R.layout.combobox, this);
+    
     mButtonListener = new OnClickListener() {
       public void onClick(View v) {
         mMenu.show();
       }
     };
 
-    mLayout = new LinearLayout(mCtx);
-    mLayout.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-    mLayout.setOrientation(HORIZONTAL);
-    addView(mLayout, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-        LayoutParams.WRAP_CONTENT));
-
-    mEditText = new EditText(mCtx);
-    mEditText.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-    mLayout.addView(mEditText, new LinearLayout.LayoutParams(
-        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-
-    mButton = new ImageButton(mCtx);
-    mButtonIcon = getResources().getDrawable(
-        android.R.drawable.arrow_down_float);
+    mButtonIcon = getResources().getDrawable(android.R.drawable.arrow_down_float);
+    mButton = (ImageButton) findViewById(R.id.combobox_button);
     mButton.setImageDrawable(mButtonIcon);
-    mLayout.addView(mButton, new LinearLayout.LayoutParams(
-        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
-    mAdapter = new ArrayAdapter<String>(mCtx,
-        android.R.layout.select_dialog_singlechoice);
+    mAdapter = new ArrayAdapter<String>(mCtx, android.R.layout.select_dialog_singlechoice);
 
     mMenu = dialog();
     mButton.setOnClickListener(mButtonListener);

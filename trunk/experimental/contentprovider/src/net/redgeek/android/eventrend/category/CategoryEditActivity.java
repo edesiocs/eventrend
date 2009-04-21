@@ -70,6 +70,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
   static final int DIALOG_HELP_INCREMENT = 10;
   static final int DIALOG_HELP_TYPE = 11;
   static final int DIALOG_HELP_ZEROFILL = 12;
+  // previously preferences:
+  static final int DIALOG_HELP_HISTORY = 13;
+  static final int DIALOG_HELP_DECIMALS = 14;
+  static final int DIALOG_HELP_SMOOTHING = 15;
+  static final int DIALOG_HELP_SENSITIVITY = 16;
 
   // UI elements
   private LinearLayout mGroupComboLayout;
@@ -87,8 +92,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private CheckBox mAdvancedCheck;
   private TableRow mSyntheticRow;
   private CheckBox mSyntheticCheck;
-  private RadioGroup mTypeRadioGroup;
-  private RadioButton mTypeRadio;
+  private RadioGroup mAggRadioGroup;
+  private RadioButton mAggRadio;
   // synthetic elements:
   private TableRow mFormulaRow;
   private Button mFormulaEdit;
@@ -99,6 +104,15 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private EditText mIncrementText;
   private TableRow mZeroFillRow;
   private CheckBox mZeroFillCheck;
+  // previously in prefs
+  private TableRow mHistoryRow;
+  private EditText mHistoryText;
+  private TableRow mDecimalsRow;
+  private EditText mDecimalsText;
+  private TableRow mSmoothingRow;
+  private EditText mSmoothingText;
+  private TableRow mSensitivityRow;
+  private EditText mSensitivityText;
 
   // Private data
   private CategoryRow mRow;
@@ -117,7 +131,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 //  private Formula mFormula;
 
   // Listeners
-  private RadioGroup.OnCheckedChangeListener mTypeListener;
+  private RadioGroup.OnCheckedChangeListener mAggListener;
   private ColorPickerDialog.OnColorChangedListener mColorChangeListener;
   private View.OnClickListener mColorButtonListener;
   private Spinner.OnItemSelectedListener mInterpolationListener;
@@ -258,9 +272,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mDelete.setVisibility(View.INVISIBLE);
     }
 
-    mTypeRadioGroup = (RadioGroup) findViewById(R.id.category_edit_type);
-    mTypeRadioGroup.setOnCheckedChangeListener(mTypeListener);
-    mTypeRadio = (RadioButton) findViewById(mTypeRadioGroup
+    mAggRadioGroup = (RadioGroup) findViewById(R.id.category_edit_type);
+    mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
+    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
         .getCheckedRadioButtonId());
     setHelpDialog(R.id.category_edit_type_view, DIALOG_HELP_TYPE);
 
@@ -294,6 +308,22 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
     setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
 
+    mHistoryRow = (TableRow) findViewById(R.id.category_edit_history_row);
+    mHistoryText = (EditText) findViewById(R.id.category_edit_history);
+    setHelpDialog(R.id.category_edit_history_view, DIALOG_HELP_HISTORY);
+
+    mDecimalsRow = (TableRow) findViewById(R.id.category_edit_decimals_row);
+    mDecimalsText = (EditText) findViewById(R.id.category_edit_decimals);
+    setHelpDialog(R.id.category_edit_decimals_view, DIALOG_HELP_DECIMALS);
+
+    mSmoothingRow = (TableRow) findViewById(R.id.category_edit_smoothing_row);
+    mSmoothingText = (EditText) findViewById(R.id.category_edit_smoothing);
+    setHelpDialog(R.id.category_edit_smoothing_view, DIALOG_HELP_SMOOTHING);
+
+    mSensitivityRow = (TableRow) findViewById(R.id.category_edit_sensitivity_row);
+    mSensitivityText = (EditText) findViewById(R.id.category_edit_sensitivity);
+    setHelpDialog(R.id.category_edit_sensitivity_view, DIALOG_HELP_SENSITIVITY);
+
     setSyntheticView(false);
   }
 
@@ -319,6 +349,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mFormulaRow.setVisibility(View.VISIBLE);
       mZeroFillRow.setVisibility(View.VISIBLE);
       mGroupRow.setVisibility(View.VISIBLE);
+      mHistoryRow.setVisibility(View.VISIBLE);
+      mDecimalsRow.setVisibility(View.VISIBLE);
+      mSmoothingRow.setVisibility(View.VISIBLE);
+      mSensitivityRow.setVisibility(View.VISIBLE);
       setSyntheticView(false);
     } else {
       mInterpRow.setVisibility(View.GONE);
@@ -327,14 +361,18 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mFormulaRow.setVisibility(View.GONE);
       mZeroFillRow.setVisibility(View.GONE);
       mGroupRow.setVisibility(View.GONE);
+      mHistoryRow.setVisibility(View.GONE);
+      mDecimalsRow.setVisibility(View.GONE);
+      mSmoothingRow.setVisibility(View.GONE);
+      mSensitivityRow.setVisibility(View.GONE);
     }
   }
 
   private void setupListeners() {
-    mTypeListener = new RadioGroup.OnCheckedChangeListener() {
+    mAggListener = new RadioGroup.OnCheckedChangeListener() {
       public void onCheckedChanged(RadioGroup group, int checkedId) {
-        mTypeRadio = (RadioButton) findViewById(checkedId);
-        if (mTypeRadio.getText().equals(TimeSeries.AGGREGATION_AVG)) {
+        mAggRadio = (RadioButton) findViewById(checkedId);
+        if (mAggRadio.getText().equals(TimeSeries.AGGREGATION_AVG)) {
           mZeroFillCheck.setChecked(false);
           mZeroFillCheck.setClickable(false);
         } else {
@@ -388,8 +426,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
           mZeroFillCheck.setChecked(false);
           mZeroFillCheck.setClickable(false);
         } else {
-          String type = mTypeRadio.getText().toString();
-          if (type.equals(CategoryDbTable.KEY_TYPE_AVERAGE)) {
+          String type = mAggRadio.getText().toString();
+          if (type.equals(TimeSeries.AGGREGATION_AVG)) {
             mZeroFillCheck.setChecked(false);
             mZeroFillCheck.setClickable(false);
           } else {
@@ -422,7 +460,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         saveState();
         mSave = false;
         Intent i = new Intent(mCtx, FormulaEditorActivity.class);
-        i.putExtra(CATEGORY_ID, mRowId);
+        i.putExtra(TimeSeries._ID, mRowId);
         startActivityForResult(i, FORMULA_EDIT);
       }
     };
@@ -484,14 +522,14 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
       String aggregation = mRow.mAggregation;
       if (aggregation.equals(TimeSeries.AGGREGATION_AVG)) {
-        mTypeRadio = (RadioButton) findViewById(R.id.category_edit_type_rating);
+        mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_rating);
         mZeroFillCheck.setChecked(false);
         mZeroFillCheck.setClickable(false);
       } else {
-        mTypeRadio = (RadioButton) findViewById(R.id.category_edit_type_sum);
+        mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_sum);
         mZeroFillCheck.setClickable(true);
       }
-      mTypeRadio.setChecked(true);
+      mAggRadio.setChecked(true);
     } else {
       mGroupName = "Default";
       mColorStr = "#cccccc";
@@ -637,6 +675,22 @@ public class CategoryEditActivity extends EvenTrendActivity {
       case DIALOG_HELP_FORMULA:
         title = getResources().getString(R.string.cat_formula_title);
         msg = getResources().getString(R.string.cat_formula_desc);
+        return mDialogUtil.newOkDialog(title, msg + "\n");
+      case DIALOG_HELP_HISTORY:
+        title = getResources().getString(R.string.cat_history_title);
+        msg = getResources().getString(R.string.cat_history_desc);
+        return mDialogUtil.newOkDialog(title, msg + "\n");
+      case DIALOG_HELP_DECIMALS:
+        title = getResources().getString(R.string.cat_decimals_title);
+        msg = getResources().getString(R.string.cat_decimals_desc);
+        return mDialogUtil.newOkDialog(title, msg + "\n");
+      case DIALOG_HELP_SMOOTHING:
+        title = getResources().getString(R.string.cat_smoothing_title);
+        msg = getResources().getString(R.string.cat_smoothing_desc);
+        return mDialogUtil.newOkDialog(title, msg + "\n");
+      case DIALOG_HELP_SENSITIVITY:
+        title = getResources().getString(R.string.cat_sensitivity_title);
+        msg = getResources().getString(R.string.cat_sensitivity_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
     }
     return null;

@@ -184,9 +184,63 @@
           android:text="Group" android:clickable="true"
           android:id="@+id/category_edit_group_view">
         </TextView>
-        <LinearLayout android:layout_height="wrap_content"
-          android:layout_width="fill_parent" android:id="@+id/category_edit_group"></LinearLayout>
+        <net.redgeek.android.eventrend.util.ComboBox 
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:id="@+id/category_edit_group"/>
       </TableRow>
+      
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_history_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="History"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_history_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_history"
+          android:layout_gravity="right|center_vertical" android:text="20" android:numeric="integer">
+        </EditText>
+      </TableRow>     
+
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_decimals_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Decimal Places"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_decimals_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_decimals"
+          android:layout_gravity="right|center_vertical" android:text="2" android:numeric="integer">
+        </EditText>
+      </TableRow>     
+
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_smoothing_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Smoothing Constant"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_smoothing_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_smoothing"
+          android:layout_gravity="right|center_vertical" android:text="0.1" android:numeric="decimal">
+        </EditText>
+      </TableRow>     
+
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_sensitivity_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Trend Sensitivity"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_sensitivity_view">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_sensitivity"
+          android:layout_gravity="right|center_vertical" android:text="0.5" android:numeric="decimal">
+        </EditText>
+      </TableRow>     
       
       <TableRow android:layout_width="wrap_content"
         android:layout_height="wrap_content">

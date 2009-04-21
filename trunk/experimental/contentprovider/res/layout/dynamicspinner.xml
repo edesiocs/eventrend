@@ -4,13 +4,8 @@
   android:padding="2dp"
   android:layout_width="wrap_content"
   android:layout_height="wrap_content">
-  <EditText
-    android:id="@+id/combobox_text"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="left|center_vertical"/>
-  <ImageButton
-    android:id="@+id/combobox_button"
+  <Spinner
+    android:id="@+id/spinner"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_gravity="left|center_vertical"/>
