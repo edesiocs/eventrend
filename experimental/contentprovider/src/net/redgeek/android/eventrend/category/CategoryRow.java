@@ -16,6 +16,10 @@
 
 package net.redgeek.android.eventrend.category;
 
+import android.database.Cursor;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData;
+
 public class CategoryRow implements Comparable<CategoryRow> {
   public long   mId;
   public String mTimeSeriesName;
@@ -33,6 +37,10 @@ public class CategoryRow implements Comparable<CategoryRow> {
   public int    mZerofill;
   public String mFormula;
   public String mInterpolation;
+  public float  mSensitivity;
+  public float  mSmoothing;
+  public int    mHistory;
+  public int    mDecimals;
 
   public long   mTimestamp;
   
@@ -42,6 +50,30 @@ public class CategoryRow implements Comparable<CategoryRow> {
     mTimestamp = 0;
   }
 
+  public CategoryRow(Cursor c) {
+    mTimestamp = 0;
+    mId = TimeSeriesData.TimeSeries.getId(c);
+    mTimeSeriesName = TimeSeriesData.TimeSeries.getTimeSeriesName(c);
+    mGroup = TimeSeriesData.TimeSeries.getGroupName(c);
+    mRecordingDatapointId = TimeSeriesData.TimeSeries.getRecordingDatapointId(c);
+    mDefaultValue = TimeSeriesData.TimeSeries.getDefaultValue(c);
+    mIncrement = TimeSeriesData.TimeSeries.getIncrement(c);
+    mGoal = TimeSeriesData.TimeSeries.getGoal(c);
+    mColor = TimeSeriesData.TimeSeries.getColor(c);
+    mPeriod = TimeSeriesData.TimeSeries.getPeriod(c);
+    mUnits = TimeSeriesData.TimeSeries.getUnits(c);
+    mRank = TimeSeriesData.TimeSeries.getRank(c);
+    mAggregation = TimeSeriesData.TimeSeries.getAggregation(c);
+    mType = TimeSeriesData.TimeSeries.getType(c);
+    mZerofill = TimeSeriesData.TimeSeries.getZerofill(c);
+    mFormula = TimeSeriesData.TimeSeries.getFormula(c);
+    mInterpolation = TimeSeriesData.TimeSeries.getInterpolation(c);
+    mSensitivity = TimeSeriesData.TimeSeries.getSensitivity(c);
+    mSmoothing = TimeSeriesData.TimeSeries.getSmoothing(c);
+    mHistory = TimeSeriesData.TimeSeries.getHistory(c);
+    mDecimals = TimeSeriesData.TimeSeries.getDecimals(c);
+  }
+
   public boolean isSelectable() {
     return mSelectable;
   }
@@ -49,7 +81,7 @@ public class CategoryRow implements Comparable<CategoryRow> {
   public void setSelectable(boolean selectable) {
     mSelectable = selectable;
   }
-
+  
   public int compareTo(CategoryRow other) {
     if (this.mRank < other.mRank)
       return -1;

@@ -579,24 +579,9 @@ public class InputActivity extends EvenTrendActivity {
 
         cla = mCLAs.get(listNum.intValue());
         
-        CategoryRow row = new CategoryRow();
+        CategoryRow row = new CategoryRow(c);
         row.mTimestamp = mTimestamp.mMillis;
         row.mGroup = group;
-        row.mId = TimeSeriesData.TimeSeries.getId(c);
-        row.mTimeSeriesName = TimeSeriesData.TimeSeries.getTimeSeriesName(c);
-        row.mRecordingDatapointId = TimeSeriesData.TimeSeries.getRecordingDatapointId(c);
-        row.mDefaultValue = TimeSeriesData.TimeSeries.getDefaultValue(c);
-        row.mIncrement = TimeSeriesData.TimeSeries.getIncrement(c);
-        row.mGoal = TimeSeriesData.TimeSeries.getGoal(c);
-        row.mColor = TimeSeriesData.TimeSeries.getColor(c);
-        row.mPeriod = TimeSeriesData.TimeSeries.getPeriod(c);
-        row.mUnits = TimeSeriesData.TimeSeries.getUnits(c);
-        row.mRank = TimeSeriesData.TimeSeries.getRank(c);
-        row.mAggregation = TimeSeriesData.TimeSeries.getAggregation(c);
-        row.mType = TimeSeriesData.TimeSeries.getType(c);
-        row.mZerofill = TimeSeriesData.TimeSeries.getZerofill(c);
-        row.mFormula = TimeSeriesData.TimeSeries.getFormula(c);
-        row.mInterpolation = TimeSeriesData.TimeSeries.getInterpolation(c);
         
         cla.addItem(row);
         c.moveToNext();

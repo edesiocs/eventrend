@@ -28,10 +28,6 @@ import net.redgeek.android.eventrend.util.Aggregator.Aggregate;
 import java.util.ArrayList;
 
 public class Trend {
-  private Context      mCtx;
-  private Aggregator   mAggregator;
-  private DateMapCache mDateMapCache;
-  
   public static final int TREND_DOWN_15_GOOD = 1;
   public static final int TREND_DOWN_15_BAD = 2;
   public static final int TREND_DOWN_30_GOOD = 3;
@@ -50,72 +46,7 @@ public class Trend {
   public static final int TREND_FLAT_GOAL = 16;
   public static final int TREND_UNKNOWN = 17;
 
-  public static class TrendState {
-    public int   mTrendState = TREND_UNKNOWN;
-    public float mTrendValue = 0.0f;    
-    public float mLastValue  = 0.0f;    
-  }
-  
-  public Trend(Context ctx, Aggregator aggregator, DateMapCache dateCache) {
-    mCtx = ctx;
-    mAggregator = aggregator;
-    mDateMapCache = dateCache;
-  }
-  
-  public TrendState getTrendState(long timeSeriesId, String type, float goal,
-      int period, int history, float smoothing) {
-    TrendState state = new TrendState();
-    
-    int tsEnd = (int) (System.currentTimeMillis() / DateMapCache.SECOND_MS);
-    int tsStart = mDateMapCache.secondsOfPeriodStart(tsEnd - (period * history), period);
-    
-    Uri datapoints = ContentUris.withAppendedId(
-        TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-        .appendPath("range").appendPath("" + tsStart).appendPath("" + tsEnd).build();
-    if (datapoints == null)
-      return state;
-    
-    Cursor c = mCtx.getContentResolver().query(datapoints, null, null, null, null);
-    if (c == null)
-      return state;
-
-    ArrayList<Aggregate> list = mAggregator.aggregate(c, period);
-    
-    float value;
-    float prevStdDev = 0.0f;
-    float prevTrend = 0.0f;
-    int count = list.size();
-    Number.SmoothedTrend trend = new Number.SmoothedTrend(smoothing);
-    Number.RunningStats stats = new Number.RunningStats();
-
-    int start = 0;
-    if (count > history)
-      start = count - history;
-    
-    for (int i = start; i < count; i++) {
-      Aggregate a = list.get(i);
-      value = a.mValue;
-      if (type.equals(TimeSeriesData.TimeSeries.AGGREGATION_SUM))
-        value = a.mValue / a.mCount;
-      
-      if (i + 1 >= count) {
-        prevTrend = trend.mTrend;
-        prevStdDev = stats.mStdDev;
-      }
-      
-      trend.update(value);
-      stats.update(value, a.mCount);
-      state.mLastValue = value;
-    }
-    
-    state.mTrendValue = trend.mTrend;
-    state.mTrendState = getTrendIconState(prevTrend, trend.mTrend, goal, 1.0f, 
-        prevStdDev);
-    
-    return state;
-  }
-  
-  public int getTrendIconState(float oldTrend, float newTrend,
+  public static int getTrendIconState(float oldTrend, float newTrend,
       float goal, float sensitivity, float stdDev) {
     sensitivity = sensitivity * stdDev;
     float half = sensitivity / 2.0f;
