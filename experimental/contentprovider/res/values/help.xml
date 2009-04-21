@@ -104,6 +104,42 @@ how many hours between weighings, the following may be used:
 \'(series "weight" previous timestamp) / hour\'.
 \n\n
 </string>
+
+<string name="cat_history_title">History</string>
+<string name="cat_history_desc">
+The number of datapoints to take into account when calculating trends and other statistics.
+Default value is 20, and with a default smoothing percentage of 10% (0.1), there is no reason to
+make it larger.
+</string>
+
+<string name="cat_decimals_title">Decimal Places</string>
+<string name="cat_decimals_desc">
+The number of decimal places to round values to.  Default is 2.
+</string>
+
+<string name="cat_smoothing_title">Smoothing Constant</string>
+<string name="cat_smoothing_desc">
+This is a value indicating the weight of previous datapoints to the current
+one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) - trend(n-1)).  Thus,
+a value of 1.0 indicates that a strict average of the last "History" points will be taken.  Anything
+less than 1.0 indicates that recent points have more influence over the trend than previous points,
+and the smaller the value, the more important recent data is.  Default is 0.1.
+</string>
+
+<string name="cat_sensitivity_title">Trend Sensitivity</string>
+<string name="cat_sensitivity_desc">
+On the main screen, trend icons are selected based on the difference
+of the current trend and the trend value at the previous data point.  The threshold for determining the
+incline of arrow is the standard deviation * this value.  So, With a this value set to 1.0,
+this means that a change of greater than 1 standard deviation (over the last "History" datapoints)
+will result in a trend icon that points 45 degrees up or down, and an arrow that points 30 degrees up
+or down if the change exceeds 1/2 a standard deviation, and 15 degrees up or down if the change 
+exceeds 1/4 a standard deviation.  If the value is 0.5, that means the arrow will be set to 45 degrees
+up or down at 1/2 a standard deviation, 30 degrees at 1/4 and 15 degrees at 1/8.  On the calendar
+views, this has a similar function related to the intensity of the green or red color of value and 
+trend changes.  Default is 0.5.
+</string>
+
 <string name="overview">
 EvenTrend is a program to track arbitrary data over time.  In short, you can create categories 
 of data, graph multiple items at one time, look at the historical trend, and compare it against 
