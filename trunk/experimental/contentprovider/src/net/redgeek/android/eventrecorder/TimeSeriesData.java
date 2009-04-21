@@ -238,6 +238,92 @@ public class TimeSeriesData {
     
     public static final String TABLE_CREATE = "create table " 
         + TABLE_NAME + TABLE_CONTENTS;
+    
+    public static final String[] TRIGGERS = {
+      "create trigger trend_insert after insert on datapoint begin " +
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
+      "  insert into stats " +
+      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " +
+      "    order by ts_start desc limit " +
+      "      (select history from timeseries where _id == NEW.timeseries_id); " +
+      "  update datapoint set variance = ( " +
+      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " +
+      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " +
+      "    where datapoint._id == NEW._id; " +
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
+      "  insert into stats " +
+      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " +
+      "  update datapoint set trend = " +
+      "       (select case count(trend) " +
+      "         when 1 then (select value from stats where timeseries_id = NEW.timeseries_id order by ts_start desc limit 1) " +
+      "         else (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1) " +
+      "               + " +
+      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " +
+      "                 * " +
+      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " +
+      "         end " +
+      "      ) where datapoint._id == NEW._id; " +
+      "  end;",
+      
+      "create trigger trend_insert after insert on datapoint begin " +
+      "  -- touch the variance field to trigger and update " +
+      "  update datapoint set variance = 0 where datapoint._id = NEW._id; " +
+      "end;",
+
+      "create trigger trend_update after update on datapoint begin " +
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
+      "  insert into stats " +
+      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " +
+      "    order by ts_start desc limit " +
+      "      (select history from timeseries where _id == NEW.timeseries_id); " +
+      "  update datapoint set variance = ( " +
+      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " +
+      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " +
+      "    where datapoint._id == NEW._id; " +
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
+      "  insert into stats " +
+      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " +
+      "  update datapoint set trend = " +
+      "       (select case count(trend) " +
+      "         when 1 then (select value from stats where timeseries_id = 1 order by ts_start desc limit 1) " +
+      "         else (select trend from stats where timeseries_id = 1 order by ts_start asc limit 1) " +
+      "               + " +
+      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " +
+      "                 * " +
+      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " +
+      "         end " +
+      "         from stats " +
+      "      ) where datapoint._id == NEW._id; " +
+      "  update datapoint set variance = 0 " +
+      "    where timeseries_id = NEW.timeseries_id and ts_start > NEW.ts_start; " +
+      "  end;",
+
+      "create trigger trend_update_deps after update on datapoint begin " + 
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " + 
+      "  insert into stats " + 
+      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " + 
+      "    order by ts_start desc limit " + 
+      "      (select history from timeseries where _id == NEW.timeseries_id); " + 
+      "  update datapoint set variance = ( " + 
+      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " + 
+      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " + 
+      "    where datapoint._id == NEW._id; " + 
+      "  delete from stats where timeseries_id = NEW.timeseries_id; " + 
+      "  insert into stats " + 
+      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " + 
+      "  update datapoint set trend = " + 
+      "       (select case count(trend) " + 
+      "         when 1 then (select value from stats where timeseries_id = 1 order by ts_start desc limit 1) " + 
+      "         else (select trend from stats where timeseries_id = 1 order by ts_start asc limit 1) " + 
+      "               + " + 
+      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " + 
+      "                 * " + 
+      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " + 
+      "         end " + 
+      "         from stats " + 
+      "      ) where datapoint._id == NEW._id; " + 
+      "  end;",
+    };
 
     public static final String[] AGGREGATE_TABLE_SUFFIX = {
       "hour",
@@ -258,8 +344,9 @@ public class TimeSeriesData {
       DateMapCache.YEAR_MS / DateMapCache.SECOND_MS,
     };
     
+    public static final String TABLE_CREATE_STATS = "create table stats " + TABLE_CONTENTS;
     public static final String TABLE_CREATE_HOUR = "create table " + TABLE_NAME
-        + "_hour" + TABLE_CONTENTS;
+    + "_hour" + TABLE_CONTENTS;
     public static final String TABLE_CREATE_AMPM = "create table " + TABLE_NAME
         + "_ampm" + TABLE_CONTENTS;
     public static final String TABLE_CREATE_DAY = "create table " + TABLE_NAME
@@ -505,6 +592,12 @@ public class TimeSeriesData {
         + " text, " + INTERPOLATION + " text not null, " + UNITS + " text, "
         + SENSITIVITY + " float not null, " + SMOOTHING + " float not null, "
         + HISTORY + " integer not null " + ");";
+    
+    public static final String[] TRIGGERS = {
+      " create trigger series_delete after delete on timeseries begin " +
+      "   delete from datapoint where datapoint.timeseries_id == OLD._id; " +
+      " end;"
+    };
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries._ID));

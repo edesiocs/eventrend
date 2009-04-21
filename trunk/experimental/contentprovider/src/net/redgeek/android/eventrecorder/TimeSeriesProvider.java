@@ -25,6 +25,9 @@ import net.redgeek.android.eventrecorder.DateMapCache.DateMapCacheEntry;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrend.util.Number;
+import net.redgeek.android.eventrend.util.Aggregator.Aggregate;
+
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -146,6 +149,150 @@ public class TimeSeriesProvider extends ContentProvider {
     }      
   }
 
+//  private void updateStats(SQLiteDatabase db, long timeSeriesId, int atSeconds, 
+//      String table) {
+//    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+//    qb.setTables(TimeSeries.TABLE_NAME);
+//    qb.setProjectionMap(sTimeSeriesProjection);
+//    qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
+//
+//    Cursor c = qb.query(db, null, null, null, null, null, null, null);
+//    if (c == null)
+//      return;
+//    if (c.getCount() < 1) {
+//      c.close();
+//      return;
+//    }
+//      
+//    float smoothing = TimeSeries.getSmoothing(c);
+//    int history = TimeSeries.getHistory(c);
+//    c.close();
+//    
+//    qb = new SQLiteQueryBuilder();
+//    qb.setProjectionMap(sDatapointProjection);
+//    qb.setTables(table);
+//    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
+//    qb.appendWhere(Datapoint.TS_START + " = " + atSeconds);
+//    
+//    c = qb.query(db, null, null, null, null, null, 
+//        Datapoint.TS_START + " asc ", "" + history);
+//    if (c == null)
+//      return;
+//    if (c.getCount() < 1) {
+//      c.close();
+//      return;
+//    }
+//
+//    Number.SmoothedTrend trend = new Number.SmoothedTrend(smoothing);
+//    Number.RunningStats stats = new Number.RunningStats();
+//
+//    float value = 0.0f;
+//    int entries = 0;;
+//    int count = c.getCount();
+//    c.moveToFirst();
+//    for (int i = 0; i < count; i++) {
+//      value = Datapoint.getValue(c);
+//      entries = Datapoint.getEntries(c);
+//      trend.update(value);
+//      stats.update(value, entries);
+//    }
+//
+//    state.mTrendValue = trend.mTrend;
+//    state.mTrendState = getTrendIconState(prevTrend, trend.mTrend, goal, 1.0f, 
+//        prevStdDev);
+//    
+//
+//    
+//  
+//  
+//  qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+//  orderBy = Datapoint.TS_START + " desc";
+//  limit = count;
+//    
+//    
+//    
+//    
+//    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+//
+//    for (int i = 0; i < tables.length; i++) {
+//      qb = new SQLiteQueryBuilder();
+//      qb.setProjectionMap(sDatapointProjection);
+//
+//      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+//      qb.setTables(table);
+//      qb.appendWhere("_id = " + timeSeriesId);
+//      
+//      c = qb.query(db, null, null, null, null, null, 
+//          Datapoint.TS_START + " desc", "" + history);
+//
+//    
+//    
+//    qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+//    orderBy = Datapoint.TS_START + " desc";
+//    limit = count;
+//
+//    
+//      count = db.update(TimeSeries.TABLE_NAME, values, TimeSeries._ID + "="
+//          + timeSeriesId + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
+//          whereArgs);
+//    } catch (Exception e) {          
+//    } finally {
+//      LockUtil.unlock(mLock);
+//    }
+//    break;
+//
+//    
+//    qb.setProjectionMap(sDatapointProjection);
+//    qb.setTables(table);
+//    qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+//    orderBy = Datapoint.TS_START + " desc";
+//    limit = count;
+//    break;
+//
+//    
+//    
+//    table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+//    qb.setTables(table);
+//
+//    period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+//    newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
+//
+//    if (update == true || delete == true) {
+//      // updating or deleting, not inserting
+//      oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
+//
+//      if (delete == false && oldPeriodStart == newPeriodStart) {
+//        qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+//
+//  }
+//  
+//  private void updateStats(long timeSeriesId, int untilSeconds) {
+//    Cursor c;
+//    ContentValues values = new ContentValues();
+//    String table;
+//    long id;
+//    int period, oldPeriodStart, newPeriodStart;
+//    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+//
+//    for (int i = 0; i < tables.length; i++) {
+//      SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+//      qb.setProjectionMap(sDatapointProjection);
+//
+//      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+//      qb.setTables(table);
+//
+//      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+//      newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
+//
+//      if (update == true || delete == true) {
+//        // updating or deleting, not inserting
+//        oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
+// 
+//        if (delete == false && oldPeriodStart == newPeriodStart) {
+//          qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+//
+//  }
+
   private void updateAggregations(SQLiteDatabase db, long timeSeriesId, 
       int oldStart, int newStart, float oldValue, float newValue, 
       boolean update, boolean delete) throws Exception {
@@ -180,6 +327,7 @@ public class TimeSeriesProvider extends ContentProvider {
             throw new Exception("update: could not find old aggregate");
           }
 
+          c.moveToFirst();
           id = TimeSeriesData.Datapoint.getId(c);
           oldValue = TimeSeriesData.Datapoint.getValue(c);
           c.close();
@@ -205,6 +353,7 @@ public class TimeSeriesProvider extends ContentProvider {
             throw new Exception("update: could not find old aggregate");
           }
 
+          c.moveToFirst();
           id = TimeSeriesData.Datapoint.getId(c);
           oldValue = TimeSeriesData.Datapoint.getValue(c);
           int entries = TimeSeriesData.Datapoint.getEntries(c);
@@ -231,6 +380,7 @@ public class TimeSeriesProvider extends ContentProvider {
         c = qb.query(db, null, null, null, null, null, null, null);
         if (c == null || c.getCount() < 1) {
           // insert
+          c.moveToFirst();
           values.clear();
           values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
           values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
@@ -245,6 +395,7 @@ public class TimeSeriesProvider extends ContentProvider {
             throw new Exception("insert: couldn't insert new aggregate");
         } else {
           // update
+          c.moveToFirst();
           id = TimeSeriesData.Datapoint.getId(c);
           int entries = TimeSeriesData.Datapoint.getEntries(c);
           oldValue = TimeSeriesData.Datapoint.getValue(c);
@@ -364,13 +515,13 @@ public class TimeSeriesProvider extends ContentProvider {
       case TIMESERIES_ID:
         qb.setTables(TimeSeries.TABLE_NAME);
         qb.setProjectionMap(sTimeSeriesProjection);
-        qb.appendWhere("_id=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
         break;
       case DATAPOINTS:
         qb.setTables(Datapoint.TABLE_NAME);
-        qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         qb.setProjectionMap(sDatapointProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
@@ -383,7 +534,7 @@ public class TimeSeriesProvider extends ContentProvider {
           table += "_" + table;
         }
         qb.setTables(table);
-        qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
         limit = count;
         break;
@@ -417,7 +568,7 @@ public class TimeSeriesProvider extends ContentProvider {
       case DATEMAP_ID:
         qb.setTables(DateMap.TABLE_NAME);
         qb.setProjectionMap(sDatemapProjection);
-        qb.appendWhere("_id=" + uri.getPathSegments().get(PATH_SEGMENT_DATEMAP_ID));
+        qb.appendWhere(DateMap._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_DATEMAP_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = DateMap.DEFAULT_SORT_ORDER;
         break;
@@ -497,6 +648,7 @@ public class TimeSeriesProvider extends ContentProvider {
             throw new Exception("update: couldn't find source datapoint");
           }
           
+          c.moveToFirst();
           int oldStart = Datapoint.getTsStart(c);
           float oldValue = Datapoint.getTsStart(c);
 
@@ -580,6 +732,7 @@ public class TimeSeriesProvider extends ContentProvider {
             throw new Exception("update: couldn't find source datapoint");
           }
           
+          c.moveToFirst();
           int oldStart = Datapoint.getTsStart(c);
           float oldValue = Datapoint.getTsStart(c);
           
