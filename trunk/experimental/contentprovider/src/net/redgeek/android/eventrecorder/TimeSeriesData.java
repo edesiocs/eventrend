@@ -326,7 +326,6 @@ public class TimeSeriesData {
     };
 
     public static final String[] AGGREGATE_TABLE_SUFFIX = {
-      "hour",
       "ampm",
       "day",
       "week",
@@ -335,7 +334,6 @@ public class TimeSeriesData {
       "year",
     };
     public static final long[] AGGREGATE_TABLE_PERIOD = {
-      DateMapCache.HOUR_MS / DateMapCache.SECOND_MS,
       DateMapCache.AMPM_MS / DateMapCache.SECOND_MS,
       DateMapCache.DAY_MS / DateMapCache.SECOND_MS,
       DateMapCache.WEEK_MS / DateMapCache.SECOND_MS,
@@ -344,9 +342,7 @@ public class TimeSeriesData {
       DateMapCache.YEAR_MS / DateMapCache.SECOND_MS,
     };
     
-    public static final String TABLE_CREATE_STATS = "create table stats " + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_HOUR = "create table " + TABLE_NAME
-    + "_hour" + TABLE_CONTENTS;
+//    public static final String TABLE_CREATE_STATS = "create table stats " + TABLE_CONTENTS;
     public static final String TABLE_CREATE_AMPM = "create table " + TABLE_NAME
         + "_ampm" + TABLE_CONTENTS;
     public static final String TABLE_CREATE_DAY = "create table " + TABLE_NAME
