@@ -91,21 +91,24 @@ public class ComboBox extends LinearLayout {
    */
   private void setup(Context context) {
     mCtx = context;
-    
-    LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+    LayoutInflater inflater = (LayoutInflater) context
+        .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     View inflatedView = inflater.inflate(R.layout.combobox, this);
-    
+
     mButtonListener = new OnClickListener() {
       public void onClick(View v) {
         mMenu.show();
       }
     };
 
-    mButtonIcon = getResources().getDrawable(android.R.drawable.arrow_down_float);
+    mButtonIcon = getResources().getDrawable(
+        android.R.drawable.arrow_down_float);
     mButton = (ImageButton) findViewById(R.id.combobox_button);
     mButton.setImageDrawable(mButtonIcon);
 
-    mAdapter = new ArrayAdapter<String>(mCtx, android.R.layout.select_dialog_singlechoice);
+    mAdapter = new ArrayAdapter<String>(mCtx,
+        android.R.layout.select_dialog_singlechoice);
 
     mMenu = dialog();
     mButton.setOnClickListener(mButtonListener);
@@ -116,7 +119,7 @@ public class ComboBox extends LinearLayout {
    * 
    * @param id
    *          (ignored)
-   * @return
+   * @return A Dialog object.
    */
   protected Dialog onCreateDialog(int id) {
     return mMenu;

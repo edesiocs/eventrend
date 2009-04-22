@@ -13,7 +13,7 @@
       android:stretchColumns="1" android:paddingRight="8px">
 
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:layout_gravity="right|center_vertical">
+        android:layout_width="fill_parent" android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_help_row">
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:text="Parameter" android:clickable="false" android:textStyle="bold" android:layout_gravity="top|left">
         </TextView>
@@ -25,7 +25,7 @@
       </TableRow>
 
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent">
+        android:layout_width="fill_parent" android:id="@+id/category_edit_name_row">
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:text="Category Name"
           android:layout_gravity="left|center_vertical" android:clickable="true"
@@ -37,7 +37,7 @@
       </TableRow>
       
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent">
+        android:layout_width="fill_parent" android:id="@+id/category_edit_goal_row">
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:text="Goal"
           android:layout_gravity="left|center_vertical" android:clickable="true"
@@ -87,22 +87,22 @@
       </TableRow>     
       
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:id="@+id/category_edit_type_row">
+        android:layout_width="fill_parent" android:id="@+id/category_edit_agg_row">
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:text="Value Type"
           android:layout_gravity="left|center_vertical" android:clickable="true"
-          android:id="@+id/category_edit_type_view">
+          android:id="@+id/category_edit_agg_view">
         </TextView>
         <RadioGroup android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:id="@+id/category_edit_type"
-          android:orientation="horizontal" android:checkedButton="@+id/category_edit_type_sum"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_agg"
+          android:orientation="horizontal" android:checkedButton="@+id/category_edit_agg_sum"
           android:layout_gravity="right|center_vertical">
           <RadioButton android:layout_width="wrap_content"
             android:layout_height="wrap_content" android:text="Sum"
-            android:id="@+id/category_edit_type_sum">
+            android:id="@+id/category_edit_agg_sum">
           </RadioButton>
           <RadioButton android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/category_edit_type_rating"
+            android:layout_height="wrap_content" android:id="@+id/category_edit_agg_rating"
             android:text="Average">
           </RadioButton>
         </RadioGroup>
@@ -116,40 +116,44 @@
           android:id="@+id/category_edit_advanced_view"></TextView>
         <CheckBox android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
-          android:id="@+id/category_edit_advanced"></CheckBox>
+          android:id="@+id/category_edit_advanced" android:checked="true"></CheckBox>
       </TableRow>
       
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent">
+        android:layout_width="fill_parent" android:id="@+id/category_edit_units_row">
         <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-          android:clickable="true" android:text="Interpolation"
-          android:id="@+id/category_edit_interp_view"></TextView>
-        <LinearLayout android:layout_height="wrap_content"
-          android:id="@+id/category_edit_interp_menu" android:layout_width="fill_parent"
-          android:layout_gravity="right|center_vertical"></LinearLayout>
-      </TableRow>
-
+          android:layout_height="wrap_content" android:text="Units"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_units_view">
+        </TextView>
+        <net.redgeek.android.eventrend.util.ComboBox
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_units"/>
+      </TableRow>     
+      
       <TableRow android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content" android:id="@+id/category_edit_agg_period_row">
         <TextView android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-          android:clickable="true" android:id="@+id/category_edit_agg_view"
+          android:clickable="true" android:id="@+id/category_edit_agg_period_view"
           android:text="Aggregate By"></TextView>
-        <LinearLayout android:layout_height="wrap_content"
-          android:id="@+id/category_edit_agg_menu" android:layout_width="fill_parent"
-          android:layout_gravity="right|center_vertical"></LinearLayout>
+        <net.redgeek.android.eventrend.util.DynamicSpinner 
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:id="@+id/category_edit_agg_period_menu"/>
       </TableRow>
 
       <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:id="@+id/category_edit_synthetic_row">
+        android:layout_width="fill_parent" android:id="@+id/category_edit_series_type_row">
         <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Calculated"
-          android:layout_gravity="left|center_vertical" android:clickable="true"
-          android:id="@+id/category_edit_synthetic_view"></TextView>
-        <CheckBox android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
-          android:id="@+id/category_edit_synthetic"></CheckBox>
+          android:layout_height="wrap_content" android:text="Series Type"
+          android:layout_gravity="left|center_vertical" android:clickable="true" android:id="@+id/category_edit_series_type_view"></TextView>
+        <net.redgeek.android.eventrend.util.DynamicSpinner 
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:id="@+id/category_edit_series_type_menu"/>
       </TableRow>
 
       <TableRow android:layout_height="wrap_content"
@@ -187,6 +191,7 @@
         <net.redgeek.android.eventrend.util.ComboBox 
           android:layout_height="wrap_content"
           android:layout_width="fill_parent" 
+          android:layout_gravity="right|center_vertical"
           android:id="@+id/category_edit_group"/>
       </TableRow>
       
