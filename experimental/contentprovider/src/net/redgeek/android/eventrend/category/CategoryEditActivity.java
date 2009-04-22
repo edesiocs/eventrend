@@ -19,6 +19,8 @@ package net.redgeek.android.eventrend.category;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -29,7 +31,6 @@ import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -43,11 +44,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesProvider;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.input.FormulaEditorActivity;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
 import net.redgeek.android.eventrend.util.ComboBox;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
@@ -61,37 +61,35 @@ public class CategoryEditActivity extends EvenTrendActivity {
   static final int DIALOG_HELP_GOAL = 3;
   static final int DIALOG_HELP_COLOR = 4;
   static final int DIALOG_HELP_AGGREGATE = 5;
-  static final int DIALOG_HELP_INTERP = 6;
+  static final int DIALOG_HELP_AGGREGATE_PERIOD = 6;
+  static final int DIALOG_HELP_UNITS = 8;
   // synthetic config:
-  static final int DIALOG_HELP_SYNTHETIC = 7;
-  static final int DIALOG_HELP_FORMULA = 8;
+  static final int DIALOG_HELP_SYNTHETIC = 9;
+  static final int DIALOG_HELP_FORMULA = 10;
   // standard config:
-  static final int DIALOG_HELP_DEFAULT_VALUE = 9;
-  static final int DIALOG_HELP_INCREMENT = 10;
-  static final int DIALOG_HELP_TYPE = 11;
-  static final int DIALOG_HELP_ZEROFILL = 12;
+  static final int DIALOG_HELP_DEFAULT_VALUE = 11;
+  static final int DIALOG_HELP_INCREMENT = 12;
+  static final int DIALOG_HELP_SERIES_TYPE = 13;
+  static final int DIALOG_HELP_ZEROFILL = 14;
   // previously preferences:
-  static final int DIALOG_HELP_HISTORY = 13;
-  static final int DIALOG_HELP_DECIMALS = 14;
-  static final int DIALOG_HELP_SMOOTHING = 15;
-  static final int DIALOG_HELP_SENSITIVITY = 16;
+  static final int DIALOG_HELP_HISTORY = 15;
+  static final int DIALOG_HELP_DECIMALS = 16;
+  static final int DIALOG_HELP_SMOOTHING = 17;
+  static final int DIALOG_HELP_SENSITIVITY = 18;
 
   // UI elements
-  private LinearLayout mGroupComboLayout;
   private LinearLayout mPeriodRow;
-  private LinearLayout mInterpRow;
   private TableRow mGroupRow;
   private ComboBox mGroupCombo;
   private EditText mCategoryText;
   private Button mColorButton;
-  private DynamicSpinner mPeriodSpinner;
-  private DynamicSpinner mInterpSpinner;
+  private DynamicSpinner mAggregatePeriodSpinner;
   private EditText mGoalText;
   private Button mOk;
   private Button mDelete;
   private CheckBox mAdvancedCheck;
-  private TableRow mSyntheticRow;
-  private CheckBox mSyntheticCheck;
+  private TableRow mSeriesTypeRow;
+  private DynamicSpinner mSeriesTypeSpinner;
   private RadioGroup mAggRadioGroup;
   private RadioButton mAggRadio;
   // synthetic elements:
@@ -105,6 +103,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private TableRow mZeroFillRow;
   private CheckBox mZeroFillCheck;
   // previously in prefs
+  private TableRow mUnitsRow;
+  private ComboBox mUnitsCombo;
   private TableRow mHistoryRow;
   private EditText mHistoryText;
   private TableRow mDecimalsRow;
@@ -116,10 +116,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
   // Private data
   private CategoryRow mRow;
-  private String mPeriod;
-  private String mInterp;
   private String mGroupName;
-  private long mPeriodMs;
+  private int mPeriodSeconds;
   private int mRank;
 
   private Paint mPickerPaint;
@@ -128,16 +126,16 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private int mMaxRank = 1;
   private boolean mSave = false;
 
-//  private Formula mFormula;
+  // TODO: formula-related stuff
+  // private Formula mFormula;
 
   // Listeners
   private RadioGroup.OnCheckedChangeListener mAggListener;
   private ColorPickerDialog.OnColorChangedListener mColorChangeListener;
   private View.OnClickListener mColorButtonListener;
-  private Spinner.OnItemSelectedListener mInterpolationListener;
-  private Spinner.OnItemSelectedListener mPeriodListener;
+  private Spinner.OnItemSelectedListener mAggregatePeriodListener;
   private CompoundButton.OnCheckedChangeListener mAdvancedListener;
-  private CompoundButton.OnCheckedChangeListener mSyntheticListener;
+  private Spinner.OnItemSelectedListener mSeriesTypeListener;
   private View.OnClickListener mFormulaEditListener;
   private View.OnClickListener mOkListener;
   private View.OnClickListener mDeleteListener;
@@ -178,16 +176,16 @@ public class CategoryEditActivity extends EvenTrendActivity {
           mMaxRank = rank;
         if (mRowId != null && TimeSeries.getId(c) == mRowId)
           mRow = new CategoryRow(c);
-        
-        c.moveToNext();        
+
+        c.moveToNext();
       }
       c.close();
-    }    
+    }
 
     if (mRow == null)
       mRow = new CategoryRow();
   }
-
+  
   public static class RestrictedNameFilter implements InputFilter {
     private String mInvalidRegex;
 
@@ -201,35 +199,31 @@ public class CategoryEditActivity extends EvenTrendActivity {
       out = out.replaceAll(mInvalidRegex, "");
       return out.subSequence(0, out.length());
     }
-  };
-  
+  }
+
   private void setupUI() {
     setContentView(R.layout.category_edit_advanced);
 
     setupListeners();
 
     mGroupRow = (TableRow) findViewById(R.id.category_edit_group_row);
-    mGroupCombo = new ComboBox(mCtx);
-    mGroupComboLayout = (LinearLayout) findViewById(R.id.category_edit_group);
-    mGroupComboLayout.addView(mGroupCombo, new LinearLayout.LayoutParams(
-        LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-    Cursor c = getDbh().fetchAllGroups();
-    c.moveToFirst();
-    for (int i = 0; i < c.getCount(); i++) {
-      String group = CategoryDbTable.getGroupName(c);
+    mGroupCombo = (ComboBox) findViewById(R.id.category_edit_group);
+    ArrayList<String> groups = fetchAllGroups();
+    int size = groups.size();
+    String group;
+    for (int i = 0; i < size; i++) {
+      group = groups.get(i);
       mGroupCombo.addMenuItem(group);
       if (mGroupName != null && mGroupName.equals(group))
         mGroupCombo.setSelection(i);
-      c.moveToNext();
     }
-    c.close();
     setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
     mCategoryText = (EditText) findViewById(R.id.category_edit_name);
     InputFilter[] FilterArray = new InputFilter[1];
     FilterArray[0] = new RestrictedNameFilter("[\"\\\\]");
     mCategoryText.setFilters(FilterArray);
-    
+
     setHelpDialog(R.id.category_edit_name_view, DIALOG_HELP_CATEGORY);
 
     mGoalText = (EditText) findViewById(R.id.category_edit_goal);
@@ -239,29 +233,23 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mColorButton.setOnClickListener(mColorButtonListener);
     setHelpDialog(R.id.category_edit_color_view, DIALOG_HELP_COLOR);
 
-    mInterpSpinner = new DynamicSpinner(mCtx);
-    mInterpRow = (LinearLayout) findViewById(R.id.category_edit_interp_menu);
-    mInterpRow.addView(mInterpSpinner, new LinearLayout.LayoutParams(
-        LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-    ArrayList<TimeSeriesInterpolator> interpolators = (mCtx)
-        .getInterpolators();
-    for (int i = 0; i < interpolators.size(); i++) {
-      String name = interpolators.get(i).getName();
-      mInterpSpinner.addSpinnerItem(name, new Long(i));
+    mPeriodRow = (TableRow) findViewById(R.id.category_edit_agg_period_row);
+    mAggregatePeriodSpinner = (DynamicSpinner) findViewById(R.id.category_edit_agg_period_menu);
+    for (int i = 0; i < TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
+      mAggregatePeriodSpinner.addSpinnerItem(
+          TimeSeries.AGGREGATION_PERIOD_NAMES[i], new Long(
+              TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
     }
-    mInterpSpinner.setOnItemSelectedListener(mInterpolationListener);
-    setHelpDialog(R.id.category_edit_interp_view, DIALOG_HELP_INTERP);
+    mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListener);
+    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE_PERIOD);
 
-    mPeriodSpinner = new DynamicSpinner(mCtx);
-    mPeriodRow = (LinearLayout) findViewById(R.id.category_edit_agg_menu);
-    mPeriodRow.addView(mPeriodSpinner, new LinearLayout.LayoutParams(
-        LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT));
-    for (int i = 0; i < CategoryDbTable.KEY_PERIODS.length; i++) {
-      mPeriodSpinner
-          .addSpinnerItem(CategoryDbTable.KEY_PERIODS[i], new Long(i));
+    mSeriesTypeRow = (TableRow) findViewById(R.id.category_edit_series_type_row);
+    mSeriesTypeSpinner = (DynamicSpinner) findViewById(R.id.category_edit_series_type_menu);
+    for (int i = 0; i < TimeSeries.TYPES.length; i++) {
+      mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
     }
-    mPeriodSpinner.setOnItemSelectedListener(mPeriodListener);
-    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE);
+    mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
+    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_SERIES_TYPE);
 
     mOk = (Button) findViewById(R.id.category_edit_ok);
     mOk.setOnClickListener(mOkListener);
@@ -272,21 +260,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mDelete.setVisibility(View.INVISIBLE);
     }
 
-    mAggRadioGroup = (RadioGroup) findViewById(R.id.category_edit_type);
+    mAggRadioGroup = (RadioGroup) findViewById(R.id.category_edit_agg);
     mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
     mAggRadio = (RadioButton) findViewById(mAggRadioGroup
         .getCheckedRadioButtonId());
-    setHelpDialog(R.id.category_edit_type_view, DIALOG_HELP_TYPE);
-
-    mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
-    mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
-    mAdvancedCheck.setChecked(false);
-
-    mSyntheticRow = (TableRow) findViewById(R.id.category_edit_synthetic_row);
-    mSyntheticCheck = (CheckBox) findViewById(R.id.category_edit_synthetic);
-    setHelpDialog(R.id.category_edit_synthetic_view, DIALOG_HELP_SYNTHETIC);
-    mSyntheticCheck.setOnCheckedChangeListener(mSyntheticListener);
-    mSyntheticCheck.setChecked(false);
+    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE);
 
     // synthetic elements:
     mFormulaRow = (TableRow) findViewById(R.id.category_edit_formula_row);
@@ -308,6 +286,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
     setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
 
+    mUnitsRow = (TableRow) findViewById(R.id.category_edit_units_row);
+    mUnitsCombo = (ComboBox) findViewById(R.id.category_edit_units);
+    setHelpDialog(R.id.category_edit_units_view, DIALOG_HELP_UNITS);
+
     mHistoryRow = (TableRow) findViewById(R.id.category_edit_history_row);
     mHistoryText = (EditText) findViewById(R.id.category_edit_history);
     setHelpDialog(R.id.category_edit_history_view, DIALOG_HELP_HISTORY);
@@ -324,65 +306,89 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mSensitivityText = (EditText) findViewById(R.id.category_edit_sensitivity);
     setHelpDialog(R.id.category_edit_sensitivity_view, DIALOG_HELP_SENSITIVITY);
 
+    // these changes the layout, so needs to be last
+    mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
+    mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
+    mAdvancedCheck.setChecked(false);
     setSyntheticView(false);
   }
 
+  private ArrayList<String> fetchAllGroups() {
+    ArrayList<String> groups = new ArrayList<String>();
+    String[] projection = new String[] { TimeSeries.GROUP_NAME };
+    Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
+    Cursor c = getContentResolver().query(timeseries, projection, null, null,
+        TimeSeries.GROUP_NAME + " asc ");
+    if (c != null) {
+      String group;
+      int count = c.getCount();
+      c.moveToFirst();
+      for (int i = 0; i < count; i++) {
+        group = TimeSeries.getGroupName(c);
+        if (groups.contains(group) == false) {
+          groups.add(group);
+        }
+        c.moveToNext();
+      }
+      c.close();
+    }
+    return groups;
+  }
+
+  private void setZerofillCheckStatus() {
+    if (mPeriodSeconds == 0 
+        || mAggRadio.getText().toString().toLowerCase().equals(TimeSeries.AGGREGATION_AVG)
+        || mAdvancedCheck.isChecked() == false) {
+      mZeroFillRow.setVisibility(View.GONE);
+    } else {
+      mZeroFillRow.setVisibility(View.VISIBLE);
+    }
+  }
+  
   private void setSyntheticView(boolean synthetic) {
     if (synthetic == true) {
       mFormulaRow.setVisibility(View.VISIBLE);
       mDefaultValueRow.setVisibility(View.GONE);
       mIncrementRow.setVisibility(View.GONE);
-      mZeroFillRow.setVisibility(View.GONE);
     } else {
       mFormulaRow.setVisibility(View.GONE);
       mDefaultValueRow.setVisibility(View.VISIBLE);
       mIncrementRow.setVisibility(View.VISIBLE);
-      mZeroFillRow.setVisibility(View.VISIBLE);
     }
+    setZerofillCheckStatus();
   }
 
   private void setAdvancedView(boolean advanced) {
     if (advanced == true) {
-      mInterpRow.setVisibility(View.VISIBLE);
       mPeriodRow.setVisibility(View.VISIBLE);
-      mSyntheticRow.setVisibility(View.VISIBLE);
-      mFormulaRow.setVisibility(View.VISIBLE);
-      mZeroFillRow.setVisibility(View.VISIBLE);
+      mSeriesTypeRow.setVisibility(View.VISIBLE);
       mGroupRow.setVisibility(View.VISIBLE);
       mHistoryRow.setVisibility(View.VISIBLE);
       mDecimalsRow.setVisibility(View.VISIBLE);
       mSmoothingRow.setVisibility(View.VISIBLE);
       mSensitivityRow.setVisibility(View.VISIBLE);
-      setSyntheticView(false);
+      mUnitsRow.setVisibility(View.VISIBLE);
     } else {
-      mInterpRow.setVisibility(View.GONE);
       mPeriodRow.setVisibility(View.GONE);
-      mSyntheticRow.setVisibility(View.GONE);
-      mFormulaRow.setVisibility(View.GONE);
-      mZeroFillRow.setVisibility(View.GONE);
+      mSeriesTypeRow.setVisibility(View.GONE);
       mGroupRow.setVisibility(View.GONE);
       mHistoryRow.setVisibility(View.GONE);
       mDecimalsRow.setVisibility(View.GONE);
       mSmoothingRow.setVisibility(View.GONE);
       mSensitivityRow.setVisibility(View.GONE);
+      mUnitsRow.setVisibility(View.GONE);
     }
+    if (mRow != null && mRow.mType != null && mRow.mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC))
+      setSyntheticView(true);
+    else
+      setSyntheticView(false);
   }
 
   private void setupListeners() {
     mAggListener = new RadioGroup.OnCheckedChangeListener() {
       public void onCheckedChanged(RadioGroup group, int checkedId) {
         mAggRadio = (RadioButton) findViewById(checkedId);
-        if (mAggRadio.getText().equals(TimeSeries.AGGREGATION_AVG)) {
-          mZeroFillCheck.setChecked(false);
-          mZeroFillCheck.setClickable(false);
-        } else {
-          if (mPeriodMs == 0) {
-            mZeroFillCheck.setChecked(false);
-            mZeroFillCheck.setClickable(false);
-          } else {
-            mZeroFillCheck.setClickable(true);
-          }
-        }
+        setZerofillCheckStatus();
       }
     };
 
@@ -397,18 +403,18 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mColorButtonListener = new View.OnClickListener() {
       public void onClick(View view) {
-        ColorPickerDialog d = new ColorPickerDialog(mCtx,
-            mColorChangeListener, mPickerPaint.getColor());
+        ColorPickerDialog d = new ColorPickerDialog(mCtx, mColorChangeListener,
+            mPickerPaint.getColor());
         d.show();
       }
     };
 
-    mInterpolationListener = new Spinner.OnItemSelectedListener() {
+    mAggregatePeriodListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        if (v != null) {
-          mInterp = ((TextView) v).getText().toString();
-        }
+        mPeriodSeconds = (int) mAggregatePeriodSpinner
+            .getMappingFromPosition(position);
+        setZerofillCheckStatus();
         return;
       }
 
@@ -417,34 +423,20 @@ public class CategoryEditActivity extends EvenTrendActivity {
       }
     };
 
-    mPeriodListener = new Spinner.OnItemSelectedListener() {
+    mSeriesTypeListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        mPeriod = ((TextView) v).getText().toString();
-        mPeriodMs = CategoryDbTable.mapPeriodToMs(mPeriod);
-        if (mPeriodMs == 0) {
-          mZeroFillCheck.setChecked(false);
-          mZeroFillCheck.setClickable(false);
+        String type = ((TextView) v).getText().toString();
+        if (type.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
+          setSyntheticView(true);
         } else {
-          String type = mAggRadio.getText().toString();
-          if (type.equals(TimeSeries.AGGREGATION_AVG)) {
-            mZeroFillCheck.setChecked(false);
-            mZeroFillCheck.setClickable(false);
-          } else {
-            mZeroFillCheck.setClickable(true);
-          }
+          setSyntheticView(false);
         }
         return;
       }
 
       public void onNothingSelected(AdapterView arg0) {
         return;
-      }
-    };
-
-    mSyntheticListener = new CompoundButton.OnCheckedChangeListener() {
-      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setSyntheticView(isChecked);
       }
     };
 
@@ -456,12 +448,13 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mFormulaEditListener = new View.OnClickListener() {
       public void onClick(View view) {
-        mSave = true;
-        saveState();
-        mSave = false;
-        Intent i = new Intent(mCtx, FormulaEditorActivity.class);
-        i.putExtra(TimeSeries._ID, mRowId);
-        startActivityForResult(i, FORMULA_EDIT);
+        // TODO: formula-related stuff
+        // mSave = true;
+        // saveState();
+        // mSave = false;
+        // Intent i = new Intent(mCtx, FormulaEditorActivity.class);
+        // i.putExtra(TimeSeries._ID, mRowId);
+        // startActivityForResult(i, FORMULA_EDIT);
       }
     };
 
@@ -481,7 +474,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
   }
 
   private void updatePaint(String color) {
-    int colorInt = Color.parseColor(color);
+    int colorInt = Color.LTGRAY;
+    try {
+      colorInt = Color.parseColor(color);
+    } catch (Exception e) {
+    }
     mPickerPaint = new Paint();
     mPickerPaint.setAntiAlias(true);
     mPickerPaint.setDither(true);
@@ -491,37 +488,24 @@ public class CategoryEditActivity extends EvenTrendActivity {
   }
 
   private void populateFields() {
-    if (mRowId != null) {
-      if (mRow == null)
-        mRow = getDbh().fetchCategory(mRowId);
-
-      mGroupCombo.setText(mRow.mGroup);
+    if (mRowId != null && mRow != null) {
       mCategoryText.setText(mRow.mTimeSeriesName);
-      mDefaultValueText.setText(Float.valueOf(mRow.mDefaultValue)
-          .toString());
+      mDefaultValueText.setText(Float.valueOf(mRow.mDefaultValue).toString());
       mIncrementText.setText(Float.valueOf(mRow.mIncrement).toString());
       mGoalText.setText(Float.valueOf(mRow.mGoal).toString());
       mColorStr = mRow.mColor;
       mGroupName = mRow.mGroup;
 
       mZeroFillCheck.setChecked(mRow.mZerofill > 0 ? true : false);
-      mSyntheticCheck.setChecked(mRow.mType.equals(TimeSeries.TYPE_SYNTHETIC));
+      int index = TimeSeries.periodToIndex(mPeriodSeconds);
+      if (index < 0)
+        index = 0;
+      mSeriesTypeSpinner.setSelection(index);
 
-      mInterp = mRow.mInterpolation;
       mRank = mRow.mRank;
-      mPeriod = mRow.mPeriod;
-      mPeriodSpinner.setSelection(CategoryDbTable.mapMsToIndex(mPeriodMs));
-
-      ArrayList<TimeSeriesInterpolator> interpolators = mCtx.getInterpolators();
-      for (int i = 0; i < interpolators.size(); i++) {
-        String name = interpolators.get(i).getName();
-        if (mInterp != null && mInterp.equals(name)) {
-          mInterpSpinner.setSelection(i);
-        }
-      }
 
       String aggregation = mRow.mAggregation;
-      if (aggregation.equals(TimeSeries.AGGREGATION_AVG)) {
+      if (aggregation.toLowerCase().equals(TimeSeries.AGGREGATION_AVG)) {
         mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_rating);
         mZeroFillCheck.setChecked(false);
         mZeroFillCheck.setClickable(false);
@@ -556,43 +540,52 @@ public class CategoryEditActivity extends EvenTrendActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    populateFields();
+    // TODO: check to see if we need this
+    // populateFields();
+    updatePaint(mRow.mColor);
   }
 
   private void saveState() {
     if (mSave == true) {
-      if (mRow == null)
-        mRow = new CategoryDbTable.Row();
+      String value;
+      ContentValues values = new ContentValues();
 
-      mRow.setGroupName(mGroupCombo.getText().toString());
-      mRow.setCategoryName(mCategoryText.getText().toString());
-      mRow.setDefaultValue(Float
-          .valueOf(mDefaultValueText.getText().toString()).floatValue());
-      mRow.setIncrement(Float.valueOf(mIncrementText.getText().toString())
-          .floatValue());
-      mRow.setGoal(Float.valueOf(mGoalText.getText().toString()).floatValue());
-      mRow.setColor(mColorStr);
-      mRow.setPeriodMs(mPeriodMs);
-      mRow.setInterpolation(mInterp);
-      mRow.setZeroFill(mZeroFillCheck.isChecked());
-      mRow.setSynthetic(mSyntheticCheck.isChecked());
+      values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
+      values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
+      values.put(TimeSeries.GOAL, Float.valueOf(mGoalText.getText().toString()).floatValue());
+      values.put(TimeSeries.COLOR, mColorStr);
+      values.put(TimeSeries.PERIOD, mPeriodSeconds);
+      values.put(TimeSeries.UNITS, mUnitsCombo.getText().toString());
+      values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked());
+      values.put(TimeSeries.SENSITIVITY, Float.valueOf(mSensitivityText.getText().toString()).floatValue());
+      values.put(TimeSeries.SMOOTHING, Float.valueOf(mSmoothingText.getText().toString()).floatValue());
+      values.put(TimeSeries.HISTORY, Integer.valueOf(mHistoryText.getText().toString()).intValue());
+      values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
+      values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
+      
+      mAggRadio = (RadioButton) findViewById(mAggRadioGroup.getCheckedRadioButtonId());
+      values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString());
 
-      if (null == mTypeRadio) {
-        mTypeRadio = (RadioButton) findViewById(mTypeRadioGroup
-            .getCheckedRadioButtonId());
+      if (mSeriesTypeSpinner.getSelectedItem().toString().toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
+        values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
+        values.put(TimeSeries.INCREMENT, 1.0f);
+      } else {
+        values.put(TimeSeries.DEFAULT_VALUE, Float.valueOf(mDefaultValueText.getText().toString()).floatValue());
+        values.put(TimeSeries.INCREMENT, Float.valueOf(mIncrementText.getText().toString()).floatValue());
       }
-      mRow.setType(mTypeRadio.getText().toString());
 
       if (mRowId == null) {
-        mRow.setRank(mMaxRank);
-        long catId = getDbh().createCategory(mRow);
-        if (catId > 0) {
-          mRowId = catId;
-        }
+        // insert
+        values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
+        values.put(TimeSeries.RANK, mMaxRank);
+        Uri uri = getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI, values);
+        String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+        mRowId = Long.valueOf(rowIdStr);
       } else {
-        mRow.setId(mRowId);
-        mRow.setRank(mRank);
-        getDbh().updateCategory(mRow);
+        // update
+        values.put(TimeSeries.RANK, mRank);
+        Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, mRowId);
+        getContentResolver().update(uri, values, null, null);
       }
     }
   }
@@ -601,13 +594,14 @@ public class CategoryEditActivity extends EvenTrendActivity {
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
     String formula = null;
-    if (intent != null)
-      formula = intent.getStringExtra(FORMULA);
-    if (formula != null)
-      mFormula.setFormula(formula);
-
-    if (mRowId > 0)
-      mRow = getDbh().fetchCategory(mRowId);
+    // TODO: formula stuff
+    // if (intent != null)
+    // formula = intent.getStringExtra(FORMULA);
+    // if (formula != null)
+    // mFormula.setFormula(formula);
+    //
+    // if (mRowId > 0)
+    // mRow = getDbh().fetchCategory(mRowId);
     populateFields();
   }
 
@@ -644,37 +638,29 @@ public class CategoryEditActivity extends EvenTrendActivity {
         title = getResources().getString(R.string.cat_color_title);
         msg = getResources().getString(R.string.cat_color_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
-      case DIALOG_HELP_TYPE:
-        title = getResources().getString(R.string.cat_type_title);
-        msg = getResources().getString(R.string.cat_type_desc);
-        return mDialogUtil.newOkDialog(title, msg + "\n");
       case DIALOG_HELP_AGGREGATE:
         title = getResources().getString(R.string.cat_aggregate_title);
         msg = getResources().getString(R.string.cat_aggregate_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
-      case DIALOG_HELP_INTERP:
-        title = getResources().getString(R.string.cat_interp_title);
-        msg = getResources().getString(R.string.cat_interp_desc);
-
-        ArrayList<TimeSeriesInterpolator> interpolators = ((EvenTrendActivity) getCtx())
-            .getInterpolators();
-        for (int i = 0; i < interpolators.size(); i++) {
-          int helpId = interpolators.get(i).getHelpResId();
-          msg += "\n---\n" + getResources().getString(helpId);
-        }
-
+      case DIALOG_HELP_AGGREGATE_PERIOD:
+        title = getResources().getString(R.string.cat_aggregate_period_title);
+        msg = getResources().getString(R.string.cat_aggregate_period_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
       case DIALOG_HELP_ZEROFILL:
         title = getResources().getString(R.string.cat_zerofill_title);
         msg = getResources().getString(R.string.cat_zerofill_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
-      case DIALOG_HELP_SYNTHETIC:
-        title = getResources().getString(R.string.cat_synthetic_title);
-        msg = getResources().getString(R.string.cat_synthetic_desc);
+      case DIALOG_HELP_SERIES_TYPE:
+        title = getResources().getString(R.string.cat_series_type_title);
+        msg = getResources().getString(R.string.cat_series_type_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
       case DIALOG_HELP_FORMULA:
         title = getResources().getString(R.string.cat_formula_title);
         msg = getResources().getString(R.string.cat_formula_desc);
+        return mDialogUtil.newOkDialog(title, msg + "\n");
+      case DIALOG_HELP_UNITS:
+        title = getResources().getString(R.string.cat_units_title);
+        msg = getResources().getString(R.string.cat_units_desc);
         return mDialogUtil.newOkDialog(title, msg + "\n");
       case DIALOG_HELP_HISTORY:
         title = getResources().getString(R.string.cat_history_title);
@@ -702,9 +688,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
     b.setMessage(msg);
     b.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int whichButton) {
-        getDbh().deleteCategory(mRowId);
-        getDbh().deleteCategoryEntries(mRowId);
-        setResult(RESULT_DELETED);
+        Uri timeseries = ContentUris.withAppendedId(
+            TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId);
+        mCtx.getContentResolver().delete(timeseries, null, null);
+        // setResult(RESULT_DELETED);
         finish();
       }
     });

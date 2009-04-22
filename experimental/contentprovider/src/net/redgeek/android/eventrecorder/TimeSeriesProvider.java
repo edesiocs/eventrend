@@ -55,7 +55,7 @@ public class TimeSeriesProvider extends ContentProvider {
   private static final int DATAPOINTS_RANGE = 6;
   private static final int DATEMAP = 7;
   private static final int DATEMAP_ID = 8;
-
+  
   private DatabaseHelper mDbHelper;
   private static UriMatcher sURIMatcher;
   private static HashMap<String, String> sTimeSeriesProjection;

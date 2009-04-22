@@ -518,6 +518,9 @@ public class TimeSeriesData {
     public static final String AGGREGATION = "aggregation";
     public static final String AGGREGATION_SUM = "sum";
     public static final String AGGREGATION_AVG = "average";
+    public static final String[] AGGREGATIONS = {
+      AGGREGATION_SUM, AGGREGATION_SUM
+    };
 
     /**
      * The type of the series: discrete: represents a single point in time,
@@ -531,6 +534,9 @@ public class TimeSeriesData {
     public static final String TYPE_DISCRETE = "discrete";
     public static final String TYPE_RANGE = "range";
     public static final String TYPE_SYNTHETIC = "synthetic";
+    public static final String[] TYPES = {
+      TYPE_DISCRETE, TYPE_RANGE, TYPE_SYNTHETIC
+    };
 
     /**
      * If aggregation periods without entries should have an entry automatically
@@ -689,6 +695,34 @@ public class TimeSeriesData {
 
     public static int getDecimals(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(TimeSeriesData.TimeSeries.DECIMALS));
+    }
+    
+    public static final int[] AGGREGATION_PERIOD_TIMES = {
+      0,    
+      (int) (DateMapCache.AMPM_MS / DateMapCache.SECOND_MS),    
+      (int) (DateMapCache.DAY_MS / DateMapCache.SECOND_MS),    
+      (int) (DateMapCache.WEEK_MS / DateMapCache.SECOND_MS),    
+      (int) (DateMapCache.MONTH_MS / DateMapCache.SECOND_MS),    
+      (int) (DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS),    
+      (int) (DateMapCache.YEAR_MS / DateMapCache.SECOND_MS),    
+    };
+
+    public static final String[] AGGREGATION_PERIOD_NAMES = {
+      "None",
+      "AM/PM",
+      "Day",
+      "Week",
+      "Month",
+      "Quarter",
+      "Year",
+    };  
+    
+    public static int periodToIndex(int period) {
+      for (int i = 0; i < AGGREGATION_PERIOD_TIMES.length; i++) {
+        if (AGGREGATION_PERIOD_TIMES[i] == period)
+          return i;
+      }
+      return -1;
     }
   }
 }

@@ -59,6 +59,7 @@ import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.category.CategoryEditActivity;
 import net.redgeek.android.eventrend.category.CategoryListAdapter;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
@@ -444,9 +445,9 @@ public class InputActivity extends EvenTrendActivity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-//      case MENU_ADD_ID:
-//        createCategory();
-//        return true;
+      case MENU_ADD_ID:
+        createCategory();
+        return true;
 //      case MENU_EDIT_ID:
 //        editEntries();
 //        return true;
@@ -628,10 +629,10 @@ public class InputActivity extends EvenTrendActivity {
 
   // *** Transitions elsewhere ... ***//
 
-//  private void createCategory() {
-//    Intent i = new Intent(this, CategoryEditActivity.class);
-//    startActivityForResult(i, CATEGORY_CREATE);
-//  }
+  private void createCategory() {
+    Intent i = new Intent(this, CategoryEditActivity.class);
+    startActivityForResult(i, ARC_CATEGORY_CREATE);
+  }
 //
 //  private void editCategory(long catId) {
 //    Intent i = new Intent(this, CategoryEditActivity.class);

@@ -16,11 +16,15 @@
 
 package net.redgeek.android.eventrend.util;
 
+import net.redgeek.android.eventrend.R;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -60,25 +64,7 @@ public class DynamicSpinner extends Spinner {
    *          (Ignored.)
    */
   public DynamicSpinner(Context context, AttributeSet attrs) {
-    super(context);
-    setup(context);
-  }
-
-  /**
-   * Constructor. Creates an empty dynamic spinner associated with the context
-   * of <code>context</code>. <br>
-   * <strong>attrs and defStyle are currently ignored and only present to
-   * satisfy the same constructor set as a Spinner.</strong>
-   * 
-   * @param context
-   *          The Context responsible for this view.
-   * @param attrs
-   *          (Ignored.)
-   * @param defStyle
-   *          (Ignored.)
-   */
-  public DynamicSpinner(Context context, AttributeSet attrs, int defStyle) {
-    super(context);
+    super(context, attrs);
     setup(context);
   }
 
@@ -92,10 +78,9 @@ public class DynamicSpinner extends Spinner {
    */
   private void setup(Context context) {
     mCtx = context;
-    mSpinnerAdapter = new ArrayAdapter<CharSequence>(mCtx,
-        android.R.layout.simple_spinner_item);
-    mSpinnerAdapter
-        .setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    
+    mSpinnerAdapter = new ArrayAdapter<CharSequence>(mCtx, android.R.layout.simple_spinner_item);
+    mSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
     setAdapter(mSpinnerAdapter);
   }
 
