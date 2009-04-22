@@ -36,6 +36,17 @@
         </EditText>
       </TableRow>
       
+      <TableRow android:layout_width="fill_parent"
+        android:layout_height="wrap_content" android:id="@+id/category_edit_color_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Color"
+          android:clickable="true" android:id="@+id/category_edit_color_view">
+        </TextView>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_color"
+          android:text="Color"></Button>
+      </TableRow>
+      
       <TableRow android:layout_height="wrap_content"
         android:layout_width="fill_parent" android:id="@+id/category_edit_goal_row">
         <TextView android:layout_width="wrap_content"
@@ -47,17 +58,6 @@
           android:layout_height="wrap_content" android:id="@+id/category_edit_goal"
           android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal">
         </EditText>
-      </TableRow>
-      
-      <TableRow android:layout_width="fill_parent"
-        android:layout_height="wrap_content" android:id="@+id/category_edit_color_row">
-        <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Color"
-          android:clickable="true" android:id="@+id/category_edit_color_view">
-        </TextView>
-        <Button android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:id="@+id/category_edit_color"
-          android:text="Color"></Button>
       </TableRow>
       
       <TableRow android:layout_height="wrap_content"
@@ -119,20 +119,6 @@
           android:id="@+id/category_edit_advanced" android:checked="true"></CheckBox>
       </TableRow>
       
-      <TableRow android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:id="@+id/category_edit_units_row">
-        <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Units"
-          android:layout_gravity="left|center_vertical" android:clickable="true"
-          android:id="@+id/category_edit_units_view">
-        </TextView>
-        <net.redgeek.android.eventrend.util.ComboBox
-          android:layout_height="wrap_content"
-          android:layout_width="fill_parent" 
-          android:layout_gravity="right|center_vertical"
-          android:id="@+id/category_edit_units"/>
-      </TableRow>     
-      
       <TableRow android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:id="@+id/category_edit_agg_period_row">
         <TextView android:layout_width="wrap_content"
@@ -181,6 +167,19 @@
       </TableRow>
 
       <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:id="@+id/category_edit_units_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Units"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_units_view">
+        </TextView>
+        <EditText android:layout_width="fill_parent"
+          android:layout_height="wrap_content" 
+          android:id="@+id/category_edit_units">
+        </EditText>
+      </TableRow>     
+      
+      <TableRow android:layout_height="wrap_content"
         android:layout_width="fill_parent" android:layout_gravity="right|center_vertical"
         android:id="@+id/category_edit_group_row">
         <TextView android:layout_width="wrap_content"
@@ -188,11 +187,23 @@
           android:text="Group" android:clickable="true"
           android:id="@+id/category_edit_group_view">
         </TextView>
-        <net.redgeek.android.eventrend.util.ComboBox 
+        <net.redgeek.android.eventrend.util.ComboBox
           android:layout_height="wrap_content"
           android:layout_width="fill_parent" 
           android:layout_gravity="right|center_vertical"
           android:id="@+id/category_edit_group"/>
+      </TableRow>
+      
+      <TableRow android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_trend_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Trending Params" android:clickable="false" android:textStyle="bold" android:layout_gravity="top|left">
+        </TextView>
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:text="" 
+          android:clickable="false" android:gravity="top|right">
+        </TextView>
       </TableRow>
       
       <TableRow android:layout_height="wrap_content"
