@@ -103,8 +103,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private TableRow mZeroFillRow;
   private CheckBox mZeroFillCheck;
   // previously in prefs
+  private TableRow mTrendLabelRow;
   private TableRow mUnitsRow;
-  private ComboBox mUnitsCombo;
+  private EditText mUnitsText;
   private TableRow mHistoryRow;
   private EditText mHistoryText;
   private TableRow mDecimalsRow;
@@ -165,7 +166,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     String[] projection = new String[] { TimeSeriesData.TimeSeries.RANK };
     Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
-    Cursor c = getContentResolver().query(timeseries, null, null, null, null);
+    Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
     mMaxRank = 1;
     if (c != null) {
       int count = c.getCount();
@@ -205,19 +206,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
     setContentView(R.layout.category_edit_advanced);
 
     setupListeners();
-
-    mGroupRow = (TableRow) findViewById(R.id.category_edit_group_row);
-    mGroupCombo = (ComboBox) findViewById(R.id.category_edit_group);
-    ArrayList<String> groups = fetchAllGroups();
-    int size = groups.size();
-    String group;
-    for (int i = 0; i < size; i++) {
-      group = groups.get(i);
-      mGroupCombo.addMenuItem(group);
-      if (mGroupName != null && mGroupName.equals(group))
-        mGroupCombo.setSelection(i);
-    }
-    setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
     mCategoryText = (EditText) findViewById(R.id.category_edit_name);
     InputFilter[] FilterArray = new InputFilter[1];
@@ -287,8 +275,21 @@ public class CategoryEditActivity extends EvenTrendActivity {
     setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
 
     mUnitsRow = (TableRow) findViewById(R.id.category_edit_units_row);
-    mUnitsCombo = (ComboBox) findViewById(R.id.category_edit_units);
+    mUnitsText = (EditText) findViewById(R.id.category_edit_units);
     setHelpDialog(R.id.category_edit_units_view, DIALOG_HELP_UNITS);
+
+    mGroupRow = (TableRow) findViewById(R.id.category_edit_group_row);
+    mGroupCombo = (ComboBox) findViewById(R.id.category_edit_group);
+    ArrayList<String> groups = fetchAllGroups();
+    int size = groups.size();
+    String group;
+    for (int i = 0; i < size; i++) {
+      group = groups.get(i);
+      mGroupCombo.addMenuItem(group);
+      if (mGroupName != null && mGroupName.equals(group))
+        mGroupCombo.setSelection(i);
+    }
+    setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
     mHistoryRow = (TableRow) findViewById(R.id.category_edit_history_row);
     mHistoryText = (EditText) findViewById(R.id.category_edit_history);
@@ -306,6 +307,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mSensitivityText = (EditText) findViewById(R.id.category_edit_sensitivity);
     setHelpDialog(R.id.category_edit_sensitivity_view, DIALOG_HELP_SENSITIVITY);
 
+    mTrendLabelRow = (TableRow) findViewById(R.id.category_edit_trend_row);
+      
     // these changes the layout, so needs to be last
     mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
     mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
@@ -363,6 +366,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mPeriodRow.setVisibility(View.VISIBLE);
       mSeriesTypeRow.setVisibility(View.VISIBLE);
       mGroupRow.setVisibility(View.VISIBLE);
+      mTrendLabelRow.setVisibility(View.VISIBLE);
       mHistoryRow.setVisibility(View.VISIBLE);
       mDecimalsRow.setVisibility(View.VISIBLE);
       mSmoothingRow.setVisibility(View.VISIBLE);
@@ -372,6 +376,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mPeriodRow.setVisibility(View.GONE);
       mSeriesTypeRow.setVisibility(View.GONE);
       mGroupRow.setVisibility(View.GONE);
+      mTrendLabelRow.setVisibility(View.GONE);
       mHistoryRow.setVisibility(View.GONE);
       mDecimalsRow.setVisibility(View.GONE);
       mSmoothingRow.setVisibility(View.GONE);
@@ -542,7 +547,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
     super.onResume();
     // TODO: check to see if we need this
     // populateFields();
-    updatePaint(mRow.mColor);
   }
 
   private void saveState() {
@@ -555,7 +559,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       values.put(TimeSeries.GOAL, Float.valueOf(mGoalText.getText().toString()).floatValue());
       values.put(TimeSeries.COLOR, mColorStr);
       values.put(TimeSeries.PERIOD, mPeriodSeconds);
-      values.put(TimeSeries.UNITS, mUnitsCombo.getText().toString());
+      values.put(TimeSeries.UNITS, mUnitsText.getText().toString());
       values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked());
       values.put(TimeSeries.SENSITIVITY, Float.valueOf(mSensitivityText.getText().toString()).floatValue());
       values.put(TimeSeries.SMOOTHING, Float.valueOf(mSmoothingText.getText().toString()).floatValue());

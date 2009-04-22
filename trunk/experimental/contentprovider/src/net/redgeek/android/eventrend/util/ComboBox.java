@@ -45,7 +45,6 @@ import java.util.Map;
  */
 public class ComboBox extends LinearLayout {
   private Context mCtx;
-  private LinearLayout mLayout;
   private EditText mEditText;
   private ImageButton mButton;
   private Drawable mButtonIcon;
