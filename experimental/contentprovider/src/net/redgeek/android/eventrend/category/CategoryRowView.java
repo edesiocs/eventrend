@@ -365,6 +365,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void addEntry() {
+    mRow.mTimestamp = ((InputActivity) mCtx).getTimestampSeconds();
+
     IEventRecorderService service = ((InputActivity) mCtx).getRecorderService();
     if (service == null) {
       Toast.makeText(mCtx, "RecorderService not available.", 
@@ -372,6 +374,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     } else {
       try {
         if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+          mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
           mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
               mAddValue);
         } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
@@ -390,8 +393,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       }
     }
     
-    mRow.mTimestamp = ((InputActivity) mCtx).getTimestampMs();
-    mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
 //    GUITaskQueue.getInstance().addTask(mProgress, this);
 
     if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {

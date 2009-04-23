@@ -178,6 +178,9 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.TS_START, now);
       values.put(TimeSeriesData.Datapoint.TS_END, 0);
       values.put(TimeSeriesData.Datapoint.VALUE, 0);
+      values.put(TimeSeriesData.Datapoint.TREND, 0);
+      values.put(TimeSeriesData.Datapoint.STDDEV, 0);
+      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
 
       Uri uri = ContentUris.withAppendedId(
           TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
@@ -301,9 +304,14 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
       values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
       values.put(TimeSeriesData.Datapoint.VALUE, value);
+      values.put(TimeSeriesData.Datapoint.TREND, 0);
+      values.put(TimeSeriesData.Datapoint.STDDEV, 0);
+      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
 
-      Uri uri = getContentResolver().insert(
-          TimeSeriesData.Datapoint.CONTENT_URI, values);
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          .appendPath("datapoints").build();
+      uri = getContentResolver().insert(uri, values);
       if (uri == null) {
         LockUtil.unlock(mLock);
         return -1;

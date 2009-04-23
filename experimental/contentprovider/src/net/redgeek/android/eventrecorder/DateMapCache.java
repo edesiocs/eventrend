@@ -16,8 +16,12 @@
 
 package net.redgeek.android.eventrecorder;
 
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
 import java.util.ArrayList;
@@ -199,6 +203,29 @@ public class DateMapCache {
     return;
   }
   
+  // not intended for use outside of the TimeSeriesProvider:
+  public void populateCacheLocalToProvider(SQLiteDatabase db) {
+    DateMapCacheEntry entry = null;
+    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+    qb.setTables(DateMap.TABLE_NAME);
+    Cursor c = qb.query(db, null, null, null, null, null, DateMap.DEFAULT_SORT_ORDER, null);    
+    if (c.moveToFirst()) {
+      int count = c.getCount();
+      for (int i = 0; i < count; i++) {
+        int year = TimeSeriesData.DateMap.getYear(c);
+        int month = TimeSeriesData.DateMap.getMonth(c);
+        int dow = TimeSeriesData.DateMap.getDOW(c);
+        int secs = TimeSeriesData.DateMap.getSeconds(c);
+        
+        entry = new DateMapCacheEntry(year, month, dow, secs);
+        insertEntry(entry);
+      }      
+    }
+    c.close();
+    
+    return;
+  }
+
   private void insertEntry(DateMapCacheEntry dmce) {
     ArrayList<DateMapCacheEntry> months = null;
     if (dmce == null || dmce.mId < 1)
