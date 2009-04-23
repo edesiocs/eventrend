@@ -169,15 +169,11 @@ public class InputActivity extends EvenTrendActivity {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
-    Debug.startMethodTracing("initWithCP");
-    
     getPrefs();
     setupTasksAndData();
     setupUI();
 
     fillCategoryData(-1);
-
-    Debug.stopMethodTracing();
 
     setCurrentViews(true);
   }

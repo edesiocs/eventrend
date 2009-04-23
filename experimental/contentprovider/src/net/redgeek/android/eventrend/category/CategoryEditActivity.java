@@ -124,12 +124,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private CategoryRow mRow;
   private String mGroupName;
   private int mPeriodSeconds;
-  private int mRank;
 
   private Paint mPickerPaint;
   private String mColorStr;
   private Long mRowId;
-  private int mMaxRank = 1;
+  private int mMaxRank;
   private boolean mSave = false;
 
   // TODO: formula-related stuff
@@ -172,7 +171,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     String[] projection = new String[] { TimeSeriesData.TimeSeries.RANK };
     Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
     Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
-    mMaxRank = 1;
+    mMaxRank = 0;
     if (c != null) {
       int count = c.getCount();
       c.moveToFirst();
@@ -515,8 +514,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
         index = 0;
       mSeriesTypeSpinner.setSelection(index);
 
-      mRank = mRow.mRank;
-
       String aggregation = mRow.mAggregation;
       if (aggregation.toLowerCase().equals(TimeSeries.AGGREGATION_AVG)) {
         mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_rating);
@@ -531,7 +528,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mGroupName = "Default";
       mGroupCombo.setText(mGroupName);
       mColorStr = "#cccccc";
-      mRank = mMaxRank;
     }
   }
 
@@ -592,7 +588,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       if (mRowId == null) {
         // insert
         values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
-        values.put(TimeSeries.RANK, mMaxRank);
+        values.put(TimeSeries.RANK, mMaxRank + 1);
         Uri uri = getContentResolver().insert(TimeSeriesData.TimeSeries.CONTENT_URI, values);
         if (uri != null) {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
@@ -601,7 +597,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         setResult(CATEGORY_CREATED);
       } else {
         // update
-        values.put(TimeSeries.RANK, mRank);
+        values.put(TimeSeries.RANK, mRow.mRank);
         Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, mRowId);
         getContentResolver().update(uri, values, null, null);
         setResult(CATEGORY_MODIFIED);
