@@ -55,14 +55,14 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final int ARC_CATEGORY_LIST = 1;
   public static final int ARC_CATEGORY_CREATE = 2;
   public static final int ARC_CATEGORY_EDIT = 3;
-  public static final int ARC_ENTRY_LIST = 4;
-  public static final int ARC_ENTRY_EDIT = 5;
-  public static final int ARC_GRAPH_VIEW = 6;
-  public static final int ARC_CALENDAR_VIEW = 7;
-  public static final int ARC_IMPORT_REPLACE = 8;
-  public static final int ARC_IMORT_MERGE = 9;
-  public static final int ARC_PREFS_EDIT = 10;
-  public static final int ARC_FORMULA_EDIT = 11;
+  public static final int ARC_ENTRY_LIST = 10;
+  public static final int ARC_ENTRY_EDIT = 11;
+  public static final int ARC_GRAPH_VIEW = 20;
+  public static final int ARC_CALENDAR_VIEW = 30;
+  public static final int ARC_IMPORT_REPLACE = 40;
+  public static final int ARC_IMORT_MERGE = 41;
+  public static final int ARC_PREFS_EDIT = 50;
+  public static final int ARC_FORMULA_EDIT = 60;
 
   protected Context mCtx;
   protected ContentResolver mContent;

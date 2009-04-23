@@ -33,6 +33,7 @@
 <string name="context_edit_category">Edit Category</string>
 <string name="context_move_up">Move Up</string>
 <string name="context_move_down">Move Down</string>
+<string name="context_delete_category">Delete Category</string>
 <string name="graph_filter">Filter</string>
 <string name="graph_correlate">Correlate</string>
 <string name="graph_snap_to">Snap to Period</string>

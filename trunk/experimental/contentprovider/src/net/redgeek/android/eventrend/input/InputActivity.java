@@ -19,6 +19,8 @@ package net.redgeek.android.eventrend.input;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -26,7 +28,6 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Debug;
 import android.os.Handler;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
@@ -84,9 +85,9 @@ public class InputActivity extends EvenTrendActivity {
   private static final int MENU_HELP_ID = Menu.FIRST + 5;
 
   // Context menu IDs
-  private static final int CONTEXT_EDIT = Menu.FIRST + 5;
-  private static final int CONTEXT_MOVE_UP = Menu.FIRST + 6;
-  private static final int CONTEXT_MOVE_DOWN = Menu.FIRST + 7;
+  private static final int CONTEXT_EDIT = Menu.FIRST + 10;
+  private static final int CONTEXT_MOVE_UP = Menu.FIRST + 11;
+  private static final int CONTEXT_MOVE_DOWN = Menu.FIRST + 12;
 
   // Dialog IDs
   private static final int TIME_DIALOG_ID = 0;
@@ -327,6 +328,7 @@ public class InputActivity extends EvenTrendActivity {
   public void setupGestures() {
     mGestureDetector = new GestureDetector(
         new GestureDetector.SimpleOnGestureListener() {
+          @Override
           public boolean onFling(MotionEvent e1, MotionEvent e2,
               float velocityX, float velocityY) {
             float deltaX = e2.getRawX() - e1.getRawX();
@@ -385,6 +387,23 @@ public class InputActivity extends EvenTrendActivity {
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
+    switch (requestCode) {
+      case ARC_CATEGORY_EDIT:
+        // TODO:  only re-draw if the group or rank has changed.
+      case ARC_CATEGORY_CREATE:
+        switch (resultCode) {
+          case CategoryEditActivity.CATEGORY_CREATED:
+          default:
+            // TODO: figure out why resultCode isn't propogated,
+            // display error dialog if the category isn't created
+            fillCategoryData(-1);
+            setCurrentViews(true);
+            break;
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   // *** clock ***//
@@ -478,11 +497,12 @@ public class InputActivity extends EvenTrendActivity {
     int child = mFlipper.getDisplayedChild();
     CategoryListAdapter cla = mCLAs.get(child);
 
+    long catId;
     switch (item.getItemId()) {
-//      case CONTEXT_EDIT:
-//        long catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
-//        editCategory(catId);
-//        break;
+      case CONTEXT_EDIT:
+        catId = ((CategoryRow) cla.getItem(position)).mId;
+        editCategory(catId);
+        break;
       case CONTEXT_MOVE_UP:
         if (position > 0)
           swapCategoryPositions(cla, position - 1, position);
@@ -541,8 +561,6 @@ public class InputActivity extends EvenTrendActivity {
       if (animate == true)
         slideDown(mVisibleCategoriesLayout, mCtx);
     }
-
-//    setEnabledSeries();
   }
 
   private void fillCategoryData(int switchToView) {
@@ -554,6 +572,10 @@ public class InputActivity extends EvenTrendActivity {
 
     int defaultGroupId = 0;
 
+    mCLAs.clear();
+    mCategories.clear();
+    mFlipper.removeAllViews();
+    
     Uri timeSeries = TimeSeriesData.TimeSeries.CONTENT_URI;
     Cursor c = managedQuery(timeSeries, null, null, null, null);
     if (c.moveToFirst()) {
@@ -584,7 +606,6 @@ public class InputActivity extends EvenTrendActivity {
         c.moveToNext();
       }
     }
-    c.close();
 
     for (int i = 0; i < list; i++) {
       lv = mCategories.get(i);
@@ -626,16 +647,17 @@ public class InputActivity extends EvenTrendActivity {
   // *** Transitions elsewhere ... ***//
 
   private void createCategory() {
-    Intent i = new Intent(this, CategoryEditActivity.class);
+    Uri uri = TimeSeriesData.TimeSeries.CONTENT_URI;
+    Intent i = new Intent(Intent.ACTION_INSERT, uri);
     startActivityForResult(i, ARC_CATEGORY_CREATE);
   }
-//
-//  private void editCategory(long catId) {
-//    Intent i = new Intent(this, CategoryEditActivity.class);
-//    i.putExtra(CategoryDbTable.KEY_ROWID, catId);
-//    startActivityForResult(i, CATEGORY_EDIT);
-//  }
-//
+
+  private void editCategory(long catId) {
+      Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, catId);
+      Intent i = new Intent(Intent.ACTION_EDIT, uri);
+      startActivityForResult(i, ARC_CATEGORY_EDIT);
+  }
+
 //  private void editEntries() {
 //    Intent i = new Intent(this, EntryListActivity.class);
 //    mTSC.clearSeriesLocking();
@@ -756,27 +778,6 @@ public class InputActivity extends EvenTrendActivity {
 //    mUndo.setTextColor(Color.LTGRAY);
   }
 
-//  private void setEnabledSeries() {
-//    if (mTSC.numSeries() > 0) {
-//      for (int i = 0; i < mTSC.numSeries(); i++) {
-//        long id = mTSC.getSeriesIdLocking(i);
-//        mTSC.setSeriesEnabled(id, false);
-//      }
-//
-//      int childIndex = mFlipper.getDisplayedChild();
-//      CategoryListAdapter cla = mCLAs.get(childIndex);
-//
-//      if (cla != null) {
-//        for (int i = 0; i < cla.getCount(); i++) {
-//          CategoryRow row = (CategoryRow) cla.getItem(i);
-//          mTSC.setSeriesEnabled(row.getDbRow().getId(), true);
-//        }
-//      }
-//    }
-//
-//    return;
-//  }
-
   public IEventRecorderService getRecorderService() {
     return mRecorderService;
   }  
@@ -788,33 +789,31 @@ public class InputActivity extends EvenTrendActivity {
   // *** Animations ***//
   private void swapCategoryPositions(CategoryListAdapter cla, int higher,
       int lower) {
-    TimeSeries ts;
+    ContentValues values = new ContentValues();
+    Uri uri;
     CategoryRow above = (CategoryRow) cla.getItem(higher);
     CategoryRow below = (CategoryRow) cla.getItem(lower);
 
-//    int rank = below.getDbRow().getRank();
-//    below.getDbRow().setRank(above.getDbRow().getRank());
-//    above.getDbRow().setRank(rank);
-//
-//    getDbh().updateCategoryRank(below.getDbRow().getId(),
-//        below.getDbRow().getRank());
-//    getDbh().updateCategoryRank(above.getDbRow().getId(),
-//        above.getDbRow().getRank());
-//
-//    ts = mTSC.getSeriesByIdLocking(above.getDbRow().getId());
-//    if (ts != null)
-//      ts.getDbRow().setRank(above.getDbRow().getRank());
-//    ts = mTSC.getSeriesByIdLocking(below.getDbRow().getId());
-//    if (ts != null)
-//      ts.getDbRow().setRank(below.getDbRow().getRank());
-    
+    int rank = below.mRank;
+    below.mRank = above.mRank;
+    above.mRank = rank;
+
+    values.put(TimeSeries.RANK, above.mRank);
+    uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, above.mId);
+    getContentResolver().update(uri, values, null, null);
+
+    values.put(TimeSeries.RANK, below.mRank);
+    uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, below.mId);
+    getContentResolver().update(uri, values, null, null);
+
     CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(higher);
     CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout
         .getChildAt(lower);
 
-    swapUpDown(top, bottom, mCtx);    
+//    swapUpDown(top, bottom, mCtx);    
     fillCategoryData(mFlipper.getDisplayedChild());
+    setCurrentViews(true);
   }
 
   public static void slideDown(ViewGroup group, Context ctx) {

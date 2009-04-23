@@ -16,7 +16,6 @@
 
 package net.redgeek.android.eventrend.category;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
@@ -46,12 +45,14 @@ import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
 import net.redgeek.android.eventrend.util.ComboBox;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
+import net.redgeek.android.eventrend.util.Number;
 
 import java.util.ArrayList;
 
@@ -59,6 +60,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
   public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 1;
   public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 2;
   public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 3;
+  public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
   
   static final int DELETE_DIALOG_ID = 0;
   static final int DIALOG_HELP_GROUP = 1;
@@ -156,21 +158,36 @@ public class CategoryEditActivity extends EvenTrendActivity {
   }
 
   private void getSavedStateContent(Bundle icicle) {
-    if (icicle != null) {
-      mRowId = icicle.getLong(TimeSeriesData.TimeSeries._ID);
-      if (mRowId < 0)
-        mRowId = null;
-    }
-    if (mRowId == null) {
-      Bundle extras = getIntent().getExtras();
-      if (extras != null) {
-        mRowId = extras.getLong(TimeSeriesData.TimeSeries._ID);
+    Intent it = getIntent();
+    // prefer uris ...
+    if (it != null) {
+      Uri uri = it.getData();
+      if (uri != null) {
+        try {
+          String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+          mRowId = Long.valueOf(rowIdStr);
+        } catch (Exception e) { } // nothing
       }
     }
 
-    String[] projection = new String[] { TimeSeriesData.TimeSeries.RANK };
+    // try the icicle next ...
+    if (mRowId == null || mRowId < 1) {
+      if (icicle != null) {
+        mRowId = icicle.getLong(TimeSeriesData.TimeSeries._ID);
+        if (mRowId < 0)
+          mRowId = null;
+      }
+      // lastly, fall back on the icicle ...
+      if (mRowId == null) {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+          mRowId = extras.getLong(TimeSeriesData.TimeSeries._ID);
+        }
+      }
+    }
+
     Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
-    Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
+    Cursor c = getContentResolver().query(timeseries, null, null, null, null);
     mMaxRank = 0;
     if (c != null) {
       int count = c.getCount();
@@ -504,24 +521,36 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mDefaultValueText.setText(Float.valueOf(mRow.mDefaultValue).toString());
       mIncrementText.setText(Float.valueOf(mRow.mIncrement).toString());
       mGoalText.setText(Float.valueOf(mRow.mGoal).toString());
+      mSmoothingText.setText(Float.valueOf(mRow.mSmoothing).toString());
+      mSensitivityText.setText(Float.valueOf(mRow.mSensitivity).toString());
+      mHistoryText.setText(Integer.valueOf(mRow.mHistory).toString());
+      mDecimalsText.setText(Integer.valueOf(mRow.mDecimals).toString());
+      mUnitsText.setText(mRow.mUnits);
+
       mColorStr = mRow.mColor;
       mGroupName = mRow.mGroup;
       mGroupCombo.setText(mGroupName);
 
       mZeroFillCheck.setChecked(mRow.mZerofill > 0 ? true : false);
+      
+      mPeriodSeconds = mRow.mPeriod;
       int index = TimeSeries.periodToIndex(mPeriodSeconds);
       if (index < 0)
         index = 0;
-      mSeriesTypeSpinner.setSelection(index);
+      mAggregatePeriodSpinner.setSelection(index);
 
+      for (int i = 0; i < TimeSeries.TYPES.length; i++) {
+        if (mRow.mType.toLowerCase().equals(TimeSeries.TYPES[i])) {
+          mSeriesTypeSpinner.setSelection(i);
+          break;
+        }
+      }
+        
       String aggregation = mRow.mAggregation;
       if (aggregation.toLowerCase().equals(TimeSeries.AGGREGATION_AVG)) {
-        mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_rating);
-        mZeroFillCheck.setChecked(false);
-        mZeroFillCheck.setClickable(false);
+        mAggRadio = (RadioButton) findViewById(R.id.category_edit_agg_sum);
       } else {
-        mAggRadio = (RadioButton) findViewById(R.id.category_edit_type_sum);
-        mZeroFillCheck.setClickable(true);
+        mAggRadio = (RadioButton) findViewById(R.id.category_edit_agg_sum);
       }
       mAggRadio.setChecked(true);
     } else {
@@ -555,18 +584,22 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
   private void saveState() {
     if (mSave == true) {
+      float f;
       String value;
       ContentValues values = new ContentValues();
 
       values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
       values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
-      values.put(TimeSeries.GOAL, Float.valueOf(mGoalText.getText().toString()).floatValue());
+      f = Number.Round(Float.valueOf(mGoalText.getText().toString()).floatValue(), mRow.mDecimals);
+      values.put(TimeSeries.GOAL, f);
       values.put(TimeSeries.COLOR, mColorStr);
       values.put(TimeSeries.PERIOD, mPeriodSeconds);
       values.put(TimeSeries.UNITS, mUnitsText.getText().toString());
       values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked());
-      values.put(TimeSeries.SENSITIVITY, Float.valueOf(mSensitivityText.getText().toString()).floatValue());
-      values.put(TimeSeries.SMOOTHING, Float.valueOf(mSmoothingText.getText().toString()).floatValue());
+      f = Number.Round(Float.valueOf(mSensitivityText.getText().toString()).floatValue(), mRow.mDecimals * 2);
+      values.put(TimeSeries.SENSITIVITY, f);
+      f = Number.Round(Float.valueOf(mSmoothingText.getText().toString()).floatValue(), mRow.mDecimals * 2);
+      values.put(TimeSeries.SMOOTHING, f);
       values.put(TimeSeries.HISTORY, Integer.valueOf(mHistoryText.getText().toString()).intValue());
       values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
       values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
@@ -581,8 +614,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
         values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
         values.put(TimeSeries.INCREMENT, 1.0f);
       } else {
-        values.put(TimeSeries.DEFAULT_VALUE, Float.valueOf(mDefaultValueText.getText().toString()).floatValue());
-        values.put(TimeSeries.INCREMENT, Float.valueOf(mIncrementText.getText().toString()).floatValue());
+        f = Number.Round(Float.valueOf(mDefaultValueText.getText().toString()).floatValue(), mRow.mDecimals);
+        values.put(TimeSeries.DEFAULT_VALUE, f);
+        f = Number.Round(Float.valueOf(mIncrementText.getText().toString()).floatValue(), mRow.mDecimals);
+        values.put(TimeSeries.INCREMENT, f);
       }
 
       if (mRowId == null) {
@@ -593,8 +628,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
         if (uri != null) {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
           mRowId = Long.valueOf(rowIdStr);
+          setResult(CATEGORY_CREATED);
+        } else {
+          setResult(CATEGORY_OP_ERR);
         }
-        setResult(CATEGORY_CREATED);
       } else {
         // update
         values.put(TimeSeries.RANK, mRow.mRank);
@@ -617,7 +654,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     //
     // if (mRowId > 0)
     // mRow = getDbh().fetchCategory(mRowId);
-    populateFields();
+//    populateFields();
   }
 
   @Override
