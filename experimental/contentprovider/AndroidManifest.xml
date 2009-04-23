@@ -17,15 +17,14 @@
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
-        <action android:name="android.intent.action.EDIT" />
         <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.INSERT" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
       </intent-filter>
 		</activity>
 
@@ -36,17 +35,12 @@
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.EDIT" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.INSERT" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
-      </intent-filter>
-      <intent-filter>
-        <action android:name="android.intent.action.DELETE" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
     </activity>
 
@@ -56,7 +50,7 @@
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
       </intent-filter>
 		</activity>
 
@@ -66,7 +60,7 @@
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.EDIT" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.datapoint" />
       </intent-filter>
 		</activity>
 		
@@ -75,9 +69,14 @@
 		  android:screenOrientation="sensor">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
 		</activity>
 
@@ -85,18 +84,37 @@
      android:name="net.redgeek.android.eventcalendar.CalendarActivity">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
-        <type android:value="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
     </activity>
 
+<!--
 		<activity 
 		  android:name="net.redgeek.android.eventrend.importing.ImportActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+      </intent-filter>
 		</activity>
+-->
+
 		<activity 
 		  android:name="net.redgeek.android.eventrend.Preferences">
 		</activity>
+
     <activity 
       android:name="net.redgeek.android.eventrend.input.FormulaEditorActivity">
     </activity>
