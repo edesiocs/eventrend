@@ -183,8 +183,8 @@ public class InputActivity extends EvenTrendActivity {
     return mTimestampView;
   }
 
-  public long getTimestampMs() {
-    return mTimestamp.mMillis;
+  public long getTimestampSeconds() {
+    return mTimestamp.mMillis / DateMapCache.SECOND_MS;
   }
 
   public long getLastAddId() {

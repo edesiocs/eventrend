@@ -130,6 +130,8 @@ public class TimeSeriesProvider extends ContentProvider {
   public boolean onCreate() {
     mDbHelper = new DatabaseHelper(getContext());
     mLock = new ReentrantLock();
+    mDateMap = new DateMapCache();
+    mDateMap.populateCacheLocalToProvider(mDbHelper.getReadableDatabase());
     return true;
   }
   
@@ -158,11 +160,16 @@ public class TimeSeriesProvider extends ContentProvider {
   private void updateStats(SQLiteDatabase db, long timeSeriesId, int fromSeconds, 
       String table) {
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+    String[] projection = new String[] { 
+        TimeSeries.SMOOTHING,
+        TimeSeries.HISTORY,
+    };
+    
     qb.setTables(TimeSeries.TABLE_NAME);
     qb.setProjectionMap(sTimeSeriesProjection);
     qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
 
-    Cursor c = qb.query(db, null, null, null, null, null, null, null);
+    Cursor c = qb.query(db, projection, null, null, null, null, null, null);
     if (c == null)
       return;
     if (c.getCount() < 1) {
@@ -278,6 +285,7 @@ public class TimeSeriesProvider extends ContentProvider {
         oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
  
         if (delete == false && oldPeriodStart == newPeriodStart) {
+          // changed but stayed within the same period
           qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
           qb.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
           c = qb.query(db, null, null, null, null, null, null, null);
@@ -348,6 +356,8 @@ public class TimeSeriesProvider extends ContentProvider {
               - 1);
           values.put(TimeSeriesData.Datapoint.VALUE, newValue);
           values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+          values.put(TimeSeriesData.Datapoint.TREND, 0);
+          values.put(TimeSeriesData.Datapoint.STDDEV, 0);
           id = db.insert(table, null, values);
           if (c != null)
             c.close();
@@ -443,6 +453,7 @@ public class TimeSeriesProvider extends ContentProvider {
           db.setTransactionSuccessful();
         } catch (Exception e) {
         } finally {
+          outputUri = null;
           db.endTransaction();
           LockUtil.unlock(mLock);
         }
@@ -576,6 +587,8 @@ public class TimeSeriesProvider extends ContentProvider {
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
 
         LockUtil.waitForLock(mLock);
+        db.beginTransaction();
+
         try {
           count = db.update(TimeSeries.TABLE_NAME, values, TimeSeries._ID + "="
               + timeSeriesId + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
@@ -584,8 +597,12 @@ public class TimeSeriesProvider extends ContentProvider {
               values.containsKey(TimeSeries.HISTORY)) {
             updateStats(db, Long.valueOf(timeSeriesId), 0);
           }
-        } catch (Exception e) {          
+          
+          db.setTransactionSuccessful();
+        } catch (Exception e) {       
+          count = -1;
         } finally {
+          db.endTransaction();
           LockUtil.unlock(mLock);
         }
         break;
@@ -640,6 +657,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
+          count = -1;
         } finally {
           db.endTransaction();
           LockUtil.unlock(mLock);
@@ -649,7 +667,8 @@ public class TimeSeriesProvider extends ContentProvider {
         throw new IllegalArgumentException("update: Unknown URI " + uri);
     }      
 
-    getContext().getContentResolver().notifyChange(uri, null);
+    if (count > 0)
+      getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }
   
@@ -670,7 +689,7 @@ public class TimeSeriesProvider extends ContentProvider {
           count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "=" 
               + seriesId, null);
           // and the timeseries meta-data
-          count = db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
+          db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
 
@@ -728,7 +747,8 @@ public class TimeSeriesProvider extends ContentProvider {
         throw new IllegalArgumentException("delete: Unknown URI " + uri);
     }
 
-    getContext().getContentResolver().notifyChange(uri, null);
+    if (count > 0)
+      getContext().getContentResolver().notifyChange(uri, null);
     return count;
   }
 
