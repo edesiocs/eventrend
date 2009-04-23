@@ -102,8 +102,12 @@ public class TimeSeriesProvider extends ContentProvider {
     sTimeSeriesProjection.put(TimeSeries.TYPE, TimeSeries.TYPE);
     sTimeSeriesProjection.put(TimeSeries.ZEROFILL, TimeSeries.ZEROFILL);
     sTimeSeriesProjection.put(TimeSeries.FORMULA, TimeSeries.FORMULA);
-    sTimeSeriesProjection.put(TimeSeries.INTERPOLATION, TimeSeries.INTERPOLATION);
     sTimeSeriesProjection.put(TimeSeries.UNITS, TimeSeries.UNITS);
+    sTimeSeriesProjection.put(TimeSeries.INTERPOLATION, TimeSeries.INTERPOLATION);
+    sTimeSeriesProjection.put(TimeSeries.SENSITIVITY, TimeSeries.SENSITIVITY);
+    sTimeSeriesProjection.put(TimeSeries.SMOOTHING, TimeSeries.SMOOTHING);
+    sTimeSeriesProjection.put(TimeSeries.HISTORY, TimeSeries.HISTORY);
+    sTimeSeriesProjection.put(TimeSeries.DECIMALS, TimeSeries.DECIMALS);
     
     sDatapointProjection = new HashMap<String, String>();
     sDatapointProjection.put(Datapoint._ID, Datapoint._ID);
@@ -111,6 +115,8 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
     sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
+    sDatapointProjection.put(Datapoint.TREND, Datapoint.TREND);
+    sDatapointProjection.put(Datapoint.STDDEV, Datapoint.STDDEV);
 
     sDatemapProjection = new HashMap<String, String>();
     sDatemapProjection.put(DateMap._ID, DateMap._ID);
@@ -485,10 +491,12 @@ public class TimeSeriesProvider extends ContentProvider {
       case DATAPOINTS_RECENT:
         String count = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_COUNT);
         table = Datapoint.TABLE_NAME;
-        agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-        if (agg != null && TextUtils.isEmpty(agg) == false) {
-          table += "_" + table;
-        }
+        try {
+          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
+          if (agg != null && TextUtils.isEmpty(agg) == false) {
+            table += "_" + table;
+          }
+        } catch (Exception e) {} // nothing
         qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
@@ -498,10 +506,12 @@ public class TimeSeriesProvider extends ContentProvider {
         String start = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_START);
         String end = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_END);
         table = Datapoint.TABLE_NAME;
-        agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
-        if (agg != null && TextUtils.isEmpty(agg) == false) {
-          table += "_" + table;
-        }
+        try {
+          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
+          if (agg != null && TextUtils.isEmpty(agg) == false) {
+            table += "_" + table;
+          }
+        } catch (Exception e) { } // nothing }
         qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + " = " 
             + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
