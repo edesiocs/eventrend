@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventrend.category;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.AlertDialog.Builder;
@@ -55,6 +56,10 @@ import net.redgeek.android.eventrend.util.DynamicSpinner;
 import java.util.ArrayList;
 
 public class CategoryEditActivity extends EvenTrendActivity {
+  public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 1;
+  public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 2;
+  public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 3;
+  
   static final int DELETE_DIALOG_ID = 0;
   static final int DIALOG_HELP_GROUP = 1;
   static final int DIALOG_HELP_CATEGORY = 2;
@@ -229,6 +234,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
               TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
     }
     mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListener);
+    mAggregatePeriodSpinner.setSelection(0);
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE_PERIOD);
 
     mSeriesTypeRow = (TableRow) findViewById(R.id.category_edit_series_type_row);
@@ -237,6 +243,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
     }
     mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
+    mSeriesTypeSpinner.setSelection(0);
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_SERIES_TYPE);
 
     mOk = (Button) findViewById(R.id.category_edit_ok);
@@ -500,6 +507,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mGoalText.setText(Float.valueOf(mRow.mGoal).toString());
       mColorStr = mRow.mColor;
       mGroupName = mRow.mGroup;
+      mGroupCombo.setText(mGroupName);
 
       mZeroFillCheck.setChecked(mRow.mZerofill > 0 ? true : false);
       int index = TimeSeries.periodToIndex(mPeriodSeconds);
@@ -521,9 +529,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mAggRadio.setChecked(true);
     } else {
       mGroupName = "Default";
+      mGroupCombo.setText(mGroupName);
       mColorStr = "#cccccc";
       mRank = mMaxRank;
-      mZeroFillCheck.setClickable(true);
     }
   }
 
@@ -566,9 +574,12 @@ public class CategoryEditActivity extends EvenTrendActivity {
       values.put(TimeSeries.HISTORY, Integer.valueOf(mHistoryText.getText().toString()).intValue());
       values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
       values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
+      values.put(TimeSeries.INTERPOLATION, "");
+      // TODO:  formula-related stuff
+      values.put(TimeSeries.FORMULA, "");
       
       mAggRadio = (RadioButton) findViewById(mAggRadioGroup.getCheckedRadioButtonId());
-      values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString());
+      values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString().toLowerCase());
 
       if (mSeriesTypeSpinner.getSelectedItem().toString().toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
         values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
@@ -582,14 +593,18 @@ public class CategoryEditActivity extends EvenTrendActivity {
         // insert
         values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
         values.put(TimeSeries.RANK, mMaxRank);
-        Uri uri = getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI, values);
-        String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
-        mRowId = Long.valueOf(rowIdStr);
+        Uri uri = getContentResolver().insert(TimeSeriesData.TimeSeries.CONTENT_URI, values);
+        if (uri != null) {
+          String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+          mRowId = Long.valueOf(rowIdStr);
+        }
+        setResult(CATEGORY_CREATED);
       } else {
         // update
         values.put(TimeSeries.RANK, mRank);
         Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, mRowId);
         getContentResolver().update(uri, values, null, null);
+        setResult(CATEGORY_MODIFIED);
       }
     }
   }
@@ -695,7 +710,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         Uri timeseries = ContentUris.withAppendedId(
             TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId);
         mCtx.getContentResolver().delete(timeseries, null, null);
-        // setResult(RESULT_DELETED);
+        setResult(CATEGORY_DELETED);
         finish();
       }
     });

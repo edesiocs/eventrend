@@ -100,6 +100,8 @@ public class ComboBox extends LinearLayout {
         mMenu.show();
       }
     };
+    
+    mEditText = (EditText) findViewById(R.id.combobox_text);
 
     mButtonIcon = getResources().getDrawable(
         android.R.drawable.arrow_down_float);
