@@ -284,6 +284,7 @@ public class EventRecorder extends Service {
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
     public long recordEvent(long timeSeriesId, long timestamp, float value) {
+      LockUtil.waitForLock(mLock);
       long datapointId = currentlyRecordingId(timeSeriesId);
       if (datapointId < 0) { // error
         LockUtil.unlock(mLock);
