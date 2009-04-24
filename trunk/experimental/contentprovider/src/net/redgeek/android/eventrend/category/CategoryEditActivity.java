@@ -588,6 +588,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
       String value;
       ContentValues values = new ContentValues();
 
+      mRow.mDecimals = Integer.valueOf(mDecimalsText.getText().toString()).intValue();
+      
       values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
       values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
       f = Number.Round(Float.valueOf(mGoalText.getText().toString()).floatValue(), mRow.mDecimals);

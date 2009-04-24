@@ -508,7 +508,7 @@ public class TimeSeriesProvider extends ContentProvider {
         try {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
           if (agg != null && TextUtils.isEmpty(agg) == false) {
-            table += "_" + table;
+            table += "_" + agg;
           }
         } catch (Exception e) { } // nothing
         qb.setTables(table);
@@ -771,7 +771,6 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onCreate(SQLiteDatabase db) {
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
-      db.execSQL(Datapoint.TABLE_CREATE_AMPM);
       db.execSQL(Datapoint.TABLE_CREATE_DAY);
       db.execSQL(Datapoint.TABLE_CREATE_WEEK);
       db.execSQL(Datapoint.TABLE_CREATE_MONTH);
@@ -786,7 +785,6 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       db.execSQL("drop table " + TimeSeries.TABLE_CREATE);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_AMPM);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE_DAY);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE_WEEK);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE_MONTH);
@@ -795,7 +793,6 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL("drop table " + DateMap.TABLE_CREATE);
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
-      db.execSQL(Datapoint.TABLE_CREATE_AMPM);
       db.execSQL(Datapoint.TABLE_CREATE_DAY);
       db.execSQL(Datapoint.TABLE_CREATE_WEEK);
       db.execSQL(Datapoint.TABLE_CREATE_MONTH);

@@ -187,9 +187,10 @@ public class DateMapCache {
       return secs;
 
     if (period < (WEEK_MS / SECOND_MS)) {
-      while (secs <= seconds - period) {
-        secs += period;
-      }
+      secs += period * ((seconds - secs) / period);
+//      while (secs <= seconds - period) {
+//        secs += period;
+//      }
     }
     else if (period == (WEEK_MS / SECOND_MS)) {
       // get the DOW of the first day of the month, and subtract out the 
@@ -198,9 +199,10 @@ public class DateMapCache {
       if (seconds - period >= entry.mSeconds) {
         // start of week is in the same month,
         // advance until we get to the week before this one:
-        while (secs <= seconds - period) {
-          secs += period;
-        }
+        secs += period * ((seconds - secs) / period);
+//        while (secs <= seconds - period) {
+//          secs += period;
+//        }
       }
     }
     else if (period == (QUARTER_MS / SECOND_MS)) {
@@ -251,7 +253,7 @@ public class DateMapCache {
 
     Uri datemap = TimeSeriesData.DateMap.CONTENT_URI;
     Cursor c = ctx.getContentResolver().query(datemap, null, null, null, 
-      DateMap.DEFAULT_SORT_ORDER + " asc ");
+      DateMap.DEFAULT_SORT_ORDER);
     if (c.moveToFirst()) {
       int count = c.getCount();
       mSecToEntry = new DateMapCacheEntry[count];
@@ -276,7 +278,7 @@ public class DateMapCache {
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     qb.setTables(DateMap.TABLE_NAME);
     Cursor c = qb.query(db, null, null, null, null, null,
-        DateMap.DEFAULT_SORT_ORDER + " asc ", null);
+        DateMap.DEFAULT_SORT_ORDER, null);
     if (c.moveToFirst()) {
       int count = c.getCount();
       mSecToEntry = new DateMapCacheEntry[count];
