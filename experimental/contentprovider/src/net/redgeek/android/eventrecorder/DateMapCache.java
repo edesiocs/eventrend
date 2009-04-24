@@ -112,7 +112,7 @@ public class DateMapCache {
 
   public DateMapCacheEntry getEntry(int seconds, boolean before) {
     DateMapCacheEntry entry = null;
-    Iterator<DateMapCacheEntry> iterator = null;
+    Iterator<Integer> iterator = null;
 
     SortedMap<Integer, DateMapCacheEntry> range;
     SortedMap<Integer, DateMapCacheEntry> reverse;
@@ -123,22 +123,22 @@ public class DateMapCache {
     }
     if (entry != null)
       return entry;
-      
-    try {
-      if (before == true) {
-        range = mSecToEntry.headMap(Integer.valueOf(seconds));
-        reverse = new TreeMap<Integer, DateMapCacheEntry>(java.util.Collections.reverseOrder());
-        reverse.putAll(range);
-        iterator = reverse.values().iterator();
-      } else {
-        range = mSecToEntry.tailMap(Integer.valueOf(seconds));
-        iterator = range.values().iterator();
-      }
-    } catch (Exception e) {
-    }
     
-    if (iterator != null && iterator.hasNext())
-      entry = iterator.next();
+//    try {
+//      if (before == true) {
+//        range = mSecToEntry.headMap(Integer.valueOf(seconds));
+//        reverse = new TreeMap<Integer, DateMapCacheEntry>(java.util.Collections.reverseOrder());
+//        reverse.putAll(range);
+//        iterator = reverse.values().iterator();
+//      } else {
+//        range = mSecToEntry.tailMap(Integer.valueOf(seconds));
+//        iterator = range.values().iterator();
+//      }
+//    } catch (Exception e) {
+//    }
+//    
+//    if (iterator != null && iterator.hasNext())
+//      entry = iterator.next();
 
     if (entry == null) {
       mCal.setTimeInMillis(seconds * SECOND_MS);
