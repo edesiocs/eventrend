@@ -16,23 +16,20 @@
 
 package net.redgeek.android.eventrecorder;
 
-import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.TreeMap;
 
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
 public class DateMapCache {
   private Calendar mCal;
-  private TreeMap<Integer, DateMapCacheEntry> mSecToEntry;
+  private DateMapCacheEntry[] mSecToEntry;
   private TreeMap<Integer, ArrayList<DateMapCacheEntry>> mYearToEntry;
   
   /** Number of milliseconds in a second */
@@ -74,12 +71,11 @@ public class DateMapCache {
   
   public DateMapCache() {
     mCal = Calendar.getInstance();
-    mSecToEntry = new TreeMap<Integer, DateMapCacheEntry>();
     mYearToEntry = new TreeMap<Integer, ArrayList<DateMapCacheEntry>>();
   }
   
   public void clear() {
-    mSecToEntry.clear();
+    mSecToEntry = null;
     mYearToEntry.clear();
   }
 
@@ -111,50 +107,72 @@ public class DateMapCache {
   }
 
   public DateMapCacheEntry getEntry(int seconds, boolean before) {
-    DateMapCacheEntry entry = null;
-    Iterator<Integer> iterator = null;
+    DateMapCacheEntry d = null;
 
-    SortedMap<Integer, DateMapCacheEntry> range;
-    SortedMap<Integer, DateMapCacheEntry> reverse;
-    
-    try {
-      entry = mSecToEntry.get(Integer.valueOf(seconds));
-    } catch (Exception e) {
+    if (mSecToEntry != null && mSecToEntry.length > 0) {
+      int min = 0;
+      int max = mSecToEntry.length - 1;
+      int mid = max / 2;
+      int length = mSecToEntry.length;
+
+      d = mSecToEntry[mid];
+      while (d != null) {
+        if (d.mSeconds == seconds) {
+          return d;
+        } else if (max < min) {
+          if (before == true) {
+            if (d.mSeconds > seconds) {
+              if (mid - 1 >= 0)
+                d = mSecToEntry[mid - 1];
+              else
+                d = null;
+            }
+          } else {
+            if (d.mSeconds < seconds) {
+              if (mid + 1 < length)
+                d = mSecToEntry[mid + 1];
+              else
+                d = null;
+            }
+          }
+          return d;
+        } else if (d.mSeconds < seconds) {
+          min = mid + 1;
+        } else if (d.mSeconds > seconds) {
+          max = mid - 1;
+        }
+        mid = min + ((max - min) / 2);
+
+        // Check to see if we were trying to run off the end, if so, just
+        // return the first or last entry.
+        if (mid >= length && before == true)
+          return d;
+        if (mid < 0 && before == false)
+          return d;
+
+        if (mid < 0 || mid > length - 1)
+          break;
+        d = mSecToEntry[mid];
+      }
+
+      return null;
     }
-    if (entry != null)
-      return entry;
     
-//    try {
-//      if (before == true) {
-//        range = mSecToEntry.headMap(Integer.valueOf(seconds));
-//        reverse = new TreeMap<Integer, DateMapCacheEntry>(java.util.Collections.reverseOrder());
-//        reverse.putAll(range);
-//        iterator = reverse.values().iterator();
-//      } else {
-//        range = mSecToEntry.tailMap(Integer.valueOf(seconds));
-//        iterator = range.values().iterator();
-//      }
-//    } catch (Exception e) {
-//    }
-//    
-//    if (iterator != null && iterator.hasNext())
-//      entry = iterator.next();
-
-    if (entry == null) {
+    if (d == null) {
       mCal.setTimeInMillis(seconds * SECOND_MS);
       mCal.set(Calendar.DAY_OF_MONTH, 1);
       mCal.set(Calendar.HOUR_OF_DAY, 0);
       mCal.set(Calendar.MINUTE, 0);
       mCal.set(Calendar.SECOND, 0);
       mCal.set(Calendar.MILLISECOND, 0);
-      entry = new DateMapCacheEntry(
+      d = new DateMapCacheEntry(
           mCal.get(Calendar.YEAR),
           mCal.get(Calendar.MONTH),
           mCal.get(Calendar.DAY_OF_WEEK),
           (int) (mCal.getTimeInMillis() / SECOND_MS));
     }
 
-    return entry;
+    return d;
   }
   
   public int secondsOfPeriodStart(int seconds, int period) {
@@ -232,9 +250,11 @@ public class DateMapCache {
     DateMapCacheEntry entry = null;
 
     Uri datemap = TimeSeriesData.DateMap.CONTENT_URI;
-    Cursor c = ctx.getContentResolver().query(datemap, null, null, null, null);
+    Cursor c = ctx.getContentResolver().query(datemap, null, null, null, 
+      DateMap.DEFAULT_SORT_ORDER + " asc ");
     if (c.moveToFirst()) {
       int count = c.getCount();
+      mSecToEntry = new DateMapCacheEntry[count];
       for (int i = 0; i < count; i++) {
         int year = TimeSeriesData.DateMap.getYear(c);
         int month = TimeSeriesData.DateMap.getMonth(c);
@@ -242,7 +262,7 @@ public class DateMapCache {
         int secs = TimeSeriesData.DateMap.getSeconds(c);
         
         entry = new DateMapCacheEntry(year, month, dow, secs);
-        insertEntry(entry);
+        insertEntry(entry, i);
       }      
     }
     c.close();
@@ -255,9 +275,11 @@ public class DateMapCache {
     DateMapCacheEntry entry = null;
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     qb.setTables(DateMap.TABLE_NAME);
-    Cursor c = qb.query(db, null, null, null, null, null, DateMap.DEFAULT_SORT_ORDER, null);    
+    Cursor c = qb.query(db, null, null, null, null, null,
+        DateMap.DEFAULT_SORT_ORDER + " asc ", null);
     if (c.moveToFirst()) {
       int count = c.getCount();
+      mSecToEntry = new DateMapCacheEntry[count];
       for (int i = 0; i < count; i++) {
         int year = TimeSeriesData.DateMap.getYear(c);
         int month = TimeSeriesData.DateMap.getMonth(c);
@@ -265,16 +287,16 @@ public class DateMapCache {
         int secs = TimeSeriesData.DateMap.getSeconds(c);
         
         entry = new DateMapCacheEntry(year, month, dow, secs);
-        insertEntry(entry);
+        insertEntry(entry, i);
         c.moveToNext();
       }      
     }
     c.close();
-    
+        
     return;
   }
 
-  private void insertEntry(DateMapCacheEntry dmce) {
+  private void insertEntry(DateMapCacheEntry dmce, int pos) {
     ArrayList<DateMapCacheEntry> months = null;
     if (dmce == null)
       return;
@@ -290,7 +312,7 @@ public class DateMapCache {
       mYearToEntry.put(year, months);
     }    
     months.add(dmce.mMonth, dmce);
-    mSecToEntry.put(Integer.valueOf(dmce.mSeconds), dmce);
+    mSecToEntry[pos] = dmce;
 
     return;
   }  
