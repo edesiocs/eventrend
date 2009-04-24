@@ -450,17 +450,15 @@ public class Number {
    * @author barclay
    */
   public static class WindowedStdDev {
-    private Lock mLock;
     private ArrayList<Float> mValues;
     private int mHistory;
 
     /**
-     * Sole constructor. Initializes all stats to 0.
+     * Constructor. Initializes all stats to 0.
      */
     public WindowedStdDev(int history) {
       mHistory = history;
       mValues = new ArrayList<Float>(mHistory);
-      mLock = new ReentrantLock();
     }
 
     /**
@@ -471,8 +469,6 @@ public class Number {
      *          source.
      */
     public WindowedStdDev(WindowedStdDev source) {
-      mLock = new ReentrantLock();
-      source.waitForLock();
       mHistory = source.mHistory;
       mValues = new ArrayList<Float>(mHistory);
       for (int i = 0; i < source.mValues.size(); i++) {
@@ -482,24 +478,6 @@ public class Number {
           break;
         }
       }
-      source.unlock();
-    }
-
-    public void waitForLock() {
-      while (lock() == false) {
-      }
-    }
-
-    public boolean lock() {
-      try {
-        return mLock.tryLock(250L, TimeUnit.MILLISECONDS);
-      } catch (InterruptedException e) {
-        return false;
-      }
-    }
-
-    public void unlock() {
-      mLock.unlock();
     }
 
     /**
@@ -509,7 +487,6 @@ public class Number {
      *          The value to update the statistics with.
      */
     public void update(float val) {
-      waitForLock();
       mValues.add(new Float(val));
       if (mValues.size() > mHistory) {
         try {
@@ -518,7 +495,6 @@ public class Number {
           // nothing
         }
       }
-      unlock();
       return;
     }
 
@@ -535,8 +511,6 @@ public class Number {
       float delta = 0.0f;
       float val = 0.0f;
 
-      waitForLock();
-
       int nValues = mValues.size();
       for (int i = 0; i < nValues; i++) {
         try {
@@ -548,7 +522,6 @@ public class Number {
           break;
         }
       }
-      unlock();
       
       variance = meanSqr / nValues;
       return (float) Math.sqrt(variance);

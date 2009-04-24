@@ -16,6 +16,8 @@
 
 package net.redgeek.android.eventrend.util;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
+
 import java.util.Calendar;
 
 /**
@@ -776,13 +778,13 @@ public final class DateUtil {
    * Returns the "timestamp" string representation of the time in milliseconds:
    * yyyy/mm/dd HH:MM:SS
    * 
-   * @param millis
-   *          The milliseconds since epoch to format.
+   * @param seconds
+   *          The seconds since epoch to format.
    * @return The timestamp string.
    */
-  public static String toTimestamp(long millis) {
+  public static String toTimestamp(int seconds) {
     Calendar c = Calendar.getInstance();
-    c.setTimeInMillis(millis);
+    c.setTimeInMillis(seconds * DateMapCache.SECOND_MS);
     return DateUtil.toTimestamp(c);
   }
 

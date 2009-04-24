@@ -23,6 +23,7 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.net.Uri.Builder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,10 +42,13 @@ import android.widget.Toast;
 import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
 import net.redgeek.android.eventrend.util.Aggregator;
+import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
@@ -73,10 +77,10 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   // Private data
   private CategoryRow mRow;
   private long mNewDatapointId;
-  
+
   private int mColorInt;
   private float mAddValue;
-  
+
   private Context mCtx;
   private ContentResolver mContent;
   private DateMapCache mDateCache;
@@ -91,7 +95,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mNewDatapointId = 0;
     mContent = mCtx.getContentResolver();
     mDateCache = ((InputActivity) mCtx).getDateMapCache();
-    
+
     setupTasks();
     setupUI();
     populateFields();
@@ -114,9 +118,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
     IEventRecorderService service = ((InputActivity) mCtx).getRecorderService();
     if (service == null) {
-      throw new Exception("RecorderService not available!"); 
+      throw new Exception("RecorderService not available!");
     } else {
-        if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+      if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
         mAddValue = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
         mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
@@ -145,54 +149,55 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         mAddButton.setTextColor(Color.RED);
       } else {
         mAddButton.setText("Start");
-        mAddButton.setTextColor(Color.BLACK);        
+        mAddButton.setTextColor(Color.BLACK);
       }
     }
 
     populateFields();
-    
-//    String status;
-//    String toast;
-//
-//    float newValue = mAddEntryTask.mLastAddValue;
-//    float oldValue = mAddEntryTask.mLastAddOldValue;
-//    long timestamp = mAddEntryTask.mLastAddTimestamp;
-//
-//    if (mAddEntryTask.mLastAddUpdate == true) {
-//      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, oldValue,
-//          timestamp, mCategoryUpdateView, mRowView);
-//      status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
-//          + oldValue + " -> " + newValue;
-//      mCategoryUpdateView.setText(status);
-//    } else {
-//      ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
-//          timestamp, mCategoryUpdateView, mRowView);
-//
-//      status = "Add @ "
-//          + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
-//          + newValue;
-//      mCategoryUpdateView.setText(status);
-//    }
-//
-//    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
-//    updateTrendIcon(cat.getTrendState());
-//    float trendValue = Number.Round(cat.getLastTrend(), mDecimals);
-//    mTrendValueView.setText(Float.valueOf(trendValue).toString());
-//
-//  ((InputActivity) mCtx).redrawSyntheticViews();
+
+    // String status;
+    // String toast;
+    //
+    // float newValue = mAddEntryTask.mLastAddValue;
+    // float oldValue = mAddEntryTask.mLastAddOldValue;
+    // long timestamp = mAddEntryTask.mLastAddTimestamp;
+    //
+    // if (mAddEntryTask.mLastAddUpdate == true) {
+    // ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, oldValue,
+    // timestamp, mCategoryUpdateView, mRowView);
+    // status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
+    // + oldValue + " -> " + newValue;
+    // mCategoryUpdateView.setText(status);
+    // } else {
+    // ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
+    // timestamp, mCategoryUpdateView, mRowView);
+    //
+    // status = "Add @ "
+    // + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
+    // + newValue;
+    // mCategoryUpdateView.setText(status);
+    // }
+    //
+    // CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
+    // updateTrendIcon(cat.getTrendState());
+    // float trendValue = Number.Round(cat.getLastTrend(), mDecimals);
+    // mTrendValueView.setText(Float.valueOf(trendValue).toString());
+    //
+    // ((InputActivity) mCtx).redrawSyntheticViews();
 
     mAddButton.setClickable(true);
     mAddButton.setTextColor(Color.BLACK);
   }
 
   public void onFailure(Throwable t) {
-    Toast.makeText(mCtx, "Input failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+    Toast.makeText(mCtx, "Input failed: " + t.getMessage(), Toast.LENGTH_SHORT)
+        .show();
     mAddButton.setClickable(true);
     mAddButton.setTextColor(Color.BLACK);
   }
 
   private void setupTasks() {
-//    mAddEntryTask = new AddEntryTask(mTSC, mDecimals, mHistory);
+    // mAddEntryTask = new AddEntryTask(mTSC, mDecimals, mHistory);
   }
 
   private void setupUI() {
@@ -282,23 +287,35 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
 
     int trendState = Trend.TREND_UNKNOWN;
-    Uri lastDatapoint = ContentUris.withAppendedId(
+    String aggregation = TimeSeries.periodToUriAggregation(mRow.mPeriod);
+    
+    Builder uriBuilder = ContentUris.withAppendedId(
         TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId).buildUpon()
-        .appendPath("recent").appendPath("2").build();
+        .appendPath("recent").appendPath("2");
+    if (aggregation != null) {
+      uriBuilder.appendPath(aggregation);
+    }
+    Uri lastDatapoint = uriBuilder.build();
+
     if (lastDatapoint != null) {
       Cursor c = mCtx.getContentResolver().query(lastDatapoint, null, null, null, null);
       if (c != null && c.getCount() > 0) {
         c.moveToFirst();
+        float newValue = TimeSeriesData.Datapoint.getValue(c);
         float newTrend = TimeSeriesData.Datapoint.getTrend(c);
         float displayTrend = Number.Round(newTrend, mRow.mDecimals);
         mTrendValueView.setText(Float.valueOf(displayTrend).toString());
 
         c.moveToLast();
-        float oldTrend = TimeSeriesData.Datapoint.getTrend(c);
-        float stdDev = TimeSeriesData.Datapoint.getStdDev(c);
+        float oldTrend = Datapoint.getTrend(c);
+        float stdDev = Datapoint.getStdDev(c);
     
         trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
             mRow.mSensitivity, stdDev);
+        
+        // TODO: update status based on type of series
+        String status = DateUtil.toTimestamp(Datapoint.getTsStart(c)) + ": " + newValue;
+        mCategoryUpdateView.setText(status);
       }
       
       if (c != null)
@@ -412,14 +429,14 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         mAddButton.setTextColor(Color.RED);
       } else {
         mAddButton.setText("Start");
-        mAddButton.setTextColor(Color.BLACK);        
+        mAddButton.setTextColor(Color.BLACK);
       }
     }
 
     GUITaskQueue.getInstance().addTask(mProgress, this);
 
-//    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
-//    updateTrendIcon(cat.getTrendState());
+    // CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
+    // updateTrendIcon(cat.getTrendState());
     setLayoutAnimationSlideOutLeftIn(mRowView, mCtx);
   }
 }

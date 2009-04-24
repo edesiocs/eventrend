@@ -326,7 +326,6 @@ public class TimeSeriesData {
     };
 
     public static final String[] AGGREGATE_TABLE_SUFFIX = {
-      "ampm",
       "day",
       "week",
       "month",
@@ -334,7 +333,6 @@ public class TimeSeriesData {
       "year",
     };
     public static final long[] AGGREGATE_TABLE_PERIOD = {
-      DateMapCache.AMPM_MS / DateMapCache.SECOND_MS,
       DateMapCache.DAY_MS / DateMapCache.SECOND_MS,
       DateMapCache.WEEK_MS / DateMapCache.SECOND_MS,
       DateMapCache.MONTH_MS / DateMapCache.SECOND_MS,
@@ -343,8 +341,6 @@ public class TimeSeriesData {
     };
     
 //    public static final String TABLE_CREATE_STATS = "create table stats " + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_AMPM = "create table " + TABLE_NAME
-        + "_ampm" + TABLE_CONTENTS;
     public static final String TABLE_CREATE_DAY = "create table " + TABLE_NAME
         + "_day" + TABLE_CONTENTS;
     public static final String TABLE_CREATE_WEEK = "create table " + TABLE_NAME
@@ -699,7 +695,6 @@ public class TimeSeriesData {
     
     public static final int[] AGGREGATION_PERIOD_TIMES = {
       0,    
-      (int) (DateMapCache.AMPM_MS / DateMapCache.SECOND_MS),    
       (int) (DateMapCache.DAY_MS / DateMapCache.SECOND_MS),    
       (int) (DateMapCache.WEEK_MS / DateMapCache.SECOND_MS),    
       (int) (DateMapCache.MONTH_MS / DateMapCache.SECOND_MS),    
@@ -709,7 +704,6 @@ public class TimeSeriesData {
 
     public static final String[] AGGREGATION_PERIOD_NAMES = {
       "None",
-      "AM/PM",
       "Day",
       "Week",
       "Month",
@@ -723,6 +717,17 @@ public class TimeSeriesData {
           return i;
       }
       return -1;
+    }
+
+    public static String periodToUriAggregation(int period) {
+      if (period == 0)
+        return null;
+      for (int i = 1; i < AGGREGATION_PERIOD_TIMES.length; i++) {
+        if (AGGREGATION_PERIOD_TIMES[i] == period) {
+          return Datapoint.AGGREGATE_TABLE_SUFFIX[i-1];
+        }
+      }
+      return null;
     }
   }
 }
