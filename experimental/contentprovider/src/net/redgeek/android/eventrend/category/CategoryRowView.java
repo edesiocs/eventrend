@@ -46,6 +46,7 @@ import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
 import net.redgeek.android.eventrend.util.Aggregator;
 import net.redgeek.android.eventrend.util.GUITask;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 import net.redgeek.android.eventrend.util.Trend;
@@ -109,9 +110,47 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void executeNonGuiTask() throws Exception {
+    mRow.mTimestamp = ((InputActivity) mCtx).getTimestampSeconds();
+
+    IEventRecorderService service = ((InputActivity) mCtx).getRecorderService();
+    if (service == null) {
+      throw new Exception("RecorderService not available!"); 
+    } else {
+        if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+        mAddValue = Float.valueOf(mDefaultValue.getText().toString())
+            .floatValue();
+        mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
+            mAddValue);
+      } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+        if (mRow.mRecordingDatapointId > 0) {
+          mNewDatapointId = service.recordEventStop(mRow.mId);
+          if (mNewDatapointId > 0)
+            mRow.mRecordingDatapointId = 0;
+        } else {
+          mNewDatapointId = service.recordEventStart(mRow.mId);
+          if (mNewDatapointId > 0)
+            mRow.mRecordingDatapointId = mNewDatapointId;
+        }
+      }
+    }
   }
 
   public void afterExecute() {
+    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+      mAddButton.setClickable(true);
+      mAddButton.setTextColor(Color.BLACK);
+    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+      if (mRow.mRecordingDatapointId == 0) {
+        mAddButton.setText("Stop");
+        mAddButton.setTextColor(Color.RED);
+      } else {
+        mAddButton.setText("Start");
+        mAddButton.setTextColor(Color.BLACK);        
+      }
+    }
+
+    populateFields();
+    
 //    String status;
 //    String toast;
 //
@@ -147,7 +186,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void onFailure(Throwable t) {
-    Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
+    Toast.makeText(mCtx, "Input failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
     mAddButton.setClickable(true);
     mAddButton.setTextColor(Color.BLACK);
   }
@@ -182,7 +221,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mAddButton.setOnClickListener(mAddListener);
 
     mProgress = new ProgressIndicator.Titlebar(mCtx);
-
   }
 
   private void setupListeners() {
@@ -225,7 +263,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mCategoryNameView.setTextColor(mColorInt);
 
     if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-      mAddButton.setText("Add");
+      mAddButton.setText("Add");      
     } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
@@ -365,36 +403,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void addEntry() {
-    mRow.mTimestamp = ((InputActivity) mCtx).getTimestampSeconds();
-
-    IEventRecorderService service = ((InputActivity) mCtx).getRecorderService();
-    if (service == null) {
-      Toast.makeText(mCtx, "RecorderService not available.", 
-          Toast.LENGTH_SHORT).show();
-    } else {
-      try {
-        if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-          mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
-          mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
-              mAddValue);
-        } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
-          if (mRow.mRecordingDatapointId > 0) {
-            mNewDatapointId = service.recordEventStop(mRow.mId);
-            if (mNewDatapointId > 0)
-              mRow.mRecordingDatapointId = 0;
-          } else {
-            mNewDatapointId = service.recordEventStart(mRow.mId);
-            if (mNewDatapointId > 0)
-              mRow.mRecordingDatapointId = mNewDatapointId;
-          }
-        }
-      } catch (Exception e) {
-        Toast.makeText(mCtx, "add entry failed", Toast.LENGTH_SHORT).show();
-      }
-    }
-    
-//    GUITaskQueue.getInstance().addTask(mProgress, this);
-
     if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
       mAddButton.setClickable(false);
       mAddButton.setTextColor(Color.LTGRAY);
@@ -407,6 +415,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         mAddButton.setTextColor(Color.BLACK);        
       }
     }
+
+    GUITaskQueue.getInstance().addTask(mProgress, this);
 
 //    CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
 //    updateTrendIcon(cat.getTrendState());

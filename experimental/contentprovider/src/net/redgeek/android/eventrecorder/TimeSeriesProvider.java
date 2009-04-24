@@ -16,18 +16,6 @@
 
 package net.redgeek.android.eventrecorder;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import net.redgeek.android.eventrecorder.DateMapCache.DateMapCacheEntry;
-import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
-import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.util.Number;
-import net.redgeek.android.eventrend.util.Aggregator.Aggregate;
-
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -39,6 +27,17 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.util.Log;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrend.util.Number;
+
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // TODO:  support calculated series
 // TODO:  flesh out interpolator plugins
@@ -115,6 +114,7 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
     sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
+    sDatapointProjection.put(Datapoint.ENTRIES, Datapoint.ENTRIES);
     sDatapointProjection.put(Datapoint.TREND, Datapoint.TREND);
     sDatapointProjection.put(Datapoint.STDDEV, Datapoint.STDDEV);
 
@@ -169,7 +169,7 @@ public class TimeSeriesProvider extends ContentProvider {
     qb.setProjectionMap(sTimeSeriesProjection);
     qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
 
-    Cursor c = qb.query(db, projection, null, null, null, null, null, null);
+    Cursor c = qb.query(db, projection, null, null, null, null, null);
     if (c == null)
       return;
     if (c.getCount() < 1) {
@@ -177,8 +177,9 @@ public class TimeSeriesProvider extends ContentProvider {
       return;
     }
       
-    float smoothing = TimeSeries.getSmoothing(c);
+    c.moveToFirst();
     int history = TimeSeries.getHistory(c);
+    float smoothing = TimeSeries.getSmoothing(c);
     c.close();
     
     qb = new SQLiteQueryBuilder();
@@ -187,14 +188,12 @@ public class TimeSeriesProvider extends ContentProvider {
     qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
     qb.appendWhere(Datapoint.TS_START + " <= " + fromSeconds + " ");
     
-    int startTimestamp = Datapoint.getTsStart(c);
+    int startTimestamp = 0;
     c = qb.query(db, null, null, null, null, null, 
         Datapoint.TS_START + " desc ", "" + history);
     if (c == null)
       return;
-    if (c.getCount() < 1) {
-      startTimestamp = 0;
-    } else {    
+    if (c.getCount() > 0) {
       c.moveToLast();
       startTimestamp = Datapoint.getTsStart(c);
     }
@@ -227,7 +226,6 @@ public class TimeSeriesProvider extends ContentProvider {
     for (int i = 0; i < count && i < history * 2; i++) {
       id = Datapoint.getId(c);
       value = Datapoint.getValue(c);
-      entries = Datapoint.getEntries(c);
       trend.update(value);
       stats.update(value);
       
@@ -252,6 +250,7 @@ public class TimeSeriesProvider extends ContentProvider {
     int period, oldPeriodStart, newPeriodStart;
     String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
 
+    updateStats(db, timeSeriesId, fromSeconds, TimeSeriesData.Datapoint.TABLE_NAME);
     for (int i = 0; i < tables.length; i++) {
       table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
       updateStats(db, timeSeriesId, fromSeconds, table);
@@ -267,7 +266,7 @@ public class TimeSeriesProvider extends ContentProvider {
     ContentValues values = new ContentValues();
     String table;
     long id;
-    int period, oldPeriodStart, newPeriodStart;
+    int period, oldPeriodStart, newPeriodStart, newPeriodEnd;
     String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
 
     for (int i = 0; i < tables.length; i++) {
@@ -279,6 +278,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
       period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
       newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
+      newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
 
       if (update == true || delete == true) {
         // updating or deleting, not inserting
@@ -329,8 +329,6 @@ public class TimeSeriesProvider extends ContentProvider {
 
           values.clear();
           values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.TS_START, oldPeriodStart);
-          values.put(TimeSeriesData.Datapoint.TS_END, oldPeriodStart + period - 1);
           values.put(TimeSeriesData.Datapoint.VALUE, oldValue - newValue);
           values.put(TimeSeriesData.Datapoint.ENTRIES, entries - 1);
           id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
@@ -342,7 +340,7 @@ public class TimeSeriesProvider extends ContentProvider {
           
       if (delete != true) {
       // insert, or update within the same period
-        qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
         qb.appendWhere(Datapoint.TS_START + " == " + newPeriodStart + " ");
 
         c = qb.query(db, null, null, null, null, null, null, null);
@@ -352,8 +350,7 @@ public class TimeSeriesProvider extends ContentProvider {
           values.clear();
           values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
           values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
-          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodStart + period
-              - 1);
+          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodEnd);
           values.put(TimeSeriesData.Datapoint.VALUE, newValue);
           values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
           values.put(TimeSeriesData.Datapoint.TREND, 0);
@@ -372,8 +369,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
           values.clear();
           values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
-          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodStart + period
-              - 1);
+          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodEnd);
           values.put(TimeSeriesData.Datapoint.VALUE, oldValue + newValue);
           values.put(TimeSeriesData.Datapoint.ENTRIES, entries + 1);
           id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
@@ -405,6 +401,7 @@ public class TimeSeriesProvider extends ContentProvider {
             outputUri = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, id);
           }          
         } catch (Exception e) {
+          Log.v(TAG, e.getMessage());
         } finally {
           LockUtil.unlock(mLock);
         }
@@ -442,8 +439,8 @@ public class TimeSeriesProvider extends ContentProvider {
             tsEnd = values.getAsInteger(Datapoint.TS_END);
 
           // Only aggregate if we're adding a discrete event or a range event
-          // that has an endpoint set.  We'll take care of updating aggregations
-          // in 'update' when the end of the range event is set.
+          // that has an endpoint set.  We'll take care of updating range 
+          // aggregations in 'update', when the end of the range event is set.
           if (tsEnd >= tsStart && tsEnd != 0) {     
             updateAggregations(db, timeSeriesId, 0, tsStart, 0, newValue, false, false);
           }
@@ -452,8 +449,9 @@ public class TimeSeriesProvider extends ContentProvider {
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
-        } finally {
+          Log.v(TAG, e.getMessage());
           outputUri = null;
+        } finally {
           db.endTransaction();
           LockUtil.unlock(mLock);
         }
@@ -507,7 +505,7 @@ public class TimeSeriesProvider extends ContentProvider {
           if (agg != null && TextUtils.isEmpty(agg) == false) {
             table += "_" + table;
           }
-        } catch (Exception e) {} // nothing
+        } catch (Exception e) { } // nothing
         qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
@@ -522,7 +520,7 @@ public class TimeSeriesProvider extends ContentProvider {
           if (agg != null && TextUtils.isEmpty(agg) == false) {
             table += "_" + table;
           }
-        } catch (Exception e) { } // nothing }
+        } catch (Exception e) { } // nothing
         qb.setTables(table);
         qb.appendWhere(TimeSeries._ID + " = " 
             + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
@@ -577,7 +575,9 @@ public class TimeSeriesProvider extends ContentProvider {
 //              values.containsKey(TimeSeries.HISTORY)) {
 //            updateStats(db, tsId, 0);
 //          }
-//        } catch (Exception e) {          
+//    } catch (Exception e) {
+//      Log.v(TAG, e.getMessage());
+//    }
 //        } finally {
 //          LockUtil.unlock(mLock);
 //        }
@@ -599,7 +599,8 @@ public class TimeSeriesProvider extends ContentProvider {
           }
           
           db.setTransactionSuccessful();
-        } catch (Exception e) {       
+        } catch (Exception e) {
+          Log.v(TAG, e.getMessage());
           count = -1;
         } finally {
           db.endTransaction();
@@ -612,6 +613,7 @@ public class TimeSeriesProvider extends ContentProvider {
 //        try {
 //          count = db.update(Datapoint.TABLE_NAME, values, where, whereArgs);
 //        } catch (Exception e) {
+//        Log.v(TAG, e.getMessage());
 //        } finally {
 //          LockUtil.unlock(mLock);
 //        }
@@ -657,6 +659,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
+          Log.v(TAG, e.getMessage());
           count = -1;
         } finally {
           db.endTransaction();
@@ -695,6 +698,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
+          Log.v(TAG, e.getMessage());
           count = -1;
         } finally {
           db.endTransaction();
@@ -736,6 +740,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
+          Log.v(TAG, e.getMessage());
           count = -1;
         } finally {
           db.endTransaction();
@@ -800,21 +805,21 @@ public class TimeSeriesProvider extends ContentProvider {
       int dow;
       int secs;
       
-      cal.set(Calendar.MONTH, 0);
-      cal.set(Calendar.DAY_OF_MONTH, 1);
-      cal.set(Calendar.HOUR_OF_DAY, 0);
-      cal.set(Calendar.MINUTE, 0);
-      cal.set(Calendar.SECOND, 0);
-
       ContentValues values = new ContentValues();
 
       for (int yyyy = 2000; yyyy < 2020; yyyy++) {
         cal.set(Calendar.YEAR, yyyy);
         for (int mm = 0; mm < 12; mm++) {
           cal.set(Calendar.MONTH, mm);
-          dow = cal.get(Calendar.DAY_OF_WEEK);
+          cal.set(Calendar.DAY_OF_MONTH, 1);
+          cal.set(Calendar.HOUR_OF_DAY, 0);
+          cal.set(Calendar.MINUTE, 0);
+          cal.set(Calendar.SECOND, 0);
+          cal.set(Calendar.MILLISECOND, 0);
+
           secs = (int) (cal.getTimeInMillis() / DateMapCache.SECOND_MS);
-          
+          dow = cal.get(Calendar.DAY_OF_WEEK);
+ 
           values.clear();
           values.put(TimeSeriesData.DateMap.YEAR, yyyy);
           values.put(TimeSeriesData.DateMap.MONTH, mm);
