@@ -26,6 +26,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Debug;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -390,6 +391,8 @@ public class TimeSeriesProvider extends ContentProvider {
     long id;
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     
+    Debug.startMethodTracing("cpInsert");
+    
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         LockUtil.waitForLock(mLock);
@@ -464,6 +467,8 @@ public class TimeSeriesProvider extends ContentProvider {
     if (outputUri != null)
       getContext().getContentResolver().notifyChange(outputUri, null);
     
+    Debug.stopMethodTracing();
+
     return outputUri;
   }
 
