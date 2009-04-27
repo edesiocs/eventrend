@@ -209,10 +209,7 @@ public class EventRecorder extends Service {
         return -1;
       }
 
-      int count = getContentResolver().update(
-          TimeSeriesData.TimeSeries.CONTENT_URI, values,
-          TimeSeriesData.TimeSeries._ID + " = ? ",
-          new String[] { "" + timeSeriesId } );
+      int count = getContentResolver().update(timeseries, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
         return -1;
@@ -255,10 +252,21 @@ public class EventRecorder extends Service {
         return -1;
       }
 
+      Cursor c = getContentResolver().query(uri, null, null, null, null);
+      if (c == null)
+        return -1;
+      if (c.getCount() < 1) {
+        c.close();
+        return -1;
+      }
+
+      c.moveToFirst();
+      long tsStart = TimeSeriesData.Datapoint.getTsStart(c);
+      c.close();
+
       long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       values.put(TimeSeriesData.Datapoint.TS_END, now);
-      values.put(TimeSeriesData.Datapoint.VALUE, 
-          "" + now + " - " + TimeSeriesData.Datapoint.TS_START);
+      values.put(TimeSeriesData.Datapoint.VALUE, now - tsStart);
       int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
@@ -267,10 +275,14 @@ public class EventRecorder extends Service {
 
       values.clear();
       values.put(TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID, 0);
-      count = getContentResolver().update(
-          TimeSeriesData.TimeSeries.CONTENT_URI, values,
-          TimeSeriesData.TimeSeries._ID + " = ? ",
-          new String[] { "" + timeSeriesId });
+      Uri timeseries = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId);
+      if (timeseries == null) {
+        LockUtil.unlock(mLock);
+        return -1;
+      }
+
+      count = getContentResolver().update(timeseries, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
         return -1;

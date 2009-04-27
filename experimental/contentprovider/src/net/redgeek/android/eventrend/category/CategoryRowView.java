@@ -301,10 +301,24 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       Cursor c = mCtx.getContentResolver().query(lastDatapoint, null, null, null, null);
       if (c != null && c.getCount() > 0) {
         c.moveToFirst();
+        
+        String status;
         float newValue = TimeSeriesData.Datapoint.getValue(c);
         float newTrend = TimeSeriesData.Datapoint.getTrend(c);
-        float displayTrend = Number.Round(newTrend, mRow.mDecimals);
-        mTrendValueView.setText(Float.valueOf(displayTrend).toString());
+        float displayTrend = newTrend;
+
+        if (mRow.mAggregation.equals(TimeSeries.AGGREGATION_AVG)) {
+          int nEntries = TimeSeriesData.Datapoint.getEntries(c);
+          if (nEntries < 0)
+            nEntries = 1;
+          displayTrend /= nEntries;
+        }
+        displayTrend = Number.Round(newTrend, mRow.mDecimals);
+        if (mRow.mType.equals(TimeSeries.TYPE_RANGE)) {
+          mTrendValueView.setText(DateUtil.toString(displayTrend));
+        } else {
+          mTrendValueView.setText(Float.valueOf(displayTrend).toString());
+        }
 
         c.moveToLast();
         float oldTrend = Datapoint.getTrend(c);
@@ -313,8 +327,13 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
             mRow.mSensitivity, stdDev);
         
-        // TODO: update status based on type of series
-        String status = DateUtil.toTimestamp(Datapoint.getTsStart(c)) + ": " + newValue;
+        if (mRow.mType.equals(TimeSeries.TYPE_RANGE)) {
+          status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
+              mRow.mPeriod) + ": " + DateUtil.toString(newValue);          
+        } else {
+          status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
+              mRow.mPeriod) + ": " + newValue;          
+        }
         mCategoryUpdateView.setText(status);
       }
       

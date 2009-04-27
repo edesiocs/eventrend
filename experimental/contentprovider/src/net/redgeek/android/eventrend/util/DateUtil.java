@@ -720,21 +720,23 @@ public final class DateUtil {
    *          The milliseconds since epoch to format.
    * @return The descriptive string.
    */
-  public static String toString(float millis) {
-    if (millis > YEAR_MS) {
-      return Number.Round(millis / YEAR_MS) + " years";
-    } else if (millis > QUARTER_MS) {
-      return Number.Round(millis / QUARTER_MS) + " quarters";
-    } else if (millis > MONTH_MS) {
-      return Number.Round(millis / MONTH_MS) + " months";
-    } else if (millis > WEEK_MS) {
-      return Number.Round(millis / WEEK_MS) + " weeks";
-    } else if (millis > DAY_MS) {
-      return Number.Round(millis / DAY_MS) + " days";
-    } else if (millis > HOUR_MS) {
-      return Number.Round(millis / HOUR_MS) + " hours";
-    } else { // if (millis > MINUTE_MS) {
-      return Number.Round(millis / MINUTE_MS) + " minutes";
+  public static String toString(float seconds) {
+    if (seconds > YEAR_MS / SECOND_MS) {
+      return Number.Round(seconds / (YEAR_MS / SECOND_MS)) + " yr";
+    } else if (seconds > QUARTER_MS/ SECOND_MS) {
+      return Number.Round(seconds / (QUARTER_MS / SECOND_MS)) + " qtr";
+    } else if (seconds > MONTH_MS/ SECOND_MS) {
+      return Number.Round(seconds / (MONTH_MS / SECOND_MS)) + " mo";
+    } else if (seconds > WEEK_MS/ SECOND_MS) {
+      return Number.Round(seconds / (WEEK_MS / SECOND_MS)) + " wk";
+    } else if (seconds > DAY_MS/ SECOND_MS) {
+      return Number.Round(seconds / (DAY_MS / SECOND_MS)) + " day";
+    } else if (seconds > HOUR_MS/ SECOND_MS) {
+      return Number.Round(seconds / (HOUR_MS / SECOND_MS)) + " hr";
+    } else if (seconds > MINUTE_MS/ SECOND_MS) {
+      return Number.Round(seconds / (MINUTE_MS / SECOND_MS)) + " min";
+    } else { // if (millis > SECOND_MS) {
+      return Number.Round(seconds) + " sec";
     }
   }
 
@@ -844,6 +846,50 @@ public final class DateUtil {
         + l2pad(cal.get(Calendar.HOUR_OF_DAY)) + ":"
         + l2pad(cal.get(Calendar.MINUTE)) + ":"
         + l2pad(cal.get(Calendar.SECOND));
+  }
+
+  /**
+   * Returns a "timestamp" formated string representing the time formatted for
+   * the period.
+   * 
+   * @param d
+   *          The Calendar to format.
+   * @return The timestamp string.
+   */
+  public static String toDisplayTime(int seconds, int period) {
+    String s;
+    Calendar c = Calendar.getInstance();
+    c.setTimeInMillis(seconds * DateMapCache.SECOND_MS);
+    if (period == DateMapCache.YEAR_MS / DateMapCache.SECOND_MS) {
+      s = "" + c.get(Calendar.YEAR);
+    }
+    else if (period == DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS) {
+      int month = c.get(Calendar.MONTH);
+      int quarter = (int)(month / 3) + 1;
+      s = c.get(Calendar.YEAR) + " Q" + quarter;
+    }
+    else if (period == DateMapCache.MONTH_MS / DateMapCache.SECOND_MS) {
+      s = c.get(Calendar.YEAR) + "/" + l2pad(c.get(Calendar.MONTH));
+    }
+    else if (period == DateMapCache.WEEK_MS / DateMapCache.SECOND_MS) {
+      s = c.get(Calendar.YEAR) + "/" 
+        +l2pad(c.get(Calendar.MONTH)) + "/" 
+        + l2pad(c.get(Calendar.DAY_OF_MONTH));
+    }
+    else if (period == DateMapCache.DAY_MS / DateMapCache.SECOND_MS) {
+      s = c.get(Calendar.YEAR) + "/" 
+        + l2pad(c.get(Calendar.MONTH))
+        + "/" + l2pad(c.get(Calendar.DAY_OF_MONTH));
+    }
+    else {
+      s = c.get(Calendar.YEAR) + "/" 
+        + l2pad(c.get(Calendar.MONTH)) + "/" 
+        + l2pad(c.get(Calendar.DAY_OF_MONTH)) + " "
+        + l2pad(c.get(Calendar.HOUR_OF_DAY)) + ":"
+        + l2pad(c.get(Calendar.MINUTE)) + ":"
+        + l2pad(c.get(Calendar.SECOND));
+    }
+    return s;
   }
 
   /**
