@@ -259,129 +259,199 @@ public class TimeSeriesProvider extends ContentProvider {
 
     return;
   }
+  
+  private void insertAggregations(SQLiteDatabase db, long timeSeriesId, 
+      int tsStart, float value) throws Exception {
+    Cursor c;
+    ContentValues values = new ContentValues();
+    String table;
+    long id;
+    int period, periodStart, periodEnd;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    SQLiteQueryBuilder qb;
 
+    for (int i = 0; i < tables.length; i++) {
+      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+      periodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
+      periodEnd = mDateMap.secondsOfPeriodEnd(periodStart, period);
+
+      qb = new SQLiteQueryBuilder();
+      qb.setProjectionMap(sDatapointProjection);
+
+      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+      qb.setTables(table);
+
+      // insert, or update within the same period
+      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
+      qb.appendWhere(Datapoint.TS_START + " == " + periodStart + " ");
+
+      c = qb.query(db, null, null, null, null, null, null, null);
+      if (c == null || c.getCount() < 1) {
+        // insert
+        c.moveToFirst();
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(TimeSeriesData.Datapoint.TS_START, periodStart);
+        values.put(TimeSeriesData.Datapoint.TS_END, periodEnd);
+        values.put(TimeSeriesData.Datapoint.VALUE, value);
+        values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+        values.put(TimeSeriesData.Datapoint.TREND, 0);
+        values.put(TimeSeriesData.Datapoint.STDDEV, 0);
+        id = db.insert(table, null, values);
+        if (c != null)
+          c.close();
+        if (id == -1)
+          throw new Exception("insert: couldn't insert new aggregate");
+      } else {
+        // update
+        c.moveToFirst();
+        id = TimeSeriesData.Datapoint.getId(c);
+        int entries = TimeSeriesData.Datapoint.getEntries(c);
+        float oldValue = TimeSeriesData.Datapoint.getValue(c);
+
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.VALUE, oldValue + value);
+        values.put(TimeSeriesData.Datapoint.ENTRIES, entries + 1);
+        id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+            new String[] { "" + id });
+        c.close();
+        if (id == -1)
+          throw new Exception("insert: couldn't update old aggregate");
+      }
+    }
+
+    return;
+  }
+  
   private void updateAggregations(SQLiteDatabase db, long timeSeriesId, 
-      int oldStart, int newStart, float oldValue, float newValue, 
-      boolean update, boolean delete) throws Exception {
+      int oldStart, int newStart, float oldValue, float newValue) throws Exception {
     Cursor c;
     ContentValues values = new ContentValues();
     String table;
     long id;
     int period, oldPeriodStart, newPeriodStart, newPeriodEnd;
     String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    SQLiteQueryBuilder qb;
 
     for (int i = 0; i < tables.length; i++) {
-      SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+      newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
+      newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
+
+      qb = new SQLiteQueryBuilder();
       qb.setProjectionMap(sDatapointProjection);
 
       table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
       qb.setTables(table);
 
-      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
-      newPeriodStart = mDateMap.secondsOfPeriodStart(newStart, period);
-      newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
+      oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
 
-      if (update == true || delete == true) {
-        // updating or deleting, not inserting
-        oldPeriodStart = mDateMap.secondsOfPeriodStart(oldStart, period);
- 
-        if (delete == false && oldPeriodStart == newPeriodStart) {
-          // changed but stayed within the same period
-          qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
-          qb.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
-          c = qb.query(db, null, null, null, null, null, null, null);
-          if (c == null || c.getCount() < 1) {
-            if (c != null)
-              c.close();
-            throw new Exception("update: could not find old aggregate");
-          }
-
-          c.moveToFirst();
-          id = TimeSeriesData.Datapoint.getId(c);
-          oldValue = TimeSeriesData.Datapoint.getValue(c);
-          c.close();
-
-          values.clear();
-          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.VALUE, oldValue + (oldValue - newValue));
-          id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
-              new String[] { "" + id });
-          if (id == -1)
-              throw new Exception("insert: couldn't update old aggregate");
-        }
-        else {
-          // period has changed, have to subtract from old period and add to new
-          // period (or we're deleting)
-          SQLiteQueryBuilder qb2 = new SQLiteQueryBuilder();
-          qb2.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
-          qb2.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
-          c = qb2.query(db, null, null, null, null, null, null, null);
-          if (c == null || c.getCount() < 1) {
-            if (c != null)
-              c.close();
-            throw new Exception("update: could not find old aggregate");
-          }
-
-          c.moveToFirst();
-          id = TimeSeriesData.Datapoint.getId(c);
-          oldValue = TimeSeriesData.Datapoint.getValue(c);
-          int entries = TimeSeriesData.Datapoint.getEntries(c);
-          c.close();
-
-          values.clear();
-          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.VALUE, oldValue - newValue);
-          values.put(TimeSeriesData.Datapoint.ENTRIES, entries - 1);
-          id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
-              new String[] { "" + id });
-          if (id == -1)
-              throw new Exception("insert: couldn't update old aggregate");
-        }
-      }
-          
-      if (delete != true) {
-      // insert, or update within the same period
-        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
-        qb.appendWhere(Datapoint.TS_START + " == " + newPeriodStart + " ");
-
+      if (oldPeriodStart == newPeriodStart) {
+        // changed but stayed within the same period
+        qb
+            .appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId
+                + " AND ");
+        qb.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
         c = qb.query(db, null, null, null, null, null, null, null);
         if (c == null || c.getCount() < 1) {
-          // insert
-          c.moveToFirst();
-          values.clear();
-          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
-          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodEnd);
-          values.put(TimeSeriesData.Datapoint.VALUE, newValue);
-          values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
-          values.put(TimeSeriesData.Datapoint.TREND, 0);
-          values.put(TimeSeriesData.Datapoint.STDDEV, 0);
-          id = db.insert(table, null, values);
           if (c != null)
             c.close();
-          if (id == -1)
-            throw new Exception("insert: couldn't insert new aggregate");
-        } else {
-          // update
-          c.moveToFirst();
-          id = TimeSeriesData.Datapoint.getId(c);
-          int entries = TimeSeriesData.Datapoint.getEntries(c);
-          oldValue = TimeSeriesData.Datapoint.getValue(c);
-
-          values.clear();
-          values.put(TimeSeriesData.Datapoint.TS_START, newPeriodStart);
-          values.put(TimeSeriesData.Datapoint.TS_END, newPeriodEnd);
-          values.put(TimeSeriesData.Datapoint.VALUE, oldValue + newValue);
-          values.put(TimeSeriesData.Datapoint.ENTRIES, entries + 1);
-          id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
-              new String[] { "" + id });
-          c.close();
-          if (id == -1)
-            throw new Exception("insert: couldn't update old aggregate");
+          throw new Exception("update: could not find old aggregate");
         }
+
+        c.moveToFirst();
+        id = TimeSeriesData.Datapoint.getId(c);
+        oldValue = TimeSeriesData.Datapoint.getValue(c);
+        c.close();
+
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(TimeSeriesData.Datapoint.VALUE, oldValue
+            + (oldValue - newValue));
+        id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+            new String[] { "" + id });
+        if (id == -1)
+          throw new Exception("insert: couldn't update old aggregate");
+      } else {
+        // period has changed, have to subtract from old period and add to new
+        // period (or we're deleting)
+        qb
+            .appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId
+                + " AND ");
+        qb.appendWhere(Datapoint.TS_START + " == " + oldPeriodStart + " ");
+        c = qb.query(db, null, null, null, null, null, null, null);
+        if (c == null || c.getCount() < 1) {
+          if (c != null)
+            c.close();
+          throw new Exception("update: could not find old aggregate");
+        }
+
+        c.moveToFirst();
+        id = TimeSeriesData.Datapoint.getId(c);
+        oldValue = TimeSeriesData.Datapoint.getValue(c);
+        int entries = TimeSeriesData.Datapoint.getEntries(c);
+        c.close();
+
+        values.clear();
+        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(TimeSeriesData.Datapoint.VALUE, oldValue - newValue);
+        values.put(TimeSeriesData.Datapoint.ENTRIES, entries - 1);
+        id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+            new String[] { "" + id });
+        if (id == -1)
+          throw new Exception("insert: couldn't update old aggregate");
       }
     }
 
+    return;
+  }
+  
+  private void removeFromAggregations(SQLiteDatabase db, long timeSeriesId, 
+      int tsStart, float value) throws Exception {
+    Cursor c;
+    ContentValues values = new ContentValues();
+    String table;
+    long id;
+    int period, periodStart, periodEnd;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    SQLiteQueryBuilder qb;
+
+    for (int i = 0; i < tables.length; i++) {
+      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+      periodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
+      periodEnd = mDateMap.secondsOfPeriodEnd(periodStart, period);
+
+      qb = new SQLiteQueryBuilder();
+      qb.setProjectionMap(sDatapointProjection);
+
+      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
+      qb.setTables(table);
+
+      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
+      qb.appendWhere(Datapoint.TS_START + " == " + periodStart + " ");
+      c = qb.query(db, null, null, null, null, null, null, null);
+      if (c == null || c.getCount() < 1) {
+        if (c != null)
+          c.close();
+        throw new Exception("update: could not find old aggregate");
+      }
+
+      c.moveToFirst();
+      id = TimeSeriesData.Datapoint.getId(c);
+      float oldValue = TimeSeriesData.Datapoint.getValue(c);
+      int entries = TimeSeriesData.Datapoint.getEntries(c);
+      c.close();
+
+      values.clear();
+      values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
+      values.put(TimeSeriesData.Datapoint.VALUE, oldValue - value);
+      values.put(TimeSeriesData.Datapoint.ENTRIES, entries - 1);
+      id = db.update(table, values, TimeSeriesData.Datapoint._ID + " = ? ",
+          new String[] { "" + id });
+      if (id == -1)
+        throw new Exception("insert: couldn't update old aggregate");
+    }
+          
     return;
   }
   
@@ -441,13 +511,7 @@ public class TimeSeriesProvider extends ContentProvider {
           if (values.containsKey(Datapoint.TS_END))
             tsEnd = values.getAsInteger(Datapoint.TS_END);
 
-          // Only aggregate if we're adding a discrete event or a range event
-          // that has an endpoint set.  We'll take care of updating range 
-          // aggregations in 'update', when the end of the range event is set.
-          if (tsEnd >= tsStart && tsEnd != 0) {     
-            updateAggregations(db, timeSeriesId, 0, tsStart, 0, newValue, false, false);
-          }
-          
+          insertAggregations(db, timeSeriesId, tsStart, newValue);
           updateStats(db, timeSeriesId, tsStart);
 
           db.setTransactionSuccessful();
@@ -512,7 +576,7 @@ public class TimeSeriesProvider extends ContentProvider {
           }
         } catch (Exception e) { } // nothing
         qb.setTables(table);
-        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         orderBy = Datapoint.TS_START + " desc";
         limit = count;
         break;
@@ -534,7 +598,7 @@ public class TimeSeriesProvider extends ContentProvider {
         break;
       case DATAPOINTS_ID:
         qb.setTables(Datapoint.TABLE_NAME);
-        qb.appendWhere(TimeSeries._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(Datapoint.TIMESERIES_ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
@@ -659,7 +723,7 @@ public class TimeSeriesProvider extends ContentProvider {
           if (values.containsKey(Datapoint.VALUE))
             newValue = values.getAsFloat(TimeSeriesData.Datapoint.VALUE);
           
-          updateAggregations(db, tsId, oldStart, newStart, oldValue, newValue, true, false);   
+          updateAggregations(db, tsId, oldStart, newStart, oldValue, newValue);   
           updateStats(db, tsId, oldStart);
 
           db.setTransactionSuccessful();
@@ -740,7 +804,7 @@ public class TimeSeriesProvider extends ContentProvider {
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
           
-          updateAggregations(db, tsId, oldStart, 0, oldValue, 0, false, true);   
+          removeFromAggregations(db, tsId, oldStart, oldValue);
           updateStats(db, tsId, oldStart);
 
           db.setTransactionSuccessful();
