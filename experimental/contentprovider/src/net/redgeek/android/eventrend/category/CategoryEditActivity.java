@@ -132,7 +132,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private Long mRowId;
   private int mMaxRank;
   private boolean mSave = false;
-
+  
+  String mType;
+  
   // TODO: formula-related stuff
   // private Formula mFormula;
 
@@ -279,6 +281,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     // synthetic elements:
     mFormulaRow = (TableRow) findViewById(R.id.category_edit_formula_row);
+    mFormulaRow.setVisibility(View.GONE);
     mFormulaEdit = (Button) findViewById(R.id.category_edit_formula);
     mFormulaEdit.setOnClickListener(mFormulaEditListener);
     setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
@@ -294,6 +297,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     setHelpDialog(R.id.category_edit_increment_view, DIALOG_HELP_INCREMENT);
 
     mZeroFillRow = (TableRow) findViewById(R.id.category_edit_zerofill_row);
+    mZeroFillRow.setVisibility(View.GONE);
     mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
     setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
 
@@ -336,7 +340,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
     mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
     mAdvancedCheck.setChecked(false);
-    setSyntheticView(false);
+    setVisibleViews();
   }
 
   private ArrayList<String> fetchAllGroups() {
@@ -362,7 +366,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
   }
 
   private void setZerofillCheckStatus() {
+    if (mAggRadio == null || mAdvancedCheck == null || mType == null)
+      return;
+      
     if (mPeriodSeconds == 0 
+        || mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)
         || mAggRadio.getText().toString().toLowerCase().equals(TimeSeries.AGGREGATION_AVG)
         || mAdvancedCheck.isChecked() == false) {
       mZeroFillRow.setVisibility(View.GONE);
@@ -371,9 +379,16 @@ public class CategoryEditActivity extends EvenTrendActivity {
     }
   }
   
-  private void setSyntheticView(boolean synthetic) {
-    if (synthetic == true) {
+  private void setUserDefinedInput() {
+    if (mType == null)
+      return;
+    
+    if (mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
       mFormulaRow.setVisibility(View.VISIBLE);
+      mDefaultValueRow.setVisibility(View.GONE);
+      mIncrementRow.setVisibility(View.GONE);
+    } else if (mType.toLowerCase().equals(TimeSeries.TYPE_RANGE)) {
+      mFormulaRow.setVisibility(View.GONE);
       mDefaultValueRow.setVisibility(View.GONE);
       mIncrementRow.setVisibility(View.GONE);
     } else {
@@ -381,11 +396,13 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mDefaultValueRow.setVisibility(View.VISIBLE);
       mIncrementRow.setVisibility(View.VISIBLE);
     }
-    setZerofillCheckStatus();
   }
+  
+  private void setVisibleViews() {
+    if (mAdvancedCheck == null)
+      return;
 
-  private void setAdvancedView(boolean advanced) {
-    if (advanced == true) {
+    if (mAdvancedCheck != null && mAdvancedCheck.isChecked() == true) {
       mPeriodRow.setVisibility(View.VISIBLE);
       mSeriesTypeRow.setVisibility(View.VISIBLE);
       mGroupRow.setVisibility(View.VISIBLE);
@@ -406,17 +423,15 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mSensitivityRow.setVisibility(View.GONE);
       mUnitsRow.setVisibility(View.GONE);
     }
-    if (mRow != null && mRow.mType != null && mRow.mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC))
-      setSyntheticView(true);
-    else
-      setSyntheticView(false);
-  }
-
+    setZerofillCheckStatus();
+    setUserDefinedInput();
+  }  
+  
   private void setupListeners() {
     mAggListener = new RadioGroup.OnCheckedChangeListener() {
       public void onCheckedChanged(RadioGroup group, int checkedId) {
         mAggRadio = (RadioButton) findViewById(checkedId);
-        setZerofillCheckStatus();
+        setVisibleViews();
       }
     };
 
@@ -442,7 +457,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
           long id) {
         mPeriodSeconds = (int) mAggregatePeriodSpinner
             .getMappingFromPosition(position);
-        setZerofillCheckStatus();
+        setVisibleViews();
         return;
       }
 
@@ -454,12 +469,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mSeriesTypeListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        String type = ((TextView) v).getText().toString();
-        if (type.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
-          setSyntheticView(true);
-        } else {
-          setSyntheticView(false);
-        }
+        mType = ((TextView) v).getText().toString();
+        setVisibleViews();
         return;
       }
 
@@ -470,19 +481,19 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mAdvancedListener = new CompoundButton.OnCheckedChangeListener() {
       public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setAdvancedView(isChecked);
+        setVisibleViews();
       }
     };
 
     mFormulaEditListener = new View.OnClickListener() {
       public void onClick(View view) {
         // TODO: formula-related stuff
-        // mSave = true;
-        // saveState();
-        // mSave = false;
-        // Intent i = new Intent(mCtx, FormulaEditorActivity.class);
-        // i.putExtra(TimeSeries._ID, mRowId);
-        // startActivityForResult(i, FORMULA_EDIT);
+         mSave = true;
+         saveState();
+         mSave = false;
+         Intent i = new Intent(mCtx, FormulaEditorActivity.class);
+         i.putExtra(TimeSeries._ID, mRowId);
+         startActivityForResult(i, ARC_FORMULA_EDIT);
       }
     };
 

@@ -1,72 +1,72 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// *
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// *
-// *      http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//
-//package net.redgeek.android.eventrecorder.synthetic;
-//
-//import java.util.ArrayList;
-//
-//import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
-//import net.redgeek.android.eventrecorder.synthetic.AST.BinaryOperation;
-//import net.redgeek.android.eventrecorder.synthetic.AST.GroupOperand;
-//import net.redgeek.android.eventrecorder.synthetic.AST.Operand;
-//import net.redgeek.android.eventrecorder.synthetic.AST.Operation;
-//import net.redgeek.android.eventrecorder.synthetic.AST.UnaryOperation;
-//import net.redgeek.android.eventrend.primitives.TimeSeries;
-//import net.redgeek.android.eventrend.util.DateUtil;
-//
-///**
-// * A representation of formulas for generating synthetic time series. Note that
-// * the operations are pretty basic, so I'm not using whatever the java
-// * equivalent to [f]lex/{bison|yacc} is.
-// * 
-// * @author barclay
-// * 
-// */
-//public class Formula {
-//  private AST mAST;
-//
-//  public Formula() {
-//    mAST = new AST();
-//  }
-//
-//  public Formula(String input) {
-//    mAST = new AST(input);
-//  }
-//
-//  public void setFormula(String input) {
-//    mAST.generate(input);
-//  }
-//
-//  public boolean isValid() {
-//    return mAST.isValid();
-//  }
-//
-//  public String getErrorString() {
-//    Tokenizer.Token err = mAST.getErrorToken();
-//    return "Unexpecting value " + err.mValue + " at character " + err.mStart;
-//  }
-//
-//  public String toString() {
-//    return mAST.toString();
-//  }
-//
-//  public ArrayList<String> getDependentNames() {
-//    return mAST.getDependentNames();
-//  }
-//
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.redgeek.android.eventrecorder.synthetic;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrecorder.synthetic.AST.BinaryOperation;
+import net.redgeek.android.eventrecorder.synthetic.AST.GroupOperand;
+import net.redgeek.android.eventrecorder.synthetic.AST.Operand;
+import net.redgeek.android.eventrecorder.synthetic.AST.Operation;
+import net.redgeek.android.eventrecorder.synthetic.AST.UnaryOperation;
+import net.redgeek.android.eventrend.util.DateUtil;
+
+import java.util.ArrayList;
+
+/**
+ * A representation of formulas for generating synthetic time series. Note that
+ * the operations are pretty basic, so I'm not using whatever the java
+ * equivalent to [f]lex/{bison|yacc} is.
+ * 
+ * @author barclay
+ * 
+ */
+public class Formula {
+  private AST mAST;
+
+  public Formula() {
+    mAST = new AST();
+  }
+
+  public Formula(String input) {
+    mAST = new AST(input);
+  }
+
+  public void setFormula(String input) {
+    mAST.generate(input);
+  }
+
+  public boolean isValid() {
+    return mAST.isValid();
+  }
+
+  public String getErrorString() {
+    Tokenizer.Token err = mAST.getErrorToken();
+    return "Unexpecting value " + err.mValue + " at character " + err.mStart;
+  }
+
+  public String toString() {
+    return mAST.toString();
+  }
+
+  public ArrayList<String> getDependentNames() {
+    return mAST.getDependentNames();
+  }
+
 //  public ArrayList<Datapoint> apply(ArrayList<TimeSeries> sources) {
 //    OperandInstance result;
 //    Operation root = mAST.getRoot();
@@ -85,19 +85,19 @@
 //    }
 //    return null;
 //  }
-//
-//  public static class OperandInstance {
-//    public Tokenizer.TokenID mType;
-//    public Float mFloat;
-//    public Long mLong;
-//    public TimeSeries mTimeSeries;
-//    public DateUtil.Period mPeriod;
-//    public boolean mTimestamp;
-//
-//    public OperandInstance() {
-//    }
-//  }
-//
+
+  public static class OperandInstance {
+    public Tokenizer.TokenID mType;
+    public Float mFloat;
+    public Long mLong;
+    public TimeSeries mTimeSeries;
+    public DateUtil.Period mPeriod;
+    public boolean mTimestamp;
+
+    public OperandInstance() {
+    }
+  }
+
 //  private OperandInstance makeInstance(ArrayList<TimeSeries> sources,
 //      AST.Operand operand) {
 //    OperandInstance instance = new OperandInstance();
@@ -278,4 +278,4 @@
 //
 //    return result;
 //  }
-//}
+}
