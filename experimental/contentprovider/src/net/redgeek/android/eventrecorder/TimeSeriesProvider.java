@@ -32,6 +32,7 @@ import android.util.Log;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.util.Number;
 
@@ -792,6 +793,7 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
       db.execSQL(Datapoint.TABLE_CREATE_YEAR);
       db.execSQL(DateMap.TABLE_CREATE);
+      db.execSQL(FormulaCache.TABLE_CREATE);
     
       generateDateMapCacheData(db);
     }
@@ -814,6 +816,7 @@ public class TimeSeriesProvider extends ContentProvider {
       db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
       db.execSQL(Datapoint.TABLE_CREATE_YEAR);
       db.execSQL(DateMap.TABLE_CREATE);
+      db.execSQL(FormulaCache.TABLE_CREATE);
     }
     
     private void generateDateMapCacheData(SQLiteDatabase db) {

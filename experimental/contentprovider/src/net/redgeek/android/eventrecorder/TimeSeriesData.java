@@ -24,110 +24,6 @@ public class TimeSeriesData {
   public static final String AUTHORITY = "net.redgeek.android.eventrecorder";
   public static final String DATABASE_NAME = "timeseries.db";
   
-  public static final class DateMap implements BaseColumns {
-    private DateMap() {
-    }
-
-    /**
-     * The content:// style URL for this table
-     */
-    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
-        + "/datemap");
-
-    /**
-     * The MIME type of {@link #CONTENT_URI} providing a directory of
-     * datapoints.
-     */
-    public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.redgeek.datemap";
-
-    /**
-     * The MIME type of a {@link #CONTENT_URI} sub-directory of a single
-     * datapoint
-     */
-    public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.redgeek.datemap";
-
-    /**
-     * The name of the sql table this data resides in
-     */
-    public static final String TABLE_NAME = "datemap";
-
-    /**
-     * The default sort order for this table
-     */
-    public static final String DEFAULT_SORT_ORDER = "seconds ASC";
-
-    /**
-     * The _id of the datapoint
-     * <p>
-     * Type: LONG
-     * </p>
-     */
-    public static final String _ID = "_id";
-
-    /**
-     * The year portion of this milliseconds-since-epoch mapping
-     * <p>
-     * Type: INTEGER
-     * </p>
-     */
-    public static final String YEAR = "year";
-
-    /**
-     * The month portion of this milliseconds-since-epoch mapping
-     * <p>
-     * Type: BYTE
-     * </p>
-     */
-    public static final String MONTH = "month";
-
-    /**
-     * The dow of week of this milliseconds-since-epoch mapping
-     * <p>
-     * Type: BYTE
-     * </p>
-     */
-    public static final String DOW = "dow";
-
-    /**
-     * The time in seconds since epoch for the start of year and month
-     * specified.
-     * <p>
-     * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
-     * </p>
-     */
-    public static final String SECONDS = "seconds";
-
-    /**
-     * The table creation sql
-     */
-    public static final String TABLE_CREATE = "create table " + TABLE_NAME
-        + " (" + _ID + " integer primary key autoincrement, " 
-        + YEAR + " integer key not null, " 
-        + MONTH + " byte key not null, "
-        + DOW + " byte key not null, " 
-        + SECONDS + " integer key not null);";
-    
-    public static long getId(Cursor c) {
-      return c.getLong(c.getColumnIndexOrThrow(_ID));
-    }
-
-    public static int getYear(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(YEAR));
-    }
-
-    public static int getMonth(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(MONTH));
-    }
-
-    public static int getDOW(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(DOW));
-    }
-
-    public static int getSeconds(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(SECONDS));
-    }
-  }
-  
   public static final class Datapoint implements BaseColumns {
     private Datapoint() {
     }
@@ -728,6 +624,169 @@ public class TimeSeriesData {
         }
       }
       return null;
+    }
+  }
+  
+  public static final class DateMap implements BaseColumns {
+    private DateMap() {
+    }
+
+    /**
+     * The content:// style URL for this table
+     */
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY
+        + "/datemap");
+
+    /**
+     * The MIME type of {@link #CONTENT_URI} providing a directory of
+     * datapoints.
+     */
+    public static final String CONTENT_TYPE = "vnd.android.cursor.dir/vnd.redgeek.datemap";
+
+    /**
+     * The MIME type of a {@link #CONTENT_URI} sub-directory of a single
+     * datapoint
+     */
+    public static final String CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.redgeek.datemap";
+
+    /**
+     * The name of the sql table this data resides in
+     */
+    public static final String TABLE_NAME = "datemap";
+
+    /**
+     * The default sort order for this table
+     */
+    public static final String DEFAULT_SORT_ORDER = "seconds ASC";
+
+    /**
+     * The _id of the datapoint
+     * <p>
+     * Type: LONG
+     * </p>
+     */
+    public static final String _ID = "_id";
+
+    /**
+     * The year portion of this milliseconds-since-epoch mapping
+     * <p>
+     * Type: INTEGER
+     * </p>
+     */
+    public static final String YEAR = "year";
+
+    /**
+     * The month portion of this milliseconds-since-epoch mapping
+     * <p>
+     * Type: BYTE
+     * </p>
+     */
+    public static final String MONTH = "month";
+
+    /**
+     * The dow of week of this milliseconds-since-epoch mapping
+     * <p>
+     * Type: BYTE
+     * </p>
+     */
+    public static final String DOW = "dow";
+
+    /**
+     * The time in seconds since epoch for the start of year and month
+     * specified.
+     * <p>
+     * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
+     * </p>
+     */
+    public static final String SECONDS = "seconds";
+
+    /**
+     * The table creation sql
+     */
+    public static final String TABLE_CREATE = "create table " + TABLE_NAME
+        + " (" + _ID + " integer primary key autoincrement, " 
+        + YEAR + " integer key not null, " 
+        + MONTH + " byte key not null, "
+        + DOW + " byte key not null, " 
+        + SECONDS + " integer key not null);";
+    
+    public static long getId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(_ID));
+    }
+
+    public static int getYear(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(YEAR));
+    }
+
+    public static int getMonth(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(MONTH));
+    }
+
+    public static int getDOW(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(DOW));
+    }
+
+    public static int getSeconds(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(SECONDS));
+    }
+  }
+  
+  public static final class FormulaCache implements BaseColumns {
+    private FormulaCache() {
+    }
+
+    /**
+     * The name of the sql table this data resides in
+     */
+    public static final String TABLE_NAME = "formula";
+
+    /**
+     * The default sort order for this table
+     */
+    public static final String DEFAULT_SORT_ORDER = "result_series ASC";
+
+    /**
+     * The _id of the formula cache entry
+     * <p>
+     * Type: LONG
+     * </p>
+     */
+    public static final String _ID = "_id";
+
+    /**
+     * The year portion of this milliseconds-since-epoch mapping
+     * <p>
+     * Type: INTEGER
+     * </p>
+     */
+    public static final String RESULT_SERIES = "result_series";
+
+    /**
+     * The month portion of this milliseconds-since-epoch mapping
+     * <p>
+     * Type: INTEGER
+     * </p>
+     */
+    public static final String SOURCE_SERIES = "source_series";
+
+    /**
+     * The table creation sql
+     */
+    public static final String TABLE_CREATE = "create table " + TABLE_NAME
+        + " (" + _ID + " integer primary key autoincrement, " 
+        + RESULT_SERIES + " integer key not null, " 
+        + SOURCE_SERIES + " integer key not null);";
+    
+    public static long getId(Cursor c) {
+      return c.getLong(c.getColumnIndexOrThrow(_ID));
+    }
+
+    public static int getResultSeries(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(RESULT_SERIES));
+    }
+
+    public static int getSourceSeries(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(SOURCE_SERIES));
     }
   }
 }
