@@ -34,8 +34,10 @@ import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrend.util.Number;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
@@ -157,6 +159,46 @@ public class TimeSeriesProvider extends ContentProvider {
       default:
         throw new IllegalArgumentException("getType: Unknown URI " + uri);
     }      
+  }
+
+  private void updateFormula(SQLiteDatabase db, long timeSeriesId, String formula) throws Exception{
+    db.delete(FormulaCache.TABLE_NAME, FormulaCache.RESULT_SERIES + "="  + timeSeriesId, null);
+
+    HashMap<String, Long> nameMap = new HashMap<String, Long>();
+    String[] projection = new String[] {
+      TimeSeries._ID,
+      TimeSeries.TIMESERIES_NAME,
+    };
+    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+    ContentValues values = new ContentValues();
+    
+    qb.setTables(TimeSeries.TABLE_NAME);
+    qb.setProjectionMap(sTimeSeriesProjection);
+    String orderBy = TimeSeries.DEFAULT_SORT_ORDER;
+    Cursor c = qb.query(db, projection, null, null, null, null, orderBy);
+    int count = c.getCount();
+    c.moveToFirst();
+    for (int i = 0; i < count; i++) {
+      nameMap.put(TimeSeries.getTimeSeriesName(c), TimeSeries.getId(c));
+      c.moveToNext();
+    }
+    c.close();
+    
+    Formula f = new Formula(formula);
+    ArrayList<String> sources = f.getDependentNames();
+    
+    int size = sources.size();
+    for (int i = 0; i < size; i++) {
+        Long id = nameMap.get(sources.get(i));
+      values.clear();
+      values.put(FormulaCache.RESULT_SERIES, timeSeriesId);
+      values.put(FormulaCache.SOURCE_SERIES, id.longValue());
+      id = db.insert(FormulaCache.TABLE_NAME, null, values);
+      if (id < 0)
+        throw new Exception("Unabled to insert into formula table.");
+    }
+    
+    return;
   }
 
   private void updateStats(SQLiteDatabase db, long timeSeriesId, int fromSeconds, 
@@ -617,6 +659,11 @@ public class TimeSeriesProvider extends ContentProvider {
           if (values.containsKey(TimeSeries.SMOOTHING) ||
               values.containsKey(TimeSeries.HISTORY)) {
             updateStats(db, Long.valueOf(timeSeriesId), 0);
+          }
+          
+          if (values.containsKey(TimeSeries.FORMULA)) {
+            updateFormula(db, Long.valueOf(timeSeriesId), 
+                values.getAsString(TimeSeries.FORMULA));
           }
           
           db.setTransactionSuccessful();
