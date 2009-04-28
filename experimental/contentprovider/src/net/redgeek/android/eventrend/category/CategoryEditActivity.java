@@ -507,6 +507,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mDeleteListener = new View.OnClickListener() {
       public void onClick(View view) {
+        // TODO:  don't allow deleting of dependee series
         showDialog(DELETE_DIALOG_ID);
       }
     };
