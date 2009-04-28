@@ -24,6 +24,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
@@ -45,8 +46,8 @@ import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
-import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
@@ -132,12 +133,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private Long mRowId;
   private int mMaxRank;
   private boolean mSave = false;
+  private String mType;
   
-  String mType;
-  
-  // TODO: formula-related stuff
-  // private Formula mFormula;
-
   // Listeners
   private RadioGroup.OnCheckedChangeListener mAggListener;
   private ColorPickerDialog.OnColorChangedListener mColorChangeListener;
@@ -259,9 +256,12 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mSeriesTypeSpinner = (DynamicSpinner) findViewById(R.id.category_edit_series_type_menu);
     for (int i = 0; i < TimeSeries.TYPES.length; i++) {
       mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
+      if (mRow.mType != null && mRow.mType.equals(TimeSeries.TYPES[i])) {
+        mSeriesTypeSpinner.setSelection(i);
+        mType = mRow.mType;
+      }
     }
     mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
-    mSeriesTypeSpinner.setSelection(0);
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_SERIES_TYPE);
 
     mOk = (Button) findViewById(R.id.category_edit_ok);
@@ -618,7 +618,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
       values.put(TimeSeries.INTERPOLATION, "");
       // TODO:  formula-related stuff
-      values.put(TimeSeries.FORMULA, "");
+      values.put(TimeSeries.FORMULA, mRow.mFormula);
       
       mAggRadio = (RadioButton) findViewById(mAggRadioGroup.getCheckedRadioButtonId());
       values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString().toLowerCase());
@@ -660,13 +660,22 @@ public class CategoryEditActivity extends EvenTrendActivity {
     super.onActivityResult(requestCode, resultCode, intent);
     String formula = null;
     // TODO: formula stuff
-    // if (intent != null)
-    // formula = intent.getStringExtra(FORMULA);
-    // if (formula != null)
-    // mFormula.setFormula(formula);
-    //
-    // if (mRowId > 0)
-    // mRow = getDbh().fetchCategory(mRowId);
+    if (intent != null) {
+      mRow.mFormula = intent.getStringExtra(TimeSeries.FORMULA);
+    }
+    if (mRow != null && mRow.mFormula == null && mRowId > 0) {
+      String[] projection = new String[] { TimeSeries.FORMULA };
+      Uri timeseries = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, mRow.mId);
+      Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
+      if (c.getCount() < 1) {
+        c.close();
+        return;
+      }
+
+      c.moveToFirst();
+      mRow.mFormula = TimeSeries.getFormula(c);
+      c.close();
+    }
 //    populateFields();
   }
 
