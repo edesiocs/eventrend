@@ -763,24 +763,7 @@ public class TimeSeriesProvider extends ContentProvider {
     int count = 0;
     
     switch (sURIMatcher.match(uri)) {
-//      case TIMESERIES:
-//        LockUtil.waitForLock(mLock);
-//        try {
-//          count = db.update(TimeSeries.TABLE_NAME, values, where, whereArgs);
-//
-//          if (values.containsKey(TimeSeries.SMOOTHING) ||
-//              values.containsKey(TimeSeries.HISTORY)) {
-//            updateStats(db, tsId, 0);
-//          }
-//    } catch (Exception e) {
-//      Log.v(TAG, e.getMessage());
-//    }
-//        } finally {
-//          LockUtil.unlock(mLock);
-//        }
-//        break;
       case TIMESERIES_ID:
-        // TODO:  if smoothing or history change, recalc trend for whole series
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
 
         LockUtil.waitForLock(mLock);
@@ -810,17 +793,6 @@ public class TimeSeriesProvider extends ContentProvider {
           LockUtil.unlock(mLock);
         }
         break;
-//      case DATAPOINTS:
-//      // TODO:  fix aggregations on update
-//        LockUtil.waitForLock(mLock);        
-//        try {
-//          count = db.update(Datapoint.TABLE_NAME, values, where, whereArgs);
-//        } catch (Exception e) {
-//        Log.v(TAG, e.getMessage());
-//        } finally {
-//          LockUtil.unlock(mLock);
-//        }
-//        break;
       case DATAPOINTS_ID:
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
         datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
