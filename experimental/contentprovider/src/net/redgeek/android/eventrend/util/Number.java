@@ -44,6 +44,10 @@ public class Number {
     return Round(value, DECIMAL_PLACES);
   }
 
+  public static double Round(double value) {
+    return Round(value, DECIMAL_PLACES);
+  }
+
   /**
    * Round a float to the specified number of decimal places.
    * 
@@ -57,7 +61,14 @@ public class Number {
     float p = (float) Math.pow(10, places);
     value = value * p;
     float tmp = Math.round(value);
-    return (float) tmp / p;
+    return tmp / p;
+  }
+
+  public static double Round(double value, int places) {
+    double p = Math.pow(10, places);
+    value = value * p;
+    double tmp = Math.round(value);
+    return tmp / p;
   }
 
   /**
@@ -689,4 +700,51 @@ public class Number {
       return "Weak";
     }
   }
+  
+  public static class LeastSquaresAverage {
+    public static float Average() {
+      return 0.0f;
+    }
+  }
+  
+  public static class FitLine {
+   /**
+     *  Use the Least Squares fit method for fitting a
+     *  straight line to 2-D data for measurements
+     *  y[i] vs. dependent variable x[i]. This fit assumes
+     *  there are errors only on the y measuresments as
+     *  given by the sigma_y array.
+    **/
+   public static void fit(
+       double[] parameters, double[] x, double[] y,
+       int num_points) {
+
+      double s = 0.0, sx = 0.0, sy = 0.0, sxx = 0.0, sxy = 0.0, del;
+
+      // Null sigma_y implies a constant error which drops
+      // out of the divisions of the sums.
+        s = x.length;
+        for (int i = 0; i < num_points; i++) {
+          sx += x[i];
+          sy += y[i];
+          sxx += x[i] * x[i];
+          sxy += x[i] * y[i];
+        }
+
+      del = s * sxx - sx * sx;
+
+      // Intercept
+      parameters[0] = (sxx * sy - sx * sxy) / del;
+      // Slope
+      parameters[1] = (s * sxy - sx * sy) / del;
+
+      // Errors (sd**2) on the:
+      // intercept
+      parameters[2] = sxx / del;
+      // and slope
+      parameters[3] = s / del;
+
+    } // fit
+
+  } // FitLine
 }

@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventrecorder;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -73,6 +74,22 @@ public class TimeSeriesData {
     public static final String TIMESERIES_ID = "timeseries_id";
 
     /**
+     * The value of the datapoint (duration in seconds for ranges)
+     * <p>
+     * Type: DOUBLE
+     * </p>
+     */
+    public static final String VALUE = "value";
+
+    /**
+     * The number of entries that comprise the datapoint
+     * <p>
+     * Type: DOUBLE
+     * </p>
+     */
+    public static final String ENTRIES = "entries";
+
+    /**
      * The start timestamp of the datapoint
      * <p>
      * Type: INTEGER, seconds since epoch (System.currentTimeInMillis() / 1000)
@@ -89,139 +106,23 @@ public class TimeSeriesData {
     public static final String TS_END = "ts_end";
 
     /**
-     * The value of the datapoint (duration in seconds for ranges)
-     * <p>
-     * Type: FLOAT
-     * </p>
-     */
-    public static final String VALUE = "value";
-
-    /**
-     * The number of entries that comprise the datapoint
-     * <p>
-     * Type: FLOAT
-     * </p>
-     */
-    public static final String ENTRIES = "entries";
-
-    /**
      * The trend value of the datapoint (based on sensitivity and smoothing)
      * at that point in time.
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String TREND = "trend";
 
     /**
-     * The standard deviation of the datapoint values at that time.
+     * The sum of squares of the datapoint values at that time.
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
-    public static final String STDDEV = "stddev";
+    public static final String SUMSQR = "sumsqr";
 
-    /**
-     * The table creation sql
-     * We create tables for each aggregation level.
-     */
-    public static final String TABLE_CONTENTS = " (" + _ID
-        + " integer primary key autoincrement, " + TIMESERIES_ID
-        + " integer key not null, " + TS_START + " integer key not null, "
-        + TS_END + " integer key not null, " + VALUE + " float not null, "
-        + ENTRIES + " integer not null, " + STDDEV + " float not null, "
-        + TREND + " float not null" + ");";
-    
-    public static final String TABLE_CREATE = "create table " 
-        + TABLE_NAME + TABLE_CONTENTS;
-    
-    public static final String[] TRIGGERS = {
-      "create trigger trend_insert after insert on datapoint begin " +
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
-      "  insert into stats " +
-      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " +
-      "    order by ts_start desc limit " +
-      "      (select history from timeseries where _id == NEW.timeseries_id); " +
-      "  update datapoint set variance = ( " +
-      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " +
-      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " +
-      "    where datapoint._id == NEW._id; " +
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
-      "  insert into stats " +
-      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " +
-      "  update datapoint set trend = " +
-      "       (select case count(trend) " +
-      "         when 1 then (select value from stats where timeseries_id = NEW.timeseries_id order by ts_start desc limit 1) " +
-      "         else (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1) " +
-      "               + " +
-      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " +
-      "                 * " +
-      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " +
-      "         end " +
-      "      ) where datapoint._id == NEW._id; " +
-      "  end;",
-      
-      "create trigger trend_insert after insert on datapoint begin " +
-      "  -- touch the variance field to trigger and update " +
-      "  update datapoint set variance = 0 where datapoint._id = NEW._id; " +
-      "end;",
-
-      "create trigger trend_update after update on datapoint begin " +
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
-      "  insert into stats " +
-      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " +
-      "    order by ts_start desc limit " +
-      "      (select history from timeseries where _id == NEW.timeseries_id); " +
-      "  update datapoint set variance = ( " +
-      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " +
-      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " +
-      "    where datapoint._id == NEW._id; " +
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " +
-      "  insert into stats " +
-      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " +
-      "  update datapoint set trend = " +
-      "       (select case count(trend) " +
-      "         when 1 then (select value from stats where timeseries_id = 1 order by ts_start desc limit 1) " +
-      "         else (select trend from stats where timeseries_id = 1 order by ts_start asc limit 1) " +
-      "               + " +
-      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " +
-      "                 * " +
-      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " +
-      "         end " +
-      "         from stats " +
-      "      ) where datapoint._id == NEW._id; " +
-      "  update datapoint set variance = 0 " +
-      "    where timeseries_id = NEW.timeseries_id and ts_start > NEW.ts_start; " +
-      "  end;",
-
-      "create trigger trend_update_deps after update on datapoint begin " + 
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " + 
-      "  insert into stats " + 
-      "    select * from datapoint where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start " + 
-      "    order by ts_start desc limit " + 
-      "      (select history from timeseries where _id == NEW.timeseries_id); " + 
-      "  update datapoint set variance = ( " + 
-      "      select ((sum(value * value) - (sum(value) * avg(value))) / count(value)) from stats " + 
-      "      where timeseries_id = NEW.timeseries_id and ts_start <= NEW.ts_start) " + 
-      "    where datapoint._id == NEW._id; " + 
-      "  delete from stats where timeseries_id = NEW.timeseries_id; " + 
-      "  insert into stats " + 
-      "    select * from datapoint where ts_start <= NEW.ts_start order by ts_start desc limit 2; " + 
-      "  update datapoint set trend = " + 
-      "       (select case count(trend) " + 
-      "         when 1 then (select value from stats where timeseries_id = 1 order by ts_start desc limit 1) " + 
-      "         else (select trend from stats where timeseries_id = 1 order by ts_start asc limit 1) " + 
-      "               + " + 
-      "               ((select smoothing from timeseries where _id == NEW.timeseries_id) " + 
-      "                 * " + 
-      "               (NEW.value - (select trend from stats where timeseries_id = NEW.timeseries_id order by ts_start asc limit 1))) " + 
-      "         end " + 
-      "         from stats " + 
-      "      ) where datapoint._id == NEW._id; " + 
-      "  end;",
-    };
-
-    public static final String[] AGGREGATE_TABLE_SUFFIX = {
+    public static final String[] AGGREGATE_SUFFIX = {
       "day",
       "week",
       "month",
@@ -235,19 +136,48 @@ public class TimeSeriesData {
       DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS,
       DateMapCache.YEAR_MS / DateMapCache.SECOND_MS,
     };
-    
-//    public static final String TABLE_CREATE_STATS = "create table stats " + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_DAY = "create table " + TABLE_NAME
-        + "_day" + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_WEEK = "create table " + TABLE_NAME
-        + "_week" + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_MONTH = "create table "
-        + TABLE_NAME + "_month" + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_QUARTER = "create table "
-        + TABLE_NAME + "_quarter" + TABLE_CONTENTS;
-    public static final String TABLE_CREATE_YEAR = "create table " + TABLE_NAME
-        + "_year" + TABLE_CONTENTS;
-    
+
+    /**
+     * The table creation sql
+     * We create tables for each aggregation level.
+     */
+    public static final String TABLE_CREATE = "create table "
+        + TABLE_NAME + " ( "
+        + Datapoint._ID + " integer primary key autoincrement, "
+        + Datapoint.TIMESERIES_ID + " integer key not null, "
+        + Datapoint.TS_START + " integer key not null, "
+        + Datapoint.TS_END + " integer key not null default 0, "
+        + Datapoint.VALUE + " double not null default 0, "
+        + Datapoint.ENTRIES + " integer not null default 0, "
+        + Datapoint.TREND + " double not null default 0.0, "
+        + Datapoint.SUMSQR + " double not null default 0.0, "
+
+        + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[0] + " integer key not null default 0, "
+        + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[0] + " integer key not null default 0, "
+        + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+
+        + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[1] + " integer key not null default 0, "
+        + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[1] + " integer key not null default 0, "
+        + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+
+        + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[2] + " integer key not null default 0, "
+        + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[2] + " integer key not null default 0, "
+        + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+
+        + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[3] + " integer key not null default 0, "
+        + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[3] + " integer key not null default 0, "
+        + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+
+        + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[4] + " integer key not null default 0, "
+        + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[4] + " integer key not null default 0, "
+        + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
+        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0 "
+        + ");";
+        
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(_ID));
     }
@@ -256,28 +186,92 @@ public class TimeSeriesData {
       return c.getLong(c.getColumnIndexOrThrow(TIMESERIES_ID));
     }
 
-    public static int getTsStart(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(TS_START));
-    }
-
-    public static int getTsEnd(Cursor c) {
-      return c.getInt(c.getColumnIndexOrThrow(TS_END));
-    }
-
-    public static float getValue(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(VALUE));
+    public static double getValue(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(VALUE));
     }
 
     public static int getEntries(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(ENTRIES));
     }
 
-    public static float getTrend(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(TREND));
+    public static int getTsStart(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TS_START));
     }
 
-    public static float getStdDev(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(STDDEV));
+    public static int getTsStart(Cursor c, String suffix) {
+      return c.getInt(c.getColumnIndexOrThrow(TS_START + "_" + suffix));
+    }
+
+    public static int getTsEnd(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(TS_END));
+    }
+
+    public static int getTsEnd(Cursor c, String suffix) {
+      return c.getInt(c.getColumnIndexOrThrow(TS_END + "_" + suffix));
+    }
+
+    public static double getTrend(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(TREND));
+    }
+
+    public static double getTrend(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(TREND + "_" + suffix));
+    }
+
+    public static double getSumSqr(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUMSQR));
+    }
+
+    public static double getSumSqr(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUMSQR + "_" + suffix));
+    }
+    
+    public static void setId(ContentValues cv, long id) {
+      cv.put(_ID, id);
+    }
+
+    public static void setTimeSeriesId(ContentValues cv, long timeSeriesId) {
+      cv.put(TIMESERIES_ID, timeSeriesId);
+    }
+
+    public static void setValue(ContentValues cv, double value) {
+      cv.put(VALUE, value);
+    }
+
+    public static void setEntries(ContentValues cv, int entries) {
+      cv.put(ENTRIES, entries);
+    }
+
+    public static void setTsStart(ContentValues cv, int tsStart) {
+      cv.put(TS_START, tsStart);
+    }
+
+    public static void setTsStart(ContentValues cv, String suffix, int tsStart) {
+      cv.put(TS_START + "_" + suffix, tsStart);
+    }
+
+    public static void setTsEnd(ContentValues cv, int tsEnd) {
+      cv.put(TS_END, tsEnd);
+    }
+
+    public static void setTsEnd(ContentValues cv, String suffix, int tsEnd) {
+      cv.put(TS_END + "_" + suffix, tsEnd);
+    }
+
+    public static void setTrend(ContentValues cv, double trend) {
+      cv.put(TREND, trend);
+    }
+
+    public static void setTrend(ContentValues cv, String suffix, double trend) {
+      cv.put(TREND + "_" + suffix, trend);
+    }
+
+    public static void setSumSqr(ContentValues cv, double sumSqr) {
+      cv.put(SUMSQR, sumSqr);
+    }
+
+    public static void setSumSqr(ContentValues cv, String suffix, double sumSqr) {
+      cv.put(SUMSQR + "_" + suffix, sumSqr);
     }
   }
 
@@ -348,7 +342,7 @@ public class TimeSeriesData {
     /**
      * The default value for data input
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String DEFAULT_VALUE = "default_value";
@@ -356,7 +350,7 @@ public class TimeSeriesData {
     /**
      * The increment/decrement for input
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String INCREMENT = "increment";
@@ -364,7 +358,7 @@ public class TimeSeriesData {
     /**
      * The goal value for data input
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String GOAL = "goal";
@@ -459,7 +453,7 @@ public class TimeSeriesData {
     /**
      * The sensitivity of the timeseries.
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String SENSITIVITY = "sensitivity";
@@ -467,7 +461,7 @@ public class TimeSeriesData {
     /**
      * The smoothing constant of the timeseries.
      * <p>
-     * Type: FLOAT
+     * Type: DOUBLE
      * </p>
      */
     public static final String SMOOTHING = "smoothing";
@@ -491,23 +485,29 @@ public class TimeSeriesData {
     /**
      * The table creation sql
      */
-    public static final String TABLE_CREATE = "create table " + TABLE_NAME
-        + " (" + _ID + " integer primary key autoincrement, " + TIMESERIES_NAME
-        + " text not null, " + RECORDING_DATAPOINT_ID + " integer not null, "
-        + GROUP_NAME + " text, " + DEFAULT_VALUE + " float not null, "
-        + INCREMENT + " float not null, " + GOAL + " float not null, " + COLOR
-        + " text not null, " + PERIOD + " integer not null, " + RANK
-        + " integer not null, " + AGGREGATION + " text not null, " + TYPE
-        + " string not null, " + ZEROFILL + " integer not null, " + FORMULA
-        + " text, " + INTERPOLATION + " text not null, " + UNITS + " text, "
-        + SENSITIVITY + " float not null, " + SMOOTHING + " float not null, "
-        + HISTORY + " integer not null, " + DECIMALS + " integer not null" + ");";
-    
-    public static final String[] TRIGGERS = {
-      " create trigger series_delete after delete on timeseries begin " +
-      "   delete from datapoint where datapoint.timeseries_id == OLD._id; " +
-      " end;"
-    };
+    public static final String TABLE_CREATE = "create table " 
+        + TABLE_NAME + " (" 
+        + _ID + " integer primary key autoincrement, " 
+        + TIMESERIES_NAME + " text not null default '', " 
+        + RECORDING_DATAPOINT_ID + " integer not null default 0, "
+        + GROUP_NAME + " text default '', " 
+        + DEFAULT_VALUE + " double not null default 1.0, "
+        + INCREMENT + " double not null default 1.0, " 
+        + GOAL + " double not null default 0.0, " 
+        + COLOR + " text not null default '#cccccc', " 
+        + PERIOD + " integer not null default 0, " 
+        + RANK + " integer not null, " 
+        + AGGREGATION + " text not null default 'sum', " 
+        + TYPE + " string not null default 'discrete', " 
+        + ZEROFILL + " integer not null default 0, " 
+        + FORMULA + " text not null default '', " 
+        + INTERPOLATION + " text not null default '', " 
+        + UNITS + " text not null default '', "
+        + SENSITIVITY + " double not null default 0.5, " 
+        + SMOOTHING + " double not null default 0.1, "
+        + HISTORY + " integer not null default 20, " 
+        + DECIMALS + " integer not null default 2" 
+        + ");";
     
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(_ID));
@@ -525,16 +525,16 @@ public class TimeSeriesData {
       return c.getString(c.getColumnIndexOrThrow(GROUP_NAME));
     }
 
-    public static float getDefaultValue(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(DEFAULT_VALUE));
+    public static double getDefaultValue(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(DEFAULT_VALUE));
     }
     
-    public static float getIncrement(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(INCREMENT));
+    public static double getIncrement(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(INCREMENT));
     }
     
-    public static float getGoal(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(GOAL));
+    public static double getGoal(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(GOAL));
     }
     
     public static String getColor(Cursor c) {
@@ -573,12 +573,12 @@ public class TimeSeriesData {
       return c.getString(c.getColumnIndexOrThrow(INTERPOLATION));
     }
 
-    public static float getSensitivity(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(SENSITIVITY));
+    public static double getSensitivity(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(SENSITIVITY));
     }
 
-    public static float getSmoothing(Cursor c) {
-      return c.getFloat(c.getColumnIndexOrThrow(SMOOTHING));
+    public static double getSmoothing(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(SMOOTHING));
     }
 
     public static int getHistory(Cursor c) {
@@ -620,7 +620,7 @@ public class TimeSeriesData {
         return null;
       for (int i = 1; i < AGGREGATION_PERIOD_TIMES.length; i++) {
         if (AGGREGATION_PERIOD_TIMES[i] == period) {
-          return Datapoint.AGGREGATE_TABLE_SUFFIX[i-1];
+          return Datapoint.AGGREGATE_SUFFIX[i-1];
         }
       }
       return null;

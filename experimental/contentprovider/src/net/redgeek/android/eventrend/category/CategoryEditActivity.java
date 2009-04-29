@@ -31,6 +31,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.Spanned;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -254,6 +255,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mSeriesTypeRow = (TableRow) findViewById(R.id.category_edit_series_type_row);
     mSeriesTypeSpinner = (DynamicSpinner) findViewById(R.id.category_edit_series_type_menu);
+    mSeriesTypeSpinner.setSelection(0);
     for (int i = 0; i < TimeSeries.TYPES.length; i++) {
       mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
       if (mRow.mType != null && mRow.mType.equals(TimeSeries.TYPES[i])) {
@@ -530,11 +532,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private void populateFields() {
     if (mRowId != null && mRow != null) {
       mCategoryText.setText(mRow.mTimeSeriesName);
-      mDefaultValueText.setText(Float.valueOf(mRow.mDefaultValue).toString());
-      mIncrementText.setText(Float.valueOf(mRow.mIncrement).toString());
-      mGoalText.setText(Float.valueOf(mRow.mGoal).toString());
-      mSmoothingText.setText(Float.valueOf(mRow.mSmoothing).toString());
-      mSensitivityText.setText(Float.valueOf(mRow.mSensitivity).toString());
+      mDefaultValueText.setText(Double.valueOf(mRow.mDefaultValue).toString());
+      mIncrementText.setText(Double.valueOf(mRow.mIncrement).toString());
+      mGoalText.setText(Double.valueOf(mRow.mGoal).toString());
+      mSmoothingText.setText(Double.valueOf(mRow.mSmoothing).toString());
+      mSensitivityText.setText(Double.valueOf(mRow.mSensitivity).toString());
       mHistoryText.setText(Integer.valueOf(mRow.mHistory).toString());
       mDecimalsText.setText(Integer.valueOf(mRow.mDecimals).toString());
       mUnitsText.setText(mRow.mUnits);
@@ -596,7 +598,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
   private void saveState() {
     if (mSave == true) {
-      float f;
+      double d;
       String value;
       ContentValues values = new ContentValues();
 
@@ -604,22 +606,25 @@ public class CategoryEditActivity extends EvenTrendActivity {
       
       values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
       values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
-      f = Number.Round(Float.valueOf(mGoalText.getText().toString()).floatValue(), mRow.mDecimals);
-      values.put(TimeSeries.GOAL, f);
+      d = Number.Round(Double.valueOf(mGoalText.getText().toString()).doubleValue(), mRow.mDecimals);
+      values.put(TimeSeries.GOAL, d);
       values.put(TimeSeries.COLOR, mColorStr);
       values.put(TimeSeries.PERIOD, mPeriodSeconds);
       values.put(TimeSeries.UNITS, mUnitsText.getText().toString());
-      values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked());
-      f = Number.Round(Float.valueOf(mSensitivityText.getText().toString()).floatValue(), mRow.mDecimals * 2);
-      values.put(TimeSeries.SENSITIVITY, f);
-      f = Number.Round(Float.valueOf(mSmoothingText.getText().toString()).floatValue(), mRow.mDecimals * 2);
-      values.put(TimeSeries.SMOOTHING, f);
+      values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked() ? 1 : 0);
+      d = Number.Round(Double.valueOf(mSensitivityText.getText().toString()).doubleValue(), mRow.mDecimals * 2);
+      values.put(TimeSeries.SENSITIVITY, d);
+      d = Number.Round(Double.valueOf(mSmoothingText.getText().toString()).doubleValue(), mRow.mDecimals * 2);
+      values.put(TimeSeries.SMOOTHING, d);
       values.put(TimeSeries.HISTORY, Integer.valueOf(mHistoryText.getText().toString()).intValue());
       values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
       values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
       values.put(TimeSeries.INTERPOLATION, "");
       // TODO:  formula-related stuff
-      values.put(TimeSeries.FORMULA, mRow.mFormula);
+      if (mRow.mFormula == null || TextUtils.isEmpty(mRow.mFormula))
+        values.put(TimeSeries.FORMULA, "");
+      else
+        values.put(TimeSeries.FORMULA, mRow.mFormula);
       
       mAggRadio = (RadioButton) findViewById(mAggRadioGroup.getCheckedRadioButtonId());
       values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString().toLowerCase());
@@ -628,10 +633,10 @@ public class CategoryEditActivity extends EvenTrendActivity {
         values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
         values.put(TimeSeries.INCREMENT, 1.0f);
       } else {
-        f = Number.Round(Float.valueOf(mDefaultValueText.getText().toString()).floatValue(), mRow.mDecimals);
-        values.put(TimeSeries.DEFAULT_VALUE, f);
-        f = Number.Round(Float.valueOf(mIncrementText.getText().toString()).floatValue(), mRow.mDecimals);
-        values.put(TimeSeries.INCREMENT, f);
+        d = Number.Round(Double.valueOf(mDefaultValueText.getText().toString()).doubleValue(), mRow.mDecimals);
+        values.put(TimeSeries.DEFAULT_VALUE, d);
+        d = Number.Round(Double.valueOf(mIncrementText.getText().toString()).doubleValue(), mRow.mDecimals);
+        values.put(TimeSeries.INCREMENT, d);
       }
 
       if (mRowId == null) {

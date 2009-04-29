@@ -25,9 +25,9 @@ public class CategoryRow implements Comparable<CategoryRow> {
   public String mTimeSeriesName;
   public long   mRecordingDatapointId;
   public String mGroup;
-  public float  mDefaultValue;
-  public float  mIncrement;
-  public float  mGoal;
+  public double mDefaultValue;
+  public double mIncrement;
+  public double mGoal;
   public String mColor;
   public int    mPeriod;
   public String mUnits;
@@ -37,8 +37,8 @@ public class CategoryRow implements Comparable<CategoryRow> {
   public int    mZerofill;
   public String mFormula;
   public String mInterpolation;
-  public float  mSensitivity;
-  public float  mSmoothing;
+  public double mSensitivity;
+  public double mSmoothing;
   public int    mHistory;
   public int    mDecimals;
 

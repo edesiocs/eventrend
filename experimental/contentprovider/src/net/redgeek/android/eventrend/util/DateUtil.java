@@ -720,7 +720,7 @@ public final class DateUtil {
    *          The milliseconds since epoch to format.
    * @return The descriptive string.
    */
-  public static String toString(float seconds) {
+  public static String toString(double seconds) {
     if (seconds > YEAR_MS / SECOND_MS) {
       return Number.Round(seconds / (YEAR_MS / SECOND_MS)) + " yr";
     } else if (seconds > QUARTER_MS/ SECOND_MS) {
