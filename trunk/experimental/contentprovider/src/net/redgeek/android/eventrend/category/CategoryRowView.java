@@ -44,10 +44,8 @@ import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.input.InputActivity;
-import net.redgeek.android.eventrend.util.Aggregator;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
@@ -79,7 +77,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private long mNewDatapointId;
 
   private int mColorInt;
-  private float mAddValue;
+  private double mAddValue;
 
   private Context mCtx;
   private ContentResolver mContent;
@@ -121,8 +119,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       throw new Exception("RecorderService not available!");
     } else {
       if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-        mAddValue = Float.valueOf(mDefaultValue.getText().toString())
-            .floatValue();
+        mAddValue = Double.valueOf(mDefaultValue.getText().toString())
+            .doubleValue();
         mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
             mAddValue);
       } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
@@ -231,28 +229,28 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private void setupListeners() {
     mPlusButtonListener = new OnClickListener() {
       public void onClick(View v) {
-        float value = Float.valueOf(mDefaultValue.getText().toString())
-            .floatValue();
+        double value = Double.valueOf(mDefaultValue.getText().toString())
+            .doubleValue();
         value += mRow.mIncrement;
         value = Number.Round(value, mRow.mDecimals);
-        mDefaultValue.setText(Float.toString(value));
+        mDefaultValue.setText(Double.toString(value));
       }
     };
 
     mMinusButtonListener = new OnClickListener() {
       public void onClick(View v) {
-        float value = Float.valueOf(mDefaultValue.getText().toString())
-            .floatValue();
+        double value = Double.valueOf(mDefaultValue.getText().toString())
+            .doubleValue();
         value -= mRow.mIncrement;
         value = Number.Round(value, mRow.mDecimals);
-        mDefaultValue.setText(Float.toString(value));
+        mDefaultValue.setText(Double.toString(value));
       }
     };
 
     mAddListener = new OnClickListener() {
       public void onClick(View v) {
         addEntry();
-        mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
+        mDefaultValue.setText(Double.valueOf(mRow.mDefaultValue).toString());
       }
     };
   }
@@ -284,7 +282,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
       mAddButton.setVisibility(View.INVISIBLE);
     }
     
-    mDefaultValue.setText(Float.valueOf(mRow.mDefaultValue).toString());
+    mDefaultValue.setText(Double.valueOf(mRow.mDefaultValue).toString());
 
     int trendState = Trend.TREND_UNKNOWN;
     String aggregation = TimeSeries.periodToUriAggregation(mRow.mPeriod);
@@ -303,9 +301,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         c.moveToFirst();
         
         String status;
-        float newValue = TimeSeriesData.Datapoint.getValue(c);
-        float newTrend = TimeSeriesData.Datapoint.getTrend(c);
-        float displayTrend = newTrend;
+        double newValue = TimeSeriesData.Datapoint.getValue(c);
+        double newTrend = TimeSeriesData.Datapoint.getTrend(c);
+        double displayTrend = newTrend;
 
         if (mRow.mAggregation.equals(TimeSeries.AGGREGATION_AVG)) {
           int nEntries = TimeSeriesData.Datapoint.getEntries(c);
@@ -317,12 +315,12 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         if (mRow.mType.equals(TimeSeries.TYPE_RANGE)) {
           mTrendValueView.setText(DateUtil.toString(displayTrend));
         } else {
-          mTrendValueView.setText(Float.valueOf(displayTrend).toString());
+          mTrendValueView.setText(Double.valueOf(displayTrend).toString());
         }
 
         c.moveToLast();
-        float oldTrend = Datapoint.getTrend(c);
-        float stdDev = Datapoint.getStdDev(c);
+        double oldTrend = Datapoint.getTrend(c);
+        double stdDev = Datapoint.getSumSqr(c);
     
         trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
             mRow.mSensitivity, stdDev);

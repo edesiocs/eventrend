@@ -26,6 +26,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.net.Uri.Builder;
 import android.os.Debug;
 import android.text.TextUtils;
 import android.util.Log;
@@ -65,6 +66,12 @@ public class TimeSeriesProvider extends ContentProvider {
   private static UriMatcher sURIMatcher;
   private static HashMap<String, String> sTimeSeriesProjection;
   private static HashMap<String, String> sDatapointProjection;
+  private static HashMap<String, String> sDatapointProjectionDay;
+  private static HashMap<String, String> sDatapointProjectionWeek;
+  private static HashMap<String, String> sDatapointProjectionMonth;
+  private static HashMap<String, String> sDatapointProjectionQuarter;
+  private static HashMap<String, String> sDatapointProjectionYear;
+  private static HashMap<String, String> sDatapointProjectionAll;
   private static HashMap<String, String> sDatemapProjection;
   private DateMapCache mDateMap;
   private Lock mLock;
@@ -117,12 +124,152 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection = new HashMap<String, String>();
     sDatapointProjection.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjection.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
-    sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
     sDatapointProjection.put(Datapoint.ENTRIES, Datapoint.ENTRIES);
+    sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
+    sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.TREND, Datapoint.TREND);
-    sDatapointProjection.put(Datapoint.STDDEV, Datapoint.STDDEV);
+    sDatapointProjection.put(Datapoint.SUMSQR, Datapoint.SUMSQR);
+
+    sDatapointProjectionDay = new HashMap<String, String>();
+    sDatapointProjectionDay.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionDay.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionDay.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
+    sDatapointProjectionDay.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionDay.put(Datapoint.TS_START, 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.TS_START);
+    sDatapointProjectionDay.put(Datapoint.TS_END, 
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.TS_END);
+    sDatapointProjectionDay.put(Datapoint.TREND, 
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.TREND);
+    sDatapointProjectionDay.put(Datapoint.SUMSQR, 
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.SUMSQR);
+
+    sDatapointProjectionWeek = new HashMap<String, String>();
+    sDatapointProjectionWeek.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionWeek.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionWeek.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
+    sDatapointProjectionWeek.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionWeek.put(Datapoint.TS_START, 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.TS_START);
+    sDatapointProjectionWeek.put(Datapoint.TS_END, 
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.TS_END);
+    sDatapointProjectionWeek.put(Datapoint.TREND, 
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.TREND);
+    sDatapointProjectionWeek.put(Datapoint.SUMSQR, 
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.SUMSQR);
+
+    sDatapointProjectionMonth = new HashMap<String, String>();
+    sDatapointProjectionMonth.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionMonth.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionMonth.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
+    sDatapointProjectionMonth.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionMonth.put(Datapoint.TS_START, 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.TS_START);
+    sDatapointProjectionMonth.put(Datapoint.TS_END, 
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.TS_END);
+    sDatapointProjectionMonth.put(Datapoint.TREND, 
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.TREND);
+    sDatapointProjectionMonth.put(Datapoint.SUMSQR, 
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.SUMSQR);
+
+    sDatapointProjectionQuarter = new HashMap<String, String>();
+    sDatapointProjectionQuarter.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionQuarter.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionQuarter.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
+    sDatapointProjectionQuarter.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionQuarter.put(Datapoint.TS_START, 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.TS_START);
+    sDatapointProjectionQuarter.put(Datapoint.TS_END, 
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.TS_END);
+    sDatapointProjectionQuarter.put(Datapoint.TREND, 
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.TREND);
+    sDatapointProjectionQuarter.put(Datapoint.SUMSQR, 
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.SUMSQR);
+
+    sDatapointProjectionYear = new HashMap<String, String>();
+    sDatapointProjectionYear.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionYear.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionYear.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
+    sDatapointProjectionYear.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionYear.put(Datapoint.TS_START, 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.TS_START);
+    sDatapointProjectionYear.put(Datapoint.TS_END, 
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.TS_END);
+    sDatapointProjectionYear.put(Datapoint.TREND, 
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.TREND);
+    sDatapointProjectionYear.put(Datapoint.SUMSQR, 
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.SUMSQR);
+
+    sDatapointProjectionAll = new HashMap<String, String>();
+    sDatapointProjectionAll.put(Datapoint._ID, Datapoint._ID);
+    sDatapointProjectionAll.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
+    sDatapointProjectionAll.put(Datapoint.VALUE, Datapoint.VALUE);
+    sDatapointProjectionAll.put(Datapoint.ENTRIES, Datapoint.ENTRIES);
+    sDatapointProjectionAll.put(Datapoint.TS_START, Datapoint.TS_START);
+    sDatapointProjectionAll.put(Datapoint.TS_END, Datapoint.TS_END);
+    sDatapointProjectionAll.put(Datapoint.TREND, Datapoint.TREND);
+    sDatapointProjectionAll.put(Datapoint.SUMSQR, Datapoint.SUMSQR);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0], 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[0],
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[0]);
+    sDatapointProjectionAll.put(
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[0],
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[0]);
+    sDatapointProjectionAll.put(
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[0],
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[0]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[1], 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[1]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[1],
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[1]);
+    sDatapointProjectionAll.put(
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[1],
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[1]);
+    sDatapointProjectionAll.put(
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[1],
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[1]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[2], 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[2]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[2],
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[2]);
+    sDatapointProjectionAll.put(
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[2],
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[2]);
+    sDatapointProjectionAll.put(
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[2],
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[2]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[3], 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[3]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[3],
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[3]);
+    sDatapointProjectionAll.put(
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[3],
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[3]);
+    sDatapointProjectionAll.put(
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[3],
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[3]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[4], 
+        Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[4]);
+    sDatapointProjectionAll.put(
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[4],
+        Datapoint.TS_END + "_" + Datapoint.AGGREGATE_SUFFIX[4]);
+    sDatapointProjectionAll.put(
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[4],
+        Datapoint.TREND + "_" + Datapoint.AGGREGATE_SUFFIX[4]);
+    sDatapointProjectionAll.put(
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[4],
+        Datapoint.SUMSQR + "_" + Datapoint.AGGREGATE_SUFFIX[4]);
 
     sDatemapProjection = new HashMap<String, String>();
     sDatemapProjection.put(DateMap._ID, DateMap._ID);
@@ -165,131 +312,131 @@ public class TimeSeriesProvider extends ContentProvider {
 
   private void updateFormulaData(SQLiteDatabase db, long timeSeriesId, 
       Formula formula) throws Exception {
-    ArrayList<Long> sourceIds = new ArrayList<Long>();
-    ArrayList<SeriesData> sources = new ArrayList<SeriesData>();
-    SQLiteQueryBuilder qb;         
-    String[] projection;
-    Cursor c;
-    int count;
-
-    if (formula == null) {
-      projection = new String[] { TimeSeries.FORMULA };
-      qb = new SQLiteQueryBuilder();      
-      qb.setTables(TimeSeries.TABLE_NAME);
-      qb.setProjectionMap(sTimeSeriesProjection);
-      c = qb.query(db, projection, TimeSeries._ID + " = ? ", 
-          new String[] { "" + timeSeriesId }, null, null, null);
-      c.moveToFirst();
-      String f = TimeSeries.getFormula(c);
-      c.close();
-      if (f != null && f.equals("") == false) {
-        formula = new Formula(f);
-      }
-    }
-    
-    if (formula != null) {
-      // Get the source series ids:
-      projection = new String[] { FormulaCache.SOURCE_SERIES };
-      qb = new SQLiteQueryBuilder();
-      qb.setTables(FormulaCache.TABLE_NAME);
-      c = qb.query(db, projection, FormulaCache.RESULT_SERIES + " = ? ",
-          new String[] { "" + timeSeriesId }, null, null, null);
-      count = c.getCount();
-      c.moveToFirst();
-      for (int i = 0; i < count; i++) {
-        Long l = Long.valueOf(FormulaCache.getSourceSeries(c));
-        if (l == timeSeriesId) {
-          c.close();
-          throw new Exception("A synthetic series may not depend on itself!");
-        }
-        sourceIds.add(l);
-        c.moveToNext();
-      }
-      c.close();
-
-      // Gather the data for each:
-      projection = new String[] { Datapoint.TS_START, Datapoint.TS_END,
-          Datapoint.VALUE, Datapoint.ENTRIES, };
-      int size = sourceIds.size();
-      for (int i = 0; i < size; i++) {
-        long id = sourceIds.get(i);
-        boolean avg = false;
-
-        projection = new String[] { TimeSeries.FORMULA, TimeSeries.AGGREGATION };
-        qb = new SQLiteQueryBuilder();
-        qb.setTables(TimeSeries.TABLE_NAME);
-        qb.setProjectionMap(sTimeSeriesProjection);
-        c = qb.query(db, projection, TimeSeries._ID + " = ? ",
-            new String[] { "" + id }, null, null, null);
-        c.moveToFirst();
-        if (TimeSeries.getAggregation(c).equals(TimeSeries.AGGREGATION_AVG))
-          avg = true;
-        c.close();
-
-        qb = new SQLiteQueryBuilder();
-        qb.setTables(Datapoint.TABLE_NAME);
-        qb.setProjectionMap(sDatapointProjection);
-        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id);
-        String orderBy = Datapoint.DEFAULT_SORT_ORDER;
-
-        Datum d;
-        SeriesData ts = new SeriesData();
-        c = qb.query(db, projection, null, null, null, null, orderBy);
-        count = c.getCount();
-        c.moveToFirst();
-        for (int j = 0; j < count; j++) {
-          d = new Datum();
-          d.mTsStart = Datapoint.getTsStart(c);
-          d.mTsEnd = Datapoint.getTsEnd(c);
-          d.mValue = Datapoint.getValue(c);
-          int entries = Datapoint.getEntries(c);
-          if (avg == true) {
-            d.mValue /= entries;
-          }
-          ts.mData.add(d);
-          c.moveToNext();
-        }
-        c.close();
-        sources.add(ts);
-      }
-
-      SeriesData result = formula.apply(sources);
-
-      // Store the results
-      Datum d;
-      ContentValues values = new ContentValues();
-      count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "="
-          + timeSeriesId, null);
-      size = result.mData.size();
-      for (int i = 0; i < size; i++) {
-        d = result.mData.get(i);
-        values.clear();
-        values.put(Datapoint.TS_START, d.mTsStart);
-        values.put(Datapoint.TS_END, d.mTsEnd);
-        values.put(Datapoint.VALUE, d.mValue);
-        values.put(Datapoint.ENTRIES, 1);
-        values.put(Datapoint.STDDEV, 0.0f);
-        values.put(Datapoint.TREND, 0.0f);
-        db.insert(Datapoint.TABLE_NAME, null, values);
-        insertAggregations(db, timeSeriesId, d.mTsStart, d.mValue);
-      }
-      updateStats(db, timeSeriesId, 0);
-    }
-    // Get any series dependent on this one and recalc
-    projection = new String[] { FormulaCache.RESULT_SERIES };
-    qb = new SQLiteQueryBuilder();
-    qb.setTables(FormulaCache.TABLE_NAME);
-    c = qb.query(db, projection, FormulaCache.SOURCE_SERIES + " = ? ", 
-        new String[] { "" + timeSeriesId}, null, null, null);
-    count = c.getCount();
-    c.moveToFirst();
-    for (int i = 0; i < count; i++) {
-      // TODO:  prevent recursing to ourself
-      long id = FormulaCache.getResultSeries(c);
-      updateFormulaData(db, id, null);
-      c.moveToNext();
-    }
-    c.close();
+//    ArrayList<Long> sourceIds = new ArrayList<Long>();
+//    ArrayList<SeriesData> sources = new ArrayList<SeriesData>();
+//    SQLiteQueryBuilder qb;         
+//    String[] projection;
+//    Cursor c;
+//    int count;
+//
+//    if (formula == null) {
+//      projection = new String[] { TimeSeries.FORMULA };
+//      qb = new SQLiteQueryBuilder();      
+//      qb.setTables(TimeSeries.TABLE_NAME);
+//      qb.setProjectionMap(sTimeSeriesProjection);
+//      c = qb.query(db, projection, TimeSeries._ID + " = ? ", 
+//          new String[] { "" + timeSeriesId }, null, null, null);
+//      c.moveToFirst();
+//      String f = TimeSeries.getFormula(c);
+//      c.close();
+//      if (f != null && f.equals("") == false) {
+//        formula = new Formula(f);
+//      }
+//    }
+//    
+//    if (formula != null) {
+//      // Get the source series ids:
+//      projection = new String[] { FormulaCache.SOURCE_SERIES };
+//      qb = new SQLiteQueryBuilder();
+//      qb.setTables(FormulaCache.TABLE_NAME);
+//      c = qb.query(db, projection, FormulaCache.RESULT_SERIES + " = ? ",
+//          new String[] { "" + timeSeriesId }, null, null, null);
+//      count = c.getCount();
+//      c.moveToFirst();
+//      for (int i = 0; i < count; i++) {
+//        Long l = Long.valueOf(FormulaCache.getSourceSeries(c));
+//        if (l == timeSeriesId) {
+//          c.close();
+//          throw new Exception("A synthetic series may not depend on itself!");
+//        }
+//        sourceIds.add(l);
+//        c.moveToNext();
+//      }
+//      c.close();
+//
+//      // Gather the data for each:
+//      projection = new String[] { Datapoint.TS_START, Datapoint.TS_END,
+//          Datapoint.SUM, Datapoint.ENTRIES, };
+//      int size = sourceIds.size();
+//      for (int i = 0; i < size; i++) {
+//        long id = sourceIds.get(i);
+//        boolean avg = false;
+//
+//        projection = new String[] { TimeSeries.FORMULA, TimeSeries.AGGREGATION };
+//        qb = new SQLiteQueryBuilder();
+//        qb.setTables(TimeSeries.TABLE_NAME);
+//        qb.setProjectionMap(sTimeSeriesProjection);
+//        c = qb.query(db, projection, TimeSeries._ID + " = ? ",
+//            new String[] { "" + id }, null, null, null);
+//        c.moveToFirst();
+//        if (TimeSeries.getAggregation(c).equals(TimeSeries.AGGREGATION_AVG))
+//          avg = true;
+//        c.close();
+//
+//        qb = new SQLiteQueryBuilder();
+//        qb.setTables(Datapoint.TABLE_NAME);
+//        qb.setProjectionMap(sDatapointProjection);
+//        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id);
+//        String orderBy = Datapoint.DEFAULT_SORT_ORDER;
+//
+//        Datum d;
+//        SeriesData ts = new SeriesData();
+//        c = qb.query(db, projection, null, null, null, null, orderBy);
+//        count = c.getCount();
+//        c.moveToFirst();
+//        for (int j = 0; j < count; j++) {
+//          d = new Datum();
+//          d.mTsStart = Datapoint.getTsStart(c);
+//          d.mTsEnd = Datapoint.getTsEnd(c);
+//          d.mValue = Datapoint.getSum(c);
+//          int entries = Datapoint.getEntries(c);
+//          if (avg == true) {
+//            d.mValue /= entries;
+//          }
+//          ts.mData.add(d);
+//          c.moveToNext();
+//        }
+//        c.close();
+//        sources.add(ts);
+//      }
+//
+//      SeriesData result = formula.apply(sources);
+//
+//      // Store the results
+//      Datum d;
+//      ContentValues values = new ContentValues();
+//      count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "="
+//          + timeSeriesId, null);
+//      size = result.mData.size();
+//      for (int i = 0; i < size; i++) {
+//        d = result.mData.get(i);
+//        values.clear();
+//        values.put(Datapoint.TS_START, d.mTsStart);
+//        values.put(Datapoint.TS_END, d.mTsEnd);
+//        values.put(Datapoint.SUM, d.mValue);
+//        values.put(Datapoint.ENTRIES, 1);
+//        values.put(Datapoint.SUMSQR, 0.0f);
+//        values.put(Datapoint.TREND, 0.0f);
+//        db.insert(Datapoint.TABLE_NAME, null, values);
+//        insertAggregations(db, timeSeriesId, d.mTsStart, d.mValue);
+//      }
+//      updateStats(db, timeSeriesId, 0);
+//    }
+//    // Get any series dependent on this one and recalc
+//    projection = new String[] { FormulaCache.RESULT_SERIES };
+//    qb = new SQLiteQueryBuilder();
+//    qb.setTables(FormulaCache.TABLE_NAME);
+//    c = qb.query(db, projection, FormulaCache.SOURCE_SERIES + " = ? ", 
+//        new String[] { "" + timeSeriesId}, null, null, null);
+//    count = c.getCount();
+//    c.moveToFirst();
+//    for (int i = 0; i < count; i++) {
+//      // TODO:  prevent recursing to ourself
+//      long id = FormulaCache.getResultSeries(c);
+//      updateFormulaData(db, id, null);
+//      c.moveToNext();
+//    }
+//    c.close();
 
     return;
   }
@@ -338,84 +485,84 @@ public class TimeSeriesProvider extends ContentProvider {
 
   private void updateStats(SQLiteDatabase db, long timeSeriesId, int fromSeconds, 
       String table) {
-    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-    String[] projection = new String[] { 
-        TimeSeries.SMOOTHING,
-        TimeSeries.HISTORY,
-    };
-    
-    qb.setTables(TimeSeries.TABLE_NAME);
-    qb.setProjectionMap(sTimeSeriesProjection);
-    qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
-
-    Cursor c = qb.query(db, projection, null, null, null, null, null);
-    if (c == null)
-      return;
-    if (c.getCount() < 1) {
-      c.close();
-      return;
-    }
-      
-    c.moveToFirst();
-    int history = TimeSeries.getHistory(c);
-    float smoothing = TimeSeries.getSmoothing(c);
-    c.close();
-    
-    qb = new SQLiteQueryBuilder();
-    qb.setProjectionMap(sDatapointProjection);
-    qb.setTables(table);
-    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
-    qb.appendWhere(Datapoint.TS_START + " <= " + fromSeconds + " ");
-    
-    int startTimestamp = 0;
-    c = qb.query(db, null, null, null, null, null, 
-        Datapoint.TS_START + " desc ", "" + history);
-    if (c == null)
-      return;
-    if (c.getCount() > 0) {
-      c.moveToLast();
-      startTimestamp = Datapoint.getTsStart(c);
-    }
-    c.close();
-    
-    qb = new SQLiteQueryBuilder();
-    qb.setProjectionMap(sDatapointProjection);
-    qb.setTables(table);
-    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
-    qb.appendWhere(Datapoint.TS_START + " >= " + startTimestamp + " ");
-
-    c = qb.query(db, null, null, null, null, null, 
-        Datapoint.TS_START + " asc ", null);
-    if (c == null)
-      return;
-    if (c.getCount() < 1) {
-      c.close();
-      return;
-    }
-
-    ContentValues values = new ContentValues();
-    Number.SmoothedTrend trend = new Number.SmoothedTrend(smoothing);
-    Number.WindowedStdDev stats = new Number.WindowedStdDev(history);
-
-    float value = 0.0f;
-    long id = 0;
-    int entries = 0;
-    int count = c.getCount();
-    c.moveToFirst();
-    for (int i = 0; i < count && i < history * 2; i++) {
-      id = Datapoint.getId(c);
-      value = Datapoint.getValue(c);
-      trend.update(value);
-      stats.update(value);
-      
-      values.clear();
-      values.put(Datapoint.TREND, trend.mTrend);
-      values.put(Datapoint.STDDEV, stats.getStandardDev());
-      db.update(table, values, Datapoint._ID + " = " + id, null);
-      
-      c.moveToNext();
-    }
-    c.close();
+//    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+//    String[] projection = new String[] { 
+//        TimeSeries.SMOOTHING,
+//        TimeSeries.HISTORY,
+//    };
+//    
+//    qb.setTables(TimeSeries.TABLE_NAME);
+//    qb.setProjectionMap(sTimeSeriesProjection);
+//    qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
+//
+//    Cursor c = qb.query(db, projection, null, null, null, null, null);
+//    if (c == null)
+//      return;
+//    if (c.getCount() < 1) {
+//      c.close();
+//      return;
+//    }
+//      
+//    c.moveToFirst();
+//    int history = TimeSeries.getHistory(c);
+//    float smoothing = TimeSeries.getSmoothing(c);
+//    c.close();
+//    
+//    qb = new SQLiteQueryBuilder();
+//    qb.setProjectionMap(sDatapointProjection);
+//    qb.setTables(table);
+//    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
+//    qb.appendWhere(Datapoint.TS_START + " <= " + fromSeconds + " ");
+//    
+//    int startTimestamp = 0;
+//    c = qb.query(db, null, null, null, null, null, 
+//        Datapoint.TS_START + " desc ", "" + history);
+//    if (c == null)
+//      return;
+//    if (c.getCount() > 0) {
+//      c.moveToLast();
+//      startTimestamp = Datapoint.getTsStart(c);
+//    }
+//    c.close();
+//    
+//    qb = new SQLiteQueryBuilder();
+//    qb.setProjectionMap(sDatapointProjection);
+//    qb.setTables(table);
+//    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
+//    qb.appendWhere(Datapoint.TS_START + " >= " + startTimestamp + " ");
+//
+//    c = qb.query(db, null, null, null, null, null, 
+//        Datapoint.TS_START + " asc ", null);
+//    if (c == null)
+//      return;
+//    if (c.getCount() < 1) {
+//      c.close();
+//      return;
+//    }
+//
+//    ContentValues values = new ContentValues();
+//    Number.SmoothedTrend trend = new Number.SmoothedTrend(smoothing);
+//    Number.WindowedStdDev stats = new Number.WindowedStdDev(history);
+//
+//    double value = 0.0f;
+//    long id = 0;
+//    int entries = 0;
+//    int count = c.getCount();
+//    c.moveToFirst();
+//    for (int i = 0; i < count && i < history * 2; i++) {
+//      id = Datapoint.getId(c);
+//      value = Datapoint.getValue(c);
+//      trend.update(value);
+//      stats.update(value);
+//      
+//      values.clear();
+//      values.put(Datapoint.TREND, trend.mTrend);
+//      values.put(Datapoint.SUMSQR, stats.getStandardDev());
+//      db.update(table, values, Datapoint._ID + " = " + id, null);
+//      
+//      c.moveToNext();
+//    }
+//    c.close();
 
     return;
   }
@@ -427,7 +574,7 @@ public class TimeSeriesProvider extends ContentProvider {
     String table;
     long id;
     int period, oldPeriodStart, newPeriodStart;
-    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
 
     updateStats(db, timeSeriesId, fromSeconds, TimeSeriesData.Datapoint.TABLE_NAME);
     for (int i = 0; i < tables.length; i++) {
@@ -445,7 +592,7 @@ public class TimeSeriesProvider extends ContentProvider {
     String table;
     long id;
     int period, periodStart, periodEnd;
-    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
     SQLiteQueryBuilder qb;
 
     for (int i = 0; i < tables.length; i++) {
@@ -468,13 +615,13 @@ public class TimeSeriesProvider extends ContentProvider {
         // insert
         c.moveToFirst();
         values.clear();
-        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-        values.put(TimeSeriesData.Datapoint.TS_START, periodStart);
-        values.put(TimeSeriesData.Datapoint.TS_END, periodEnd);
-        values.put(TimeSeriesData.Datapoint.VALUE, value);
-        values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
-        values.put(TimeSeriesData.Datapoint.TREND, 0);
-        values.put(TimeSeriesData.Datapoint.STDDEV, 0);
+        values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(Datapoint.TS_START, periodStart);
+        values.put(Datapoint.TS_END, periodEnd);
+        values.put(Datapoint.VALUE, value);
+        values.put(Datapoint.ENTRIES, 1);
+        values.put(Datapoint.TREND, 0);
+        values.put(Datapoint.SUMSQR, 0);
         id = db.insert(table, null, values);
         if (c != null)
           c.close();
@@ -484,8 +631,8 @@ public class TimeSeriesProvider extends ContentProvider {
         // update
         c.moveToFirst();
         id = TimeSeriesData.Datapoint.getId(c);
-        int entries = TimeSeriesData.Datapoint.getEntries(c);
-        float oldValue = TimeSeriesData.Datapoint.getValue(c);
+        int entries = Datapoint.getEntries(c);
+        double oldValue = Datapoint.getValue(c);
 
         values.clear();
         values.put(TimeSeriesData.Datapoint.VALUE, oldValue + value);
@@ -546,7 +693,7 @@ public class TimeSeriesProvider extends ContentProvider {
       int oldStart, int newStart) throws Exception {
     long id;
     int period, oldPeriodStart, newPeriodStart;
-    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
     String table, sql;
     
     for (int i = 0; i < tables.length; i++) {
@@ -570,7 +717,7 @@ public class TimeSeriesProvider extends ContentProvider {
       int tsStart) throws Exception {
     long id;
     int period, periodStart;
-    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_TABLE_SUFFIX;
+    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
     String table, sql;
     
     for (int i = 0; i < tables.length; i++) {
@@ -588,6 +735,7 @@ public class TimeSeriesProvider extends ContentProvider {
   public Uri insert(Uri uri, ContentValues values) {
     Uri outputUri = null;
     long id;
+    int period, oldPeriodStart, newPeriodStart, oldPeriodEnd, newPeriodEnd;
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     
     Debug.startMethodTracing("cpInsert");
@@ -619,7 +767,95 @@ public class TimeSeriesProvider extends ContentProvider {
         db.beginTransaction();
 
         try {
+          int oldTsStart;
+          int tsStart = values.getAsInteger(Datapoint.TS_START);
+          double value = values.getAsDouble(Datapoint.VALUE);
+          int entries = values.getAsInteger(Datapoint.ENTRIES);
+
           // insert into the base table
+          SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+          qb.setTables(Datapoint.TABLE_NAME);
+          qb.setProjectionMap(sDatapointProjectionAll);
+          qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
+          qb.appendWhere(Datapoint.TS_START + " < " + tsStart);
+          String orderBy = Datapoint.TS_START + " desc";
+          String limit = "1";        
+          Cursor c = qb.query(db, null, null, null, null, null, orderBy, limit);
+          if (c.getCount() < 1) {
+            // no earlier entries for this timestamp
+            c.close();
+            int length = Datapoint.AGGREGATE_SUFFIX.length;
+            for (int i = 0; i < length; i++) {
+              String suffix = Datapoint.AGGREGATE_SUFFIX[i];
+              period = (int) Datapoint.AGGREGATE_TABLE_PERIOD[i];
+              newPeriodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
+              newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
+              
+              Datapoint.setTsStart(values, suffix, newPeriodStart);
+              Datapoint.setTsEnd(values, suffix, newPeriodEnd);
+              Datapoint.setTrend(values, suffix, value);
+              Datapoint.setSumSqr(values, suffix, value * value);
+            }
+          }
+          else {
+            // there exists an entry before this entry, chronologically
+            c.moveToFirst();
+            oldTsStart = Datapoint.getTsStart(c);
+            c.close();
+            
+            // fetch the smoothing parameter of the timeseries
+            Uri smoothingUri = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, timeSeriesId);
+            Cursor c2 = query(smoothingUri, 
+                new String[] { TimeSeries.SMOOTHING }, null, null, null);
+            c2.moveToFirst();
+            double smoothing = TimeSeries.getSmoothing(c2);
+            c2.close();
+
+            double oldSum;
+            int oldEntries;
+            double oldTrend;
+
+            int length = Datapoint.AGGREGATE_SUFFIX.length;
+            for (int i = 0; i < length; i++) {
+              String suffix = Datapoint.AGGREGATE_SUFFIX[i];
+              period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+              newPeriodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
+              newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
+              oldPeriodStart = mDateMap.secondsOfPeriodStart(oldTsStart, period);
+
+              // fetch data for the previous entry as aggregated for the period
+              Uri sumsUri = ContentUris.withAppendedId(
+                  TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+                  .appendPath("recent").appendPath("1").appendPath(suffix).build();
+              c2 = query(sumsUri, null, null, null, null);
+              c2.moveToFirst();
+              oldSum = Datapoint.getValue(c2);
+              oldEntries = Datapoint.getEntries(c2);
+              oldTrend = Datapoint.getTrend(c2);
+              c2.close();
+
+              if (newPeriodStart > oldPeriodStart) {
+                Datapoint.setTsStart(values, suffix, newPeriodStart);
+                Datapoint.setTsEnd(values, suffix, newPeriodEnd);
+                // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
+                Datapoint.setTrend(values, suffix, oldTrend + (smoothing * (oldSum - oldTrend)));
+                Datapoint.setSumSqr(values, suffix, value * value);
+              } else {
+                Datapoint.setTsStart(values, suffix, newPeriodStart);
+                Datapoint.setTsEnd(values, suffix, newPeriodEnd);
+                // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
+                Datapoint.setTrend(values, suffix, oldTrend + (smoothing * (oldSum - oldTrend)));
+                Datapoint.setSumSqr(values, suffix, value * value);
+                
+                
+                Datapoint.setTrend(values, suffix, oldTrend + (smoothing * (oldSum - oldTrend)));
+                Datapoint.setSumSqr(values, suffix, oldEntries + (value * value));
+                Datapoint.setTsStart(values, suffix, newPeriodStart);
+                Datapoint.setTsEnd(values, suffix, newPeriodEnd);
+              }
+            }
+          }
+          
           id = db.insert(Datapoint.TABLE_NAME, null, values);
           if (id == -1) {
             outputUri = null;
@@ -629,19 +865,8 @@ public class TimeSeriesProvider extends ContentProvider {
                 .appendPath("datapoints").appendPath(""+id).build();
           }
           
-          int tsStart = 0;
-          int tsEnd = 0;
-          float newValue = 0.0f;
-          
-          if (values.containsKey(Datapoint.TS_START))
-            tsStart = values.getAsInteger(Datapoint.TS_START);
-          if (values.containsKey(Datapoint.VALUE))
-            newValue = values.getAsFloat(TimeSeriesData.Datapoint.VALUE);
-          if (values.containsKey(Datapoint.TS_END))
-            tsEnd = values.getAsInteger(Datapoint.TS_END);
-
-          insertAggregations(db, timeSeriesId, tsStart, newValue);
-          updateStats(db, timeSeriesId, tsStart);
+          // TODO: update for new schema
+//          updateAggregations(db, timeSeriesId, tsStart);
           updateFormulaData(db, timeSeriesId, null);
 
           db.setTransactionSuccessful();
@@ -665,12 +890,36 @@ public class TimeSeriesProvider extends ContentProvider {
 
     return outputUri;
   }
-
+  
+  // TODO: move constant strings to defined values
+  private HashMap<String, String> fetchProjectionMap(String aggregation) {
+    if (aggregation == null) {
+      return sDatapointProjection;
+    } 
+    else if (aggregation.equals("day")) {
+      return sDatapointProjectionDay;
+    }
+    else if (aggregation.equals("week")) {
+      return sDatapointProjectionWeek;
+    }
+    else if (aggregation.equals("month")) {
+      return sDatapointProjectionDay;
+    }
+    else if (aggregation.equals("quarter")) {
+      return sDatapointProjectionDay;
+    }
+    else if (aggregation.equals("year")) {
+      return sDatapointProjectionDay;
+    }
+    return sDatapointProjection;
+  }
+      
   @Override
   public Cursor query(Uri uri, String[] projection, String selection,
       String[] selectionArgs, String sortOrder) {
-    String table, agg;
+    String agg;
     String orderBy = sortOrder;
+    String groupBy = null;
     String limit = "";
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -698,29 +947,40 @@ public class TimeSeriesProvider extends ContentProvider {
         break;
       case DATAPOINTS_RECENT:
         String count = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_COUNT);
-        table = Datapoint.TABLE_NAME;
+        qb.setTables(Datapoint.TABLE_NAME);
+
+        orderBy = Datapoint.TS_START + " desc";
+        qb.setProjectionMap(sDatapointProjection);
         try {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-          if (agg != null && TextUtils.isEmpty(agg) == false) {
-            table += "_" + agg;
-          }
+          qb.setProjectionMap(fetchProjectionMap(agg));
+          groupBy = Datapoint.TS_START + "_" + agg;
+          orderBy = Datapoint.TS_START + "_" + agg + " desc ";
         } catch (Exception e) { } // nothing
-        qb.setTables(table);
         qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
-        orderBy = Datapoint.TS_START + " desc";
         limit = count;
         break;
       case DATAPOINTS_RANGE:
         String start = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_START);
         String end = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_END);
-        table = Datapoint.TABLE_NAME;
+        qb.setTables(Datapoint.TABLE_NAME);
+
+        orderBy = Datapoint.TS_START + " desc";
+        qb.setProjectionMap(sDatapointProjection);
         try {
-          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
-          if (agg != null && TextUtils.isEmpty(agg) == false) {
-            table += "_" + table;
+          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
+          qb.setProjectionMap(fetchProjectionMap(agg));
+          groupBy = Datapoint.TS_START + "_" + agg;
+          orderBy = Datapoint.TS_START + "_" + agg + " desc ";
+          if (sortOrder == null || TextUtils.isEmpty(sortOrder)) {
+            orderBy = Datapoint.TS_START + "_" + agg + " desc ";            
+          }
+          else if (sortOrder != null && sortOrder.contains(Datapoint.TS_START)) {
+            orderBy = sortOrder;
+            orderBy.replace(Datapoint.TS_START, Datapoint.TS_START + "_" + agg);
           }
         } catch (Exception e) { } // nothing
-        qb.setTables(table);
+        
         qb.appendWhere(TimeSeries._ID + " = " 
             + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint.TS_START + " >= " + start + " AND ");
@@ -750,12 +1010,13 @@ public class TimeSeriesProvider extends ContentProvider {
         throw new IllegalArgumentException("query: Unknown URI " + uri);
     } 
     
-    Cursor c = qb.query(db, projection, selection, selectionArgs, null, null, orderBy, limit);
+    Cursor c = qb.query(db, projection, selection, selectionArgs, groupBy, null, orderBy, limit);
     c.setNotificationUri(getContext().getContentResolver(), uri);
     
     return c;
   }
 
+  // TODO: update for new schema
   @Override
   public int update(Uri uri, ContentValues values, String where,
       String[] whereArgs) {
@@ -829,7 +1090,7 @@ public class TimeSeriesProvider extends ContentProvider {
           if (values.containsKey(Datapoint.TS_START))
             newStart = values.getAsInteger(Datapoint.TS_START);
           if (values.containsKey(Datapoint.VALUE))
-            newValue = values.getAsFloat(TimeSeriesData.Datapoint.VALUE);
+            newValue = values.getAsFloat(Datapoint.VALUE);
           
           updateAggregations(db, tsId, oldStart, newStart);
           updateStats(db, tsId, oldStart);
@@ -853,6 +1114,7 @@ public class TimeSeriesProvider extends ContentProvider {
     return count;
   }
   
+  // TODO: update for new schema
   @Override
   public int delete(Uri uri, String where, String[] whereArgs) {
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
@@ -947,11 +1209,6 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onCreate(SQLiteDatabase db) {
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
-      db.execSQL(Datapoint.TABLE_CREATE_DAY);
-      db.execSQL(Datapoint.TABLE_CREATE_WEEK);
-      db.execSQL(Datapoint.TABLE_CREATE_MONTH);
-      db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
-      db.execSQL(Datapoint.TABLE_CREATE_YEAR);
       db.execSQL(DateMap.TABLE_CREATE);
       db.execSQL(FormulaCache.TABLE_CREATE);
     
@@ -962,19 +1219,9 @@ public class TimeSeriesProvider extends ContentProvider {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
       db.execSQL("drop table " + TimeSeries.TABLE_CREATE);
       db.execSQL("drop table " + Datapoint.TABLE_CREATE);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_DAY);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_WEEK);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_MONTH);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_QUARTER);
-      db.execSQL("drop table " + Datapoint.TABLE_CREATE_YEAR);
       db.execSQL("drop table " + DateMap.TABLE_CREATE);
       db.execSQL(TimeSeries.TABLE_CREATE);
       db.execSQL(Datapoint.TABLE_CREATE);
-      db.execSQL(Datapoint.TABLE_CREATE_DAY);
-      db.execSQL(Datapoint.TABLE_CREATE_WEEK);
-      db.execSQL(Datapoint.TABLE_CREATE_MONTH);
-      db.execSQL(Datapoint.TABLE_CREATE_QUARTER);
-      db.execSQL(Datapoint.TABLE_CREATE_YEAR);
       db.execSQL(DateMap.TABLE_CREATE);
       db.execSQL(FormulaCache.TABLE_CREATE);
     }

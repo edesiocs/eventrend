@@ -178,8 +178,6 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.TS_START, now);
       values.put(TimeSeriesData.Datapoint.TS_END, 0);
       values.put(TimeSeriesData.Datapoint.VALUE, 0);
-      values.put(TimeSeriesData.Datapoint.TREND, 0);
-      values.put(TimeSeriesData.Datapoint.STDDEV, 0);
       values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
 
       Uri uri = ContentUris.withAppendedId(
@@ -295,7 +293,7 @@ public class EventRecorder extends Service {
     // Records a discrete event with the timestamp specified.
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
-    public long recordEvent(long timeSeriesId, long timestamp, float value) {
+    public long recordEvent(long timeSeriesId, long timestamp, double value) {
       LockUtil.waitForLock(mLock);
       long datapointId = currentlyRecordingId(timeSeriesId);
       if (datapointId < 0) { // error
@@ -317,8 +315,6 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
       values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
       values.put(TimeSeriesData.Datapoint.VALUE, value);
-      values.put(TimeSeriesData.Datapoint.TREND, 0);
-      values.put(TimeSeriesData.Datapoint.STDDEV, 0);
       values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
 
       Uri uri = ContentUris.withAppendedId(
@@ -345,7 +341,7 @@ public class EventRecorder extends Service {
     // Records a discrete event at the current time.
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
-    public long recordEventNow(long timeSeriesId, float value) {
+    public long recordEventNow(long timeSeriesId, double value) {
       long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       return recordEvent(timeSeriesId, now, value);
     }

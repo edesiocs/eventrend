@@ -16,16 +16,6 @@
 
 package net.redgeek.android.eventrend.util;
 
-import android.content.ContentUris;
-import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-
-import net.redgeek.android.eventrecorder.DateMapCache;
-import net.redgeek.android.eventrecorder.TimeSeriesData;
-import net.redgeek.android.eventrend.util.Aggregator.Aggregate;
-
-import java.util.ArrayList;
 
 public class Trend {
   public static final int TREND_DOWN_15_GOOD = 1;
@@ -46,11 +36,11 @@ public class Trend {
   public static final int TREND_FLAT_GOAL = 16;
   public static final int TREND_UNKNOWN = 17;
 
-  public static int getTrendIconState(float oldTrend, float newTrend,
-      float goal, float sensitivity, float stdDev) {
+  public static int getTrendIconState(double oldTrend, double newTrend,
+      double goal, double sensitivity, double stdDev) {
     sensitivity = sensitivity * stdDev;
-    float half = sensitivity / 2.0f;
-    float quarter = sensitivity / 4.0f;
+    double half = sensitivity / 2.0f;
+    double quarter = sensitivity / 4.0f;
 
     if (oldTrend == newTrend) {
       // truly flat trend
