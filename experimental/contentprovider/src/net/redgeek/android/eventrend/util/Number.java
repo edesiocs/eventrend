@@ -17,9 +17,8 @@
 package net.redgeek.android.eventrend.util;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+
+import net.redgeek.android.eventrecorder.synthetic.SeriesData;
 
 /**
  * Various number-related routines and classes that are frequently used.
@@ -701,50 +700,40 @@ public class Number {
     }
   }
   
-  public static class LeastSquaresAverage {
-    public static float Average() {
-      return 0.0f;
-    }
-  }
-  
-  public static class FitLine {
-   /**
-     *  Use the Least Squares fit method for fitting a
-     *  straight line to 2-D data for measurements
-     *  y[i] vs. dependent variable x[i]. This fit assumes
-     *  there are errors only on the y measuresments as
-     *  given by the sigma_y array.
-    **/
-   public static void fit(
-       double[] parameters, double[] x, double[] y,
-       int num_points) {
+  public static class LeastSquares {
+    public static Double Average(SeriesData.Datum[] datapoints) {
+      SeriesData.Datum d;
+      double sumX = 0.0;
+      double sumY = 0.0;
+      double sumSqrX = 0.0;
+      double sumXY = 0.0;
+      double del;
+      int startX, stopX;
 
-      double s = 0.0, sx = 0.0, sy = 0.0, sxx = 0.0, sxy = 0.0, del;
+      if (datapoints == null || datapoints.length < 1)
+        return null;
+      
+      int nPoints = datapoints.length;
+      if (nPoints < 2)
+        return new Double(datapoints[0].mValue);
+      
+      startX = datapoints[0].mTsStart;
+      stopX = datapoints[nPoints-1].mTsStart;
+      for (int i = 0; i < nPoints; i++) {
+        d = datapoints[i];
+        sumX += d.mTsStart;
+        sumY += d.mValue;
+        sumSqrX += d.mTsStart * d.mTsStart;
+        sumXY += d.mTsStart * d.mValue;
+      }
 
-      // Null sigma_y implies a constant error which drops
-      // out of the divisions of the sums.
-        s = x.length;
-        for (int i = 0; i < num_points; i++) {
-          sx += x[i];
-          sy += y[i];
-          sxx += x[i] * x[i];
-          sxy += x[i] * y[i];
-        }
-
-      del = s * sxx - sx * sx;
+      del = nPoints * sumSqrX - sumX * sumX;
 
       // Intercept
-      parameters[0] = (sxx * sy - sx * sxy) / del;
-      // Slope
-      parameters[1] = (s * sxy - sx * sy) / del;
+      double intercept = (sumSqrX * sumY - sumX * sumXY) / del;
+      double slope = (nPoints * sumXY - sumX * sumY) / del;
 
-      // Errors (sd**2) on the:
-      // intercept
-      parameters[2] = sxx / del;
-      // and slope
-      parameters[3] = s / del;
-
-    } // fit
-
-  } // FitLine
+      return (slope * ((stopX - startX) / 2.0f)) + intercept;
+    }
+  }
 }
