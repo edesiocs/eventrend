@@ -721,19 +721,19 @@ public class Number {
       stopX = datapoints[nPoints-1].mTsStart;
       for (int i = 0; i < nPoints; i++) {
         d = datapoints[i];
-        sumX += d.mTsStart;
+        sumX += (d.mTsStart - startX);
         sumY += d.mValue;
-        sumSqrX += d.mTsStart * d.mTsStart;
-        sumXY += d.mTsStart * d.mValue;
+        sumSqrX += (d.mTsStart - startX) * (d.mTsStart - startX);
+        sumXY += (d.mTsStart - startX) * d.mValue;
       }
 
-      del = nPoints * sumSqrX - sumX * sumX;
+      del = (nPoints * sumSqrX) - (sumX * sumX);
 
       // Intercept
       double intercept = (sumSqrX * sumY - sumX * sumXY) / del;
       double slope = (nPoints * sumXY - sumX * sumY) / del;
 
-      return (slope * ((stopX - startX) / 2.0f)) + intercept;
+      return new Double((slope * ((stopX - startX) / 2.0f)) + intercept);
     }
   }
 }
