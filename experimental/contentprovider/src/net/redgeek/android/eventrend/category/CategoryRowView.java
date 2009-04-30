@@ -320,7 +320,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
         c.moveToLast();
         double oldTrend = Datapoint.getTrend(c);
-        double stdDev = Datapoint.getSumSqr(c);
+        double stdDev = Datapoint.getStdDev(c);
     
         trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
             mRow.mSensitivity, stdDev);

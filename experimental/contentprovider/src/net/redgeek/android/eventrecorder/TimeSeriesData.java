@@ -120,8 +120,12 @@ public class TimeSeriesData {
      * Type: DOUBLE
      * </p>
      */
-    public static final String SUMSQR = "sumsqr";
+    public static final String STDDEV = "stddev";
 
+    public static final String SUM_ENTRIES = "sum_entries";
+    public static final String SUM_VALUE = "sum_value";
+    public static final String SUM_VALUE_SQR = "sum_value_sqr";
+    
     public static final String[] AGGREGATE_SUFFIX = {
       "day",
       "week",
@@ -141,6 +145,22 @@ public class TimeSeriesData {
      * The table creation sql
      * We create tables for each aggregation level.
      */
+    
+    /* for raw (un-aggregated) data:
+      -- value => instantaneous value
+      -- trend => trend[n-1] + (smoothing * ((value[n-1] / entries) - trend[n-1])) || value
+      -- sumsqr => sumsqr[n-1] + value^2 || value^2
+      -- stddev => sqrt(sumsqr / entries - (mean)^2) || 0
+       for aggregated data
+      -- value, entries, trend, stddev are instantaneous
+  -- sum_* are monotonically increasing
+  -- value => value[n-1] + value || value
+  -- entries => entries[n-1] + 1 || 1
+  -- entries => entries[n-1] + 1 || 1
+  -- sumsqr => sumsqr[n-1] + row.value^2 || row.value^2
+  -- trend => trend[n-1] + (smoothing * ((value[n-1] / entries) - trend[n-1])) || avg(trend)
+  -- stddev => sqrt(period.sumsqr / count(value) - (mean)^2)
+    */
     public static final String TABLE_CREATE = "create table "
         + TABLE_NAME + " ( "
         + Datapoint._ID + " integer primary key autoincrement, "
@@ -148,34 +168,59 @@ public class TimeSeriesData {
         + Datapoint.TS_START + " integer key not null, "
         + Datapoint.TS_END + " integer key not null default 0, "
         + Datapoint.VALUE + " double not null default 0, "
-        + Datapoint.ENTRIES + " integer not null default 0, "
         + Datapoint.TREND + " double not null default 0.0, "
-        + Datapoint.SUMSQR + " double not null default 0.0, "
+        + Datapoint.STDDEV + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[0] + " integer key not null default 0, "
         + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[0] + " integer key not null default 0, "
+        + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+        + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[0] + " integer not null default 0.0, "
         + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
-        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+        + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[0] + " integer not null default 0.0, "
+        + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[0] + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[1] + " integer key not null default 0, "
         + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[1] + " integer key not null default 0, "
+        + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+        + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[1] + " integer not null default 0.0, "
         + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
-        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+        + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[1] + " integer not null default 0.0, "
+        + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[1] + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[2] + " integer key not null default 0, "
         + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[2] + " integer key not null default 0, "
+        + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+        + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[2] + " integer not null default 0.0, "
         + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
-        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+        + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[2] + " integer not null default 0.0, "
+        + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[2] + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[3] + " integer key not null default 0, "
         + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[3] + " integer key not null default 0, "
+        + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+        + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[3] + " integer not null default 0.0, "
         + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
-        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+        + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[3] + " integer not null default 0.0, "
+        + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[3] + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[4] + " integer key not null default 0, "
         + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[4] + " integer key not null default 0, "
+        + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
+        + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[4] + " integer not null default 0.0, "
         + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
-        + Datapoint.SUMSQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0 "
+        + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[4] + " integer not null default 0.0, "
+        + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
         + ");";
         
     public static long getId(Cursor c) {
@@ -218,14 +263,38 @@ public class TimeSeriesData {
       return c.getDouble(c.getColumnIndexOrThrow(TREND + "_" + suffix));
     }
 
-    public static double getSumSqr(Cursor c) {
-      return c.getDouble(c.getColumnIndexOrThrow(SUMSQR));
+    public static double getStdDev(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(STDDEV));
     }
 
-    public static double getSumSqr(Cursor c, String suffix) {
-      return c.getDouble(c.getColumnIndexOrThrow(SUMSQR + "_" + suffix));
+    public static double getStdDev(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(STDDEV + "_" + suffix));
     }
-    
+
+    public static int getSumEntries(Cursor c) {
+      return c.getInt(c.getColumnIndexOrThrow(SUM_ENTRIES));
+    }
+
+    public static int getSumEntries(Cursor c, String suffix) {
+      return c.getInt(c.getColumnIndexOrThrow(SUM_ENTRIES + "_" + suffix));
+    }
+
+    public static double getSumValue(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE));
+    }
+
+    public static double getSumValue(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE + "_" + suffix));
+    }
+
+    public static double getSumValueSqr(Cursor c) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE_SQR));
+    }
+
+    public static double getSumValueSqr(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE_SQR + "_" + suffix));
+    }
+
     public static void setId(ContentValues cv, long id) {
       cv.put(_ID, id);
     }
@@ -238,8 +307,16 @@ public class TimeSeriesData {
       cv.put(VALUE, value);
     }
 
+    public static void setValue(ContentValues cv, String suffix, double value) {
+      cv.put(VALUE + "_" + suffix, value);
+    }
+
     public static void setEntries(ContentValues cv, int entries) {
       cv.put(ENTRIES, entries);
+    }
+
+    public static void setEntries(ContentValues cv, String suffix, int entries) {
+      cv.put(ENTRIES + "_" + suffix, entries);
     }
 
     public static void setTsStart(ContentValues cv, int tsStart) {
@@ -266,12 +343,36 @@ public class TimeSeriesData {
       cv.put(TREND + "_" + suffix, trend);
     }
 
-    public static void setSumSqr(ContentValues cv, double sumSqr) {
-      cv.put(SUMSQR, sumSqr);
+    public static void setStdDev(ContentValues cv, double sumSqr) {
+      cv.put(STDDEV, sumSqr);
     }
 
-    public static void setSumSqr(ContentValues cv, String suffix, double sumSqr) {
-      cv.put(SUMSQR + "_" + suffix, sumSqr);
+    public static void setStdDev(ContentValues cv, String suffix, double sumSqr) {
+      cv.put(STDDEV + "_" + suffix, sumSqr);
+    }
+
+    public static void setSumEntries(ContentValues cv, int entries) {
+      cv.put(SUM_ENTRIES, entries);
+    }
+
+    public static void setSumEntries(ContentValues cv, String suffix, int entries) {
+      cv.put(SUM_ENTRIES + "_" + suffix, entries);
+    }
+    
+    public static void setSumValue(ContentValues cv, double sumValue) {
+      cv.put(SUM_VALUE, sumValue);
+    }
+
+    public static void setSumValue(ContentValues cv, String suffix, double sumValue) {
+      cv.put(SUM_VALUE + "_" + suffix, sumValue);
+    }
+    
+    public static void setSumValueSqr(ContentValues cv, double sumValueSqr) {
+      cv.put(SUM_VALUE_SQR, sumValueSqr);
+    }
+
+    public static void setSumValueSqr(ContentValues cv, String suffix, double sumValueSqr) {
+      cv.put(SUM_VALUE_SQR + "_" + suffix, sumValueSqr);
     }
   }
 
