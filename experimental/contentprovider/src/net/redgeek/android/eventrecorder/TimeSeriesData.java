@@ -238,8 +238,16 @@ public class TimeSeriesData {
       return c.getDouble(c.getColumnIndexOrThrow(VALUE));
     }
 
+    public static double getValue(Cursor c, String suffix) {
+      return c.getDouble(c.getColumnIndexOrThrow(VALUE + "_" + suffix));
+    }
+
     public static int getEntries(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(ENTRIES));
+    }
+
+    public static int getEntries(Cursor c, String suffix) {
+      return c.getInt(c.getColumnIndexOrThrow(ENTRIES + "_" + suffix));
     }
 
     public static int getTsStart(Cursor c) {
