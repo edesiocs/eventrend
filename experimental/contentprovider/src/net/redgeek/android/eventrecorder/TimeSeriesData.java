@@ -167,9 +167,12 @@ public class TimeSeriesData {
         + Datapoint.TIMESERIES_ID + " integer key not null, "
         + Datapoint.TS_START + " integer key not null, "
         + Datapoint.TS_END + " integer key not null default 0, "
-        + Datapoint.VALUE + " double not null default 0, "
+        + Datapoint.VALUE + " double not null default 0.0, "
+        + Datapoint.ENTRIES + " integer not null default 0, "
         + Datapoint.TREND + " double not null default 0.0, "
         + Datapoint.STDDEV + " double not null default 0.0, "
+        + Datapoint.SUM_ENTRIES + " integer not null default 0, "
+        + Datapoint.SUM_VALUE + " double not null default 0.0, "
         + Datapoint.SUM_VALUE_SQR + " double not null default 0.0, "
 
         + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[0] + " integer key not null default 0, "
@@ -220,7 +223,7 @@ public class TimeSeriesData {
         + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
         + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[4] + " integer not null default 0.0, "
         + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
-        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0, "
+        + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0 "
         + ");";
         
     public static long getId(Cursor c) {
