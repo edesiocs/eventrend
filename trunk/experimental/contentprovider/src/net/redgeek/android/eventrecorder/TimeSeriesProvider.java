@@ -542,6 +542,11 @@ public class TimeSeriesProvider extends ContentProvider {
       int tsEnd) {
     ContentValues values = new ContentValues();
     int oldTsStart;
+    double value;
+    int entries;
+    long id;
+    int newPeriodStart, newPeriodEnd;
+    Uri sumsUri;
 
     Datapoint.setTimeSeriesId(values, timeSeriesId);
     
@@ -549,133 +554,96 @@ public class TimeSeriesProvider extends ContentProvider {
     qb.setTables(Datapoint.TABLE_NAME);
     qb.setProjectionMap(sDatapointProjectionAll);
     qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
+    qb.appendWhere(Datapoint.TS_START + " <= " + tsStart);
+    String orderBy = Datapoint.TS_START + " desc ";
+    Cursor c = qb.query(db, null, null, null, null, null, orderBy, "2");
+    c.moveToFirst();
+    if (c.getCount() == 1) {
+      // have one datapoint, which means it's the first in the series.
+      // Only update it if it's at the current start time, since that's a 
+      // special case.  The rest of the updates will be handled below.
+      int timestamp = Datapoint.getTsStart(c);
+      if (timestamp == tsStart) {      
+        id = Datapoint.getId(c);
+        value = Datapoint.getValue(c);
+
+        Datapoint.setTrend(values, value);
+        Datapoint.setStdDev(values, 0.0f);
+
+        int length = Datapoint.AGGREGATE_SUFFIX.length;
+        for (int i = 0; i < length; i++) {
+          String suffix = Datapoint.AGGREGATE_SUFFIX[i];
+          Datapoint.setTrend(values, suffix, value);
+          Datapoint.setStdDev(values, suffix, 0.0f);
+        }
+        
+        db.update(Datapoint.TABLE_NAME, values, Datapoint._ID + " = " + id, null);
+      }
+    }    
+    c.close();
+
+    // fetch the smoothing parameter of the timeseries
+    Uri smoothingUri = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, timeSeriesId);
+    c = query(smoothingUri, 
+        new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY }, 
+        null, null, null);
+    c.moveToFirst();
+    double smoothing = TimeSeries.getSmoothing(c);
+    int history = TimeSeries.getHistory(c);
+    c.close();
+
+    // now fetch all the datapoints at or after the start time
+    qb = new SQLiteQueryBuilder();
+    qb.setTables(Datapoint.TABLE_NAME);
+    qb.setProjectionMap(sDatapointProjectionAll);
+    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
     qb.appendWhere(Datapoint.TS_START + " >= " + tsStart + " and ");
     qb.appendWhere(Datapoint.TS_START + " < " + tsStart);
-    String orderBy = Datapoint.TS_START + " asc ";
-    Cursor c = qb.query(db, null, null, null, null, null, orderBy);
+    orderBy = Datapoint.TS_START + " asc ";
+    c = qb.query(db, null, null, null, null, null, orderBy);
     if (c.getCount() < 1) {
       c.close();
       return;
     }
-      
-      // set the non-aggregated stats
-      Datapoint.setTrend(values, value);
-      Datapoint.setStdDev(values, 0.0f);
-      Datapoint.setSumValueSqr(values, value * value);              
-      Datapoint.setSumEntries(values, entries);
-      Datapoint.setSumValue(values, value);
+
+    // loops through all datapoints updating stats
+    c.moveToFirst();
+    int count = c.getCount();
+    for (int i = 0; i < count; i++) {
+      id = Datapoint.getId(c);
 
       // set the aggregated stats
       int length = Datapoint.AGGREGATE_SUFFIX.length;
-      for (int i = 0; i < length; i++) {
-        String suffix = Datapoint.AGGREGATE_SUFFIX[i];
-        period = (int) Datapoint.AGGREGATE_TABLE_PERIOD[i];
-        newPeriodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
-        newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
-        
-        Datapoint.setTsStart(values, suffix, newPeriodStart);
-        Datapoint.setTsEnd(values, suffix, newPeriodEnd);
-        Datapoint.setValue(values, suffix, value);
-        Datapoint.setEntries(values, suffix, entries);
-        Datapoint.setTrend(values, suffix, value);
-        Datapoint.setStdDev(values, suffix, 0.0f);
-        Datapoint.setSumEntries(values, suffix, 1);
-        Datapoint.setSumValue(values, suffix, value);
-        Datapoint.setSumValueSqr(values, suffix, value * value);              
-      }
-    }
-    else {
-      // there exists an entry before this entry, chronologically
-      c.moveToFirst();
-      oldTsStart = Datapoint.getTsStart(c);
-      c.close();
-      
-      // fetch the smoothing parameter of the timeseries
-      Uri smoothingUri = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, timeSeriesId);
-      Cursor c2 = query(smoothingUri, 
-          new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY }, 
-          null, null, null);
-      c2.moveToFirst();
-      double smoothing = TimeSeries.getSmoothing(c2);
-      int history = TimeSeries.getHistory(c2);
-      c2.close();
-
-      double oldValue, oldValueSum, oldValueSumSqr;
-      int oldEntries, oldEntriesSum;
-      double oldTrend;
-      double newValueSum, newValueSumSqr;
-      int newEntriesSum;
-
-      // update the non-aggregated stats
-      Uri sumsUri = ContentUris.withAppendedId(
-          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-          .appendPath("recent").appendPath("" + history).build();
-      c2 = queryInternal(sumsUri, null, null, null, null, 
-          sDatapointProjectionAll);
-      c2.moveToFirst();
-      oldValue = Datapoint.getValue(c2);
-      oldValueSum = Datapoint.getSumValue(c2);
-      oldValueSumSqr = Datapoint.getSumValueSqr(c2);
-      oldEntries = Datapoint.getEntries(c2);
-      oldEntriesSum = Datapoint.getSumEntries(c2);
-      oldTrend = Datapoint.getTrend(c2);
-
-      newValueSum = oldValueSum + value;
-      newValueSumSqr = oldValueSumSqr + (value * value);
-      newEntriesSum = oldEntriesSum + entries;
-
-      double trend = calculateTrend(value, oldTrend, smoothing);
-      Datapoint.setTrend(values, trend);
-      Datapoint.setSumEntries(values, newEntriesSum);
-      Datapoint.setSumValue(values, newValueSum);
-      Datapoint.setSumValueSqr(values, newValueSumSqr);
-
-      double firstValueSum = 0.0f;
-      double firstValueSumSqr = 0.0f;
-      int firstEntriesSum = 0;
-      if (c2.getCount() == history) {
-        // only subtract out the initial values if we have a full history
-        // window
-        c2.moveToLast();
-        firstValueSum = Datapoint.getSumValue(c2);
-        firstValueSumSqr = Datapoint.getSumValueSqr(c2);
-        firstEntriesSum = Datapoint.getSumEntries(c2);
-      }
-      double stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
-          firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
-      Datapoint.setStdDev(values, stddev);
-      c2.close();
-
-      // update the aggregated stats
-      int length = Datapoint.AGGREGATE_SUFFIX.length;
-      for (int i = 0; i < length; i++) {
-        String suffix = Datapoint.AGGREGATE_SUFFIX[i];
-        period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
-        newPeriodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
-        newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
-        oldPeriodStart = mDateMap.secondsOfPeriodStart(oldTsStart, period);
+      for (int j = 0; j < length; j++) {
+        String suffix = Datapoint.AGGREGATE_SUFFIX[j];
+        newPeriodStart = Datapoint.getTsStart(c, suffix);
+        newPeriodEnd = Datapoint.getTsEnd(c, suffix);
+        value = Datapoint.getValue(c, suffix);
+        entries = Datapoint.getEntries(c, suffix);
 
         // fetch data for the previous entry as aggregated for the period
-        sumsUri = ContentUris.withAppendedId(
-            TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-            .appendPath("recent").appendPath("" + history).
-            appendPath(suffix).build();
-        c2 = queryInternal(sumsUri, null, null, null, null, 
-            sDatapointProjectionAll);
-        c2.moveToFirst();
-        oldValue = Datapoint.getValue(c2);
-        oldValueSum = Datapoint.getSumValue(c2);
-        oldValueSumSqr = Datapoint.getSumValueSqr(c2);
-        oldEntries = Datapoint.getEntries(c2);
-        oldEntriesSum = Datapoint.getSumEntries(c2);
-        oldTrend = Datapoint.getTrend(c2);
+        qb = new SQLiteQueryBuilder();
+        qb.setTables(Datapoint.TABLE_NAME);
+        orderBy = Datapoint.TS_START + " desc ";
+        qb.setProjectionMap(fetchProjectionMap(suffix));
+        String groupBy = Datapoint.TS_START + "_" + suffix;
+        qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
+        qb.appendWhere(Datapoint.TS_START + " < " + newPeriodStart + " ");
+        String limit = "" + history;
+        
+        Cursor c2 = qb.query(db, null, null, null, groupBy, null, orderBy, limit);
+        c2.moveToLast();
+        int oldPeriodStart = Datapoint.getTsStart(c2);
+        double oldValue = Datapoint.getValue(c2);
+        double oldValueSum = Datapoint.getSumValue(c2);
+        double oldValueSumSqr = Datapoint.getSumValueSqr(c2);
+        int oldEntries = Datapoint.getEntries(c2);
+        int oldEntriesSum = Datapoint.getSumEntries(c2);
+        double oldTrend = Datapoint.getTrend(c2);
+        double trend;
 
-        Datapoint.setTsStart(values, suffix, newPeriodStart);
-        Datapoint.setTsEnd(values, suffix, newPeriodEnd);
         if (newPeriodStart > oldPeriodStart) {
           // restart the per-period counters
-          Datapoint.setValue(values, suffix, value);
-          Datapoint.setEntries(values, suffix, entries);
           trend = calculateTrend(value, oldTrend, smoothing);
           Datapoint.setTrend(values, suffix, trend);
         } else {
@@ -688,22 +656,16 @@ public class TimeSeriesProvider extends ContentProvider {
             trend = calculateTrend(oldValue + value, oldTrend, smoothing);
             Datapoint.setTrend(values, suffix, trend);
           }                
-          Datapoint.setValue(values, suffix, oldValue + value);
-          Datapoint.setEntries(values, suffix, oldEntries + entries);
         }
           
         // calculate standard deviation based on history
-        newValueSum = oldValueSum + value;
-        newValueSumSqr = oldValueSumSqr + (value * value);
-        newEntriesSum = oldEntriesSum + entries;
+        double newValueSum = oldValueSum + value;
+        double newValueSumSqr = oldValueSumSqr + (value * value);
+        int newEntriesSum = oldEntriesSum + entries;
 
-        Datapoint.setSumEntries(values, suffix, newEntriesSum);
-        Datapoint.setSumValue(values, suffix, newValueSum);
-        Datapoint.setSumValueSqr(values, suffix, newValueSumSqr);
-
-        firstValueSum = 0.0f;
-        firstValueSumSqr = 0.0f;
-        firstEntriesSum = 0;
+        double firstValueSum = 0.0f;
+        double firstValueSumSqr = 0.0f;
+        int firstEntriesSum = 0;
         if (c2.getCount() == history) {
           // only subtract out the initial values if we have a full history
           // window
@@ -712,128 +674,20 @@ public class TimeSeriesProvider extends ContentProvider {
           firstValueSumSqr = Datapoint.getSumValueSqr(c2, suffix);
           firstEntriesSum = Datapoint.getSumEntries(c2, suffix);
         }
-        stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
+        double stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
             firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
         Datapoint.setStdDev(values, suffix, stddev);
         c2.close();
       }
+      
+      id = db.update(Datapoint.TABLE_NAME, values, Datapoint._ID, 
+          new String[] { "" + id } );      
     }
-    
-    id = db.insert(Datapoint.TABLE_NAME, null, values);
-    if (id == -1) {
-      outputUri = null;
-    } else {
-      outputUri = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-          .appendPath("datapoints").appendPath(""+id).build();
-    }
-    
-    // TODO: update for new schema
-    updateAggregations(db, timeSeriesId, tsStart, value, entries);
-    updateFormulaData(db, timeSeriesId, null);
-
-    
-    
-//    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-//    String[] projection = new String[] { 
-//        TimeSeries.SMOOTHING,
-//        TimeSeries.HISTORY,
-//    };
-//    
-//    qb.setTables(TimeSeries.TABLE_NAME);
-//    qb.setProjectionMap(sTimeSeriesProjection);
-//    qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId);
-//
-//    Cursor c = qb.query(db, projection, null, null, null, null, null);
-//    if (c == null)
-//      return;
-//    if (c.getCount() < 1) {
-//      c.close();
-//      return;
-//    }
-//      
-//    c.moveToFirst();
-//    int history = TimeSeries.getHistory(c);
-//    float smoothing = TimeSeries.getSmoothing(c);
-//    c.close();
-//    
-//    qb = new SQLiteQueryBuilder();
-//    qb.setProjectionMap(sDatapointProjection);
-//    qb.setTables(table);
-//    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
-//    qb.appendWhere(Datapoint.TS_START + " <= " + fromSeconds + " ");
-//    
-//    int startTimestamp = 0;
-//    c = qb.query(db, null, null, null, null, null, 
-//        Datapoint.TS_START + " desc ", "" + history);
-//    if (c == null)
-//      return;
-//    if (c.getCount() > 0) {
-//      c.moveToLast();
-//      startTimestamp = Datapoint.getTsStart(c);
-//    }
-//    c.close();
-//    
-//    qb = new SQLiteQueryBuilder();
-//    qb.setProjectionMap(sDatapointProjection);
-//    qb.setTables(table);
-//    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " AND ");
-//    qb.appendWhere(Datapoint.TS_START + " >= " + startTimestamp + " ");
-//
-//    c = qb.query(db, null, null, null, null, null, 
-//        Datapoint.TS_START + " asc ", null);
-//    if (c == null)
-//      return;
-//    if (c.getCount() < 1) {
-//      c.close();
-//      return;
-//    }
-//
-//    ContentValues values = new ContentValues();
-//    Number.SmoothedTrend trend = new Number.SmoothedTrend(smoothing);
-//    Number.WindowedStdDev stats = new Number.WindowedStdDev(history);
-//
-//    double value = 0.0f;
-//    long id = 0;
-//    int entries = 0;
-//    int count = c.getCount();
-//    c.moveToFirst();
-//    for (int i = 0; i < count && i < history * 2; i++) {
-//      id = Datapoint.getId(c);
-//      value = Datapoint.getValue(c);
-//      trend.update(value);
-//      stats.update(value);
-//      
-//      values.clear();
-//      values.put(Datapoint.TREND, trend.mTrend);
-//      values.put(Datapoint.SUMSQR, stats.getStandardDev());
-//      db.update(table, values, Datapoint._ID + " = " + id, null);
-//      
-//      c.moveToNext();
-//    }
-//    c.close();
+    c.close();
 
     return;
   }
-    
-  
-  private void updateStats(SQLiteDatabase db, long timeSeriesId, int fromSeconds) {
-    Cursor c;
-    ContentValues values = new ContentValues();
-    String table;
-    long id;
-    int period, oldPeriodStart, newPeriodStart;
-    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
-
-    updateStats(db, timeSeriesId, fromSeconds, TimeSeriesData.Datapoint.TABLE_NAME);
-    for (int i = 0; i < tables.length; i++) {
-      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
-      updateStats(db, timeSeriesId, fromSeconds, table);
-    }
-
-    return;
-  }
-  
+      
   private void updateAggregations(SQLiteDatabase db, long timeSeriesId, 
       int fromTimestamp, double value, int entries) throws Exception {
     String[] aggregations = Datapoint.AGGREGATE_SUFFIX;
@@ -1308,7 +1162,7 @@ public class TimeSeriesProvider extends ContentProvider {
               whereArgs);
           if (values.containsKey(TimeSeries.SMOOTHING) ||
               values.containsKey(TimeSeries.HISTORY)) {
-            updateStats(db, Long.valueOf(timeSeriesId), 0);
+            updateStats(db, Long.valueOf(timeSeriesId), 0, Integer.MAX_VALUE);
           }
           
           if (values.containsKey(TimeSeries.FORMULA)) {
@@ -1367,8 +1221,9 @@ public class TimeSeriesProvider extends ContentProvider {
             newEntries = values.getAsInteger(Datapoint.ENTRIES);
           
           updateAggregations(db, tsId, oldStart, -oldValue, -oldEntries);
-          updateAggregations(db, tsId, newStart, newValue, newEntries);          
-          updateStats(db, tsId, oldStart < newStart ? oldStart : newStart);
+          updateAggregations(db, tsId, newStart, newValue, newEntries);      
+          updateStats(db, tsId, oldStart < newStart ? oldStart : newStart, 
+              Integer.MAX_VALUE);
           updateFormulaData(db, tsId, null);
 
           db.setTransactionSuccessful();
@@ -1454,7 +1309,7 @@ public class TimeSeriesProvider extends ContentProvider {
               whereArgs);
           
           updateAggregations(db, tsId, oldStart, -oldValue, -oldEntries);
-          updateStats(db, tsId, oldStart);
+          updateStats(db, tsId, oldStart, Integer.MAX_VALUE);
           updateFormulaData(db, tsId, null);
 
           db.setTransactionSuccessful();
