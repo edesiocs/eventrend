@@ -125,7 +125,7 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjection.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjection.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
     sDatapointProjection.put(Datapoint.VALUE, Datapoint.VALUE);
-    sDatapointProjection.put(Datapoint.ENTRIES, "1 as " + Datapoint.ENTRIES);
+    sDatapointProjection.put(Datapoint.ENTRIES, Datapoint.ENTRIES);
     sDatapointProjection.put(Datapoint.TS_START, Datapoint.TS_START);
     sDatapointProjection.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjection.put(Datapoint.TREND, Datapoint.TREND);
@@ -134,8 +134,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionDay = new HashMap<String, String>();
     sDatapointProjectionDay.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionDay.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjectionDay.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
-    sDatapointProjectionDay.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionDay.put(Datapoint.VALUE, 
+        Datapoint.VALUE + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.VALUE);
+    sDatapointProjectionDay.put(Datapoint.ENTRIES,
+        Datapoint.ENTRIES + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.ENTRIES);
     sDatapointProjectionDay.put(Datapoint.TS_START, 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0] + " as " + Datapoint.TS_START);
     sDatapointProjectionDay.put(Datapoint.TS_END, 
@@ -148,8 +150,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionWeek = new HashMap<String, String>();
     sDatapointProjectionWeek.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionWeek.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjectionWeek.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
-    sDatapointProjectionWeek.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionWeek.put(Datapoint.VALUE, 
+        Datapoint.VALUE + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.VALUE);
+    sDatapointProjectionWeek.put(Datapoint.ENTRIES,
+        Datapoint.ENTRIES + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.ENTRIES);
     sDatapointProjectionWeek.put(Datapoint.TS_START, 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[1] + " as " + Datapoint.TS_START);
     sDatapointProjectionWeek.put(Datapoint.TS_END, 
@@ -162,8 +166,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionMonth = new HashMap<String, String>();
     sDatapointProjectionMonth.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionMonth.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjectionMonth.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
-    sDatapointProjectionMonth.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionMonth.put(Datapoint.VALUE, 
+        Datapoint.VALUE + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.VALUE);
+    sDatapointProjectionMonth.put(Datapoint.ENTRIES,
+        Datapoint.ENTRIES + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.ENTRIES);
     sDatapointProjectionMonth.put(Datapoint.TS_START, 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[2] + " as " + Datapoint.TS_START);
     sDatapointProjectionMonth.put(Datapoint.TS_END, 
@@ -176,8 +182,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionQuarter = new HashMap<String, String>();
     sDatapointProjectionQuarter.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionQuarter.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjectionQuarter.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
-    sDatapointProjectionQuarter.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionQuarter.put(Datapoint.VALUE, 
+        Datapoint.VALUE + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.VALUE);
+    sDatapointProjectionQuarter.put(Datapoint.ENTRIES,
+        Datapoint.ENTRIES + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.ENTRIES);
     sDatapointProjectionQuarter.put(Datapoint.TS_START, 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[3] + " as " + Datapoint.TS_START);
     sDatapointProjectionQuarter.put(Datapoint.TS_END, 
@@ -190,8 +198,10 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionYear = new HashMap<String, String>();
     sDatapointProjectionYear.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionYear.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
-    sDatapointProjectionYear.put(Datapoint.VALUE, "sum(" + Datapoint.VALUE + ") as " + Datapoint.VALUE);
-    sDatapointProjectionYear.put(Datapoint.ENTRIES, "sum(" + Datapoint.ENTRIES + ") as " + Datapoint.ENTRIES);
+    sDatapointProjectionYear.put(Datapoint.VALUE, 
+        Datapoint.VALUE + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.VALUE);
+    sDatapointProjectionYear.put(Datapoint.ENTRIES,
+        Datapoint.ENTRIES + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.ENTRIES);
     sDatapointProjectionYear.put(Datapoint.TS_START, 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[4] + " as " + Datapoint.TS_START);
     sDatapointProjectionYear.put(Datapoint.TS_END, 
@@ -205,11 +215,14 @@ public class TimeSeriesProvider extends ContentProvider {
     sDatapointProjectionAll.put(Datapoint._ID, Datapoint._ID);
     sDatapointProjectionAll.put(Datapoint.TIMESERIES_ID, Datapoint.TIMESERIES_ID);
     sDatapointProjectionAll.put(Datapoint.VALUE, Datapoint.VALUE);
-    sDatapointProjectionAll.put(Datapoint.ENTRIES, Datapoint.ENTRIES);
+    sDatapointProjectionAll.put(Datapoint.ENTRIES, "1 as " + Datapoint.ENTRIES);
     sDatapointProjectionAll.put(Datapoint.TS_START, Datapoint.TS_START);
     sDatapointProjectionAll.put(Datapoint.TS_END, Datapoint.TS_END);
     sDatapointProjectionAll.put(Datapoint.TREND, Datapoint.TREND);
     sDatapointProjectionAll.put(Datapoint.STDDEV, Datapoint.STDDEV);
+    sDatapointProjectionAll.put(Datapoint.SUM_VALUE, Datapoint.SUM_VALUE);
+    sDatapointProjectionAll.put(Datapoint.SUM_ENTRIES, Datapoint.SUM_ENTRIES);
+    sDatapointProjectionAll.put(Datapoint.SUM_VALUE_SQR, Datapoint.SUM_VALUE_SQR);
     sDatapointProjectionAll.put(
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0], 
         Datapoint.TS_START + "_" + Datapoint.AGGREGATE_SUFFIX[0]);
@@ -776,6 +789,23 @@ public class TimeSeriesProvider extends ContentProvider {
 //    return;
   }
   
+  private double calculateTrend(double newValue, double oldTrend, double smoothing) {
+    // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
+    return oldTrend + (smoothing * (newValue - oldTrend));
+  }
+  
+  private double calculateStdDev(double firstSumSqr, double lastSumSqr,
+      double firstValueSum, double lastValueSum, int firstEntriesSum, 
+      int lastEntriesSum) {
+    double sumSqr = lastSumSqr - firstSumSqr;
+    double sumValue = lastValueSum - firstValueSum;
+    double entriesSum = lastEntriesSum - firstEntriesSum;
+    double mean = sumValue / entriesSum;
+    
+    double stddev = Math.sqrt((sumSqr / entriesSum) - (mean * mean));
+    return stddev;
+  }
+    
   @Override
   public Uri insert(Uri uri, ContentValues values) {
     Uri outputUri = null;
@@ -830,6 +860,15 @@ public class TimeSeriesProvider extends ContentProvider {
           if (c.getCount() < 1) {
             // no earlier entries for this timestamp
             c.close();
+            
+            // set the non-aggregated stats
+            Datapoint.setTrend(values, value);
+            Datapoint.setStdDev(values, 0.0f);
+            Datapoint.setSumValueSqr(values, value * value);              
+            Datapoint.setSumEntries(values, entries);
+            Datapoint.setSumValue(values, value);
+
+            // set the aggregated stats
             int length = Datapoint.AGGREGATE_SUFFIX.length;
             for (int i = 0; i < length; i++) {
               String suffix = Datapoint.AGGREGATE_SUFFIX[i];
@@ -840,7 +879,7 @@ public class TimeSeriesProvider extends ContentProvider {
               Datapoint.setTsStart(values, suffix, newPeriodStart);
               Datapoint.setTsEnd(values, suffix, newPeriodEnd);
               Datapoint.setValue(values, suffix, value);
-              Datapoint.setEntries(values, suffix, 1);
+              Datapoint.setEntries(values, suffix, entries);
               Datapoint.setTrend(values, suffix, value);
               Datapoint.setStdDev(values, suffix, 0.0f);
               Datapoint.setSumEntries(values, suffix, 1);
@@ -870,6 +909,47 @@ public class TimeSeriesProvider extends ContentProvider {
             double newValueSum, newValueSumSqr;
             int newEntriesSum;
 
+            // update the non-aggregated stats
+            Uri sumsUri = ContentUris.withAppendedId(
+                TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+                .appendPath("recent").appendPath("" + history).build();
+            c2 = queryInternal(sumsUri, null, null, null, null, 
+                sDatapointProjectionAll);
+            c2.moveToFirst();
+            oldValue = Datapoint.getValue(c2);
+            oldValueSum = Datapoint.getSumValue(c2);
+            oldValueSumSqr = Datapoint.getSumValueSqr(c2);
+            oldEntries = Datapoint.getEntries(c2);
+            oldEntriesSum = Datapoint.getSumEntries(c2);
+            oldTrend = Datapoint.getTrend(c2);
+
+            newValueSum = oldValueSum + value;
+            newValueSumSqr = oldValueSumSqr + (value * value);
+            newEntriesSum = oldEntriesSum + entries;
+
+            double trend = calculateTrend(value, oldTrend, smoothing);
+            Datapoint.setTrend(values, trend);
+            Datapoint.setSumEntries(values, newEntriesSum);
+            Datapoint.setSumValue(values, newValueSum);
+            Datapoint.setSumValueSqr(values, newValueSumSqr);
+
+            double firstValueSum = 0.0f;
+            double firstValueSumSqr = 0.0f;
+            int firstEntriesSum = 0;
+            if (c2.getCount() == history) {
+              // only subtract out the initial values if we have a full history
+              // window
+              c2.moveToLast();
+              firstValueSum = Datapoint.getSumValue(c2);
+              firstValueSumSqr = Datapoint.getSumValueSqr(c2);
+              firstEntriesSum = Datapoint.getSumEntries(c2);
+            }
+            double stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
+                firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
+            Datapoint.setStdDev(values, stddev);
+            c2.close();
+
+            // update the aggregated stats
             int length = Datapoint.AGGREGATE_SUFFIX.length;
             for (int i = 0; i < length; i++) {
               String suffix = Datapoint.AGGREGATE_SUFFIX[i];
@@ -879,11 +959,12 @@ public class TimeSeriesProvider extends ContentProvider {
               oldPeriodStart = mDateMap.secondsOfPeriodStart(oldTsStart, period);
 
               // fetch data for the previous entry as aggregated for the period
-              Uri sumsUri = ContentUris.withAppendedId(
+              sumsUri = ContentUris.withAppendedId(
                   TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
                   .appendPath("recent").appendPath("" + history).
                   appendPath(suffix).build();
-              c2 = query(sumsUri, null, null, null, null);
+              c2 = queryInternal(sumsUri, null, null, null, null, 
+                  sDatapointProjectionAll);
               c2.moveToFirst();
               oldValue = Datapoint.getValue(c2);
               oldValueSum = Datapoint.getSumValue(c2);
@@ -897,40 +978,45 @@ public class TimeSeriesProvider extends ContentProvider {
               if (newPeriodStart > oldPeriodStart) {
                 // restart the per-period counters
                 Datapoint.setValue(values, suffix, value);
-                Datapoint.setEntries(values, suffix, 1);
-                // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
-                Datapoint.setTrend(values, suffix, oldTrend + (smoothing * (value - oldTrend)));
+                Datapoint.setEntries(values, suffix, entries);
+                trend = calculateTrend(value, oldTrend, smoothing);
+                Datapoint.setTrend(values, suffix, trend);
               } else {
                 // add to the per-period counters
+                if (c2.getCount() < 2) {
+                  // there was a previous entry, but it was in this same period,
+                  // so there's no entry before this for the period
+                  Datapoint.setTrend(values, suffix, oldValue + value);
+                } else {
+                  trend = calculateTrend(oldValue + value, oldTrend, smoothing);
+                  Datapoint.setTrend(values, suffix, trend);
+                }                
                 Datapoint.setValue(values, suffix, oldValue + value);
-                Datapoint.setEntries(values, suffix, oldEntries + 1);
-                // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
-                Datapoint.setTrend(values, suffix, oldTrend + (smoothing * ((oldValue + value) - oldTrend)));
+                Datapoint.setEntries(values, suffix, oldEntries + entries);
               }
                 
               // calculate standard deviation based on history
               newValueSum = oldValueSum + value;
               newValueSumSqr = oldValueSumSqr + (value * value);
-              newEntriesSum = oldEntriesSum + 1;
+              newEntriesSum = oldEntriesSum + entries;
 
               Datapoint.setSumEntries(values, suffix, newEntriesSum);
               Datapoint.setSumValue(values, suffix, newValueSum);
               Datapoint.setSumValueSqr(values, suffix, newValueSumSqr);
 
-              double firstValueSum = oldValueSum;
-              double firstValueSumSqr = oldValueSumSqr;
-              double firstEntriesSum = oldEntriesSum;
-              if (c2.getCount() > 1) {
+              firstValueSum = 0.0f;
+              firstValueSumSqr = 0.0f;
+              firstEntriesSum = 0;
+              if (c2.getCount() == history) {
+                // only subtract out the initial values if we have a full history
+                // window
                 c2.moveToLast();
                 firstValueSum = Datapoint.getSumValue(c2, suffix);
                 firstValueSumSqr = Datapoint.getSumValueSqr(c2, suffix);
                 firstEntriesSum = Datapoint.getSumEntries(c2, suffix);
               }
-              // sqrt(sumsqr / entries - mean^2)
-              double stddev = Math.sqrt(
-                  ((newValueSumSqr - firstValueSumSqr)
-                      / (newEntriesSum - firstEntriesSum))
-                  - ((newValueSum - firstValueSum) * (newValueSum - firstValueSum)));
+              stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
+                  firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
               Datapoint.setStdDev(values, suffix, stddev);
               c2.close();
             }
@@ -994,9 +1080,8 @@ public class TimeSeriesProvider extends ContentProvider {
     return sDatapointProjection;
   }
       
-  @Override
-  public Cursor query(Uri uri, String[] projection, String selection,
-      String[] selectionArgs, String sortOrder) {
+  private Cursor queryInternal(Uri uri, String[] projection, String selection,
+      String[] selectionArgs, String sortOrder, HashMap<String, String> map) {
     String agg;
     String orderBy = sortOrder;
     String groupBy = null;
@@ -1004,16 +1089,21 @@ public class TimeSeriesProvider extends ContentProvider {
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
     
+    if (map != null)
+      qb.setProjectionMap(map);
+
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         qb.setTables(TimeSeries.TABLE_NAME);
-        qb.setProjectionMap(sTimeSeriesProjection);
+        if (map == null)
+          qb.setProjectionMap(sTimeSeriesProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
         break;
       case TIMESERIES_ID:
         qb.setTables(TimeSeries.TABLE_NAME);
-        qb.setProjectionMap(sTimeSeriesProjection);
+        if (map == null)
+          qb.setProjectionMap(sTimeSeriesProjection);
         qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
@@ -1021,7 +1111,8 @@ public class TimeSeriesProvider extends ContentProvider {
       case DATAPOINTS:
         qb.setTables(Datapoint.TABLE_NAME);
         qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
-        qb.setProjectionMap(sDatapointProjection);
+        if (map == null)
+          qb.setProjectionMap(sDatapointProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
         break;
@@ -1030,12 +1121,13 @@ public class TimeSeriesProvider extends ContentProvider {
         qb.setTables(Datapoint.TABLE_NAME);
 
         orderBy = Datapoint.TS_START + " desc";
-        qb.setProjectionMap(sDatapointProjection);
+        if (map == null)
+          qb.setProjectionMap(sDatapointProjection);
         try {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-          qb.setProjectionMap(fetchProjectionMap(agg));
+          if (map == null)
+            qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = Datapoint.TS_START + "_" + agg;
-          orderBy = Datapoint.TS_START + "_" + agg + " desc ";
         } catch (Exception e) { } // nothing
         qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         limit = count;
@@ -1046,18 +1138,15 @@ public class TimeSeriesProvider extends ContentProvider {
         qb.setTables(Datapoint.TABLE_NAME);
 
         orderBy = Datapoint.TS_START + " desc";
-        qb.setProjectionMap(sDatapointProjection);
+        if (map == null)
+          qb.setProjectionMap(sDatapointProjection);
         try {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-          qb.setProjectionMap(fetchProjectionMap(agg));
+          if (map != null)
+            qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = Datapoint.TS_START + "_" + agg;
-          orderBy = Datapoint.TS_START + "_" + agg + " desc ";
           if (sortOrder == null || TextUtils.isEmpty(sortOrder)) {
-            orderBy = Datapoint.TS_START + "_" + agg + " desc ";            
-          }
-          else if (sortOrder != null && sortOrder.contains(Datapoint.TS_START)) {
-            orderBy = sortOrder;
-            orderBy.replace(Datapoint.TS_START, Datapoint.TS_START + "_" + agg);
+            orderBy = Datapoint.TS_START + " desc ";            
           }
         } catch (Exception e) { } // nothing
         
@@ -1068,6 +1157,8 @@ public class TimeSeriesProvider extends ContentProvider {
         break;
       case DATAPOINTS_ID:
         qb.setTables(Datapoint.TABLE_NAME);
+        if (map == null)
+          qb.setProjectionMap(sDatapointProjection);
         qb.appendWhere(Datapoint.TIMESERIES_ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID));
         if (TextUtils.isEmpty(sortOrder))
@@ -1075,13 +1166,15 @@ public class TimeSeriesProvider extends ContentProvider {
         break;
       case DATEMAP:
         qb.setTables(DateMap.TABLE_NAME);
-        qb.setProjectionMap(sDatemapProjection);
+        if (map == null)
+          qb.setProjectionMap(sDatemapProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = DateMap.DEFAULT_SORT_ORDER;
         break;
       case DATEMAP_ID:
         qb.setTables(DateMap.TABLE_NAME);
-        qb.setProjectionMap(sDatemapProjection);
+        if (map == null)
+          qb.setProjectionMap(sDatemapProjection);
         qb.appendWhere(DateMap._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_DATEMAP_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = DateMap.DEFAULT_SORT_ORDER;
@@ -1091,8 +1184,15 @@ public class TimeSeriesProvider extends ContentProvider {
     } 
     
     Cursor c = qb.query(db, projection, selection, selectionArgs, groupBy, null, orderBy, limit);
+    return c;
+  }
+  
+  @Override
+  public Cursor query(Uri uri, String[] projection, String selection,
+      String[] selectionArgs, String sortOrder) {
+    Cursor c = queryInternal(uri, projection, selection, selectionArgs, 
+        sortOrder, null);
     c.setNotificationUri(getContext().getContentResolver(), uri);
-    
     return c;
   }
 

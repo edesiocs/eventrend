@@ -188,9 +188,6 @@ public class DateMapCache {
 
     if (period < (WEEK_MS / SECOND_MS)) {
       secs += period * ((seconds - secs) / period);
-//      while (secs <= seconds - period) {
-//        secs += period;
-//      }
     }
     else if (period == (WEEK_MS / SECOND_MS)) {
       // get the DOW of the first day of the month, and subtract out the 
@@ -200,9 +197,6 @@ public class DateMapCache {
         // start of week is in the same month,
         // advance until we get to the week before this one:
         secs += period * ((seconds - secs) / period);
-//        while (secs <= seconds - period) {
-//          secs += period;
-//        }
       }
     }
     else if (period == (QUARTER_MS / SECOND_MS)) {
