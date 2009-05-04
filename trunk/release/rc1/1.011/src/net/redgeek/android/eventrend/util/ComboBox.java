@@ -102,6 +102,7 @@ public class ComboBox extends LinearLayout {
 
     mEditText = new EditText(mCtx);
     mEditText.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    mEditText.setMinEms(5);
     mLayout.addView(mEditText, new LinearLayout.LayoutParams(
         LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
 
