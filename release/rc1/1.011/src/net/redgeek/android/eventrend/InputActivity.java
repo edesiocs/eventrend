@@ -801,6 +801,7 @@ public class InputActivity extends EvenTrendActivity {
 
     swapUpDown(top, bottom, getCtx());    
     fillCategoryData(mFlipper.getDisplayedChild());
+    setCurrentViews(false);
   }
 
   public static void slideDown(ViewGroup group, Context ctx) {
