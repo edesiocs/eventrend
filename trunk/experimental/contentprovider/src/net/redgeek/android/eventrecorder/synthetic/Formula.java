@@ -82,7 +82,7 @@ public class Formula {
 
   public static class OperandInstance {
     public Tokenizer.TokenID mType;
-    public Float mFloat;
+    public Double mDouble;
     public Long mLong;
     public SeriesData mSeries;
     public DateUtil.Period mPeriod;
@@ -98,10 +98,10 @@ public class Formula {
 
     if (operand.getClass().equals(AST.FloatOperand.class)) {
       instance.mType = Tokenizer.TokenID.FLOAT_VALUE;
-      instance.mFloat = (Float) operand.getValue();
+      instance.mDouble = (Double) operand.getValue();
     } else if (operand.getClass().equals(AST.LongOperand.class)) {
       instance.mType = Tokenizer.TokenID.LONG_VALUE;
-      instance.mFloat = (Float) operand.getValue();
+      instance.mDouble = (Double) operand.getValue();
     } else if (operand.getClass().equals(AST.UnitsOperand.class)) {
       instance.mType = Tokenizer.TokenID.PERIOD_CONSTANT;
       instance.mPeriod = (DateUtil.Period) operand.getValue();
@@ -137,7 +137,7 @@ public class Formula {
 
     if (left.mType == Tokenizer.TokenID.SERIES) {
       if (right.mType == Tokenizer.TokenID.FLOAT_VALUE)
-        left.mSeries.floatOp(right.mFloat, opcode, false);
+        left.mSeries.floatOp(right.mDouble, opcode, false);
       else if (right.mType == Tokenizer.TokenID.LONG_VALUE)
         left.mSeries.longOp(right.mLong, opcode, false);
       else if (right.mType == Tokenizer.TokenID.DELTA) {
@@ -154,7 +154,7 @@ public class Formula {
 
     if (right.mType == Tokenizer.TokenID.SERIES) {
       if (left.mType == Tokenizer.TokenID.FLOAT_VALUE)
-        right.mSeries.floatOp(right.mFloat, opcode, true);
+        right.mSeries.floatOp(right.mDouble, opcode, true);
       else if (left.mType == Tokenizer.TokenID.LONG_VALUE)
         right.mSeries.longOp(right.mLong, opcode, true);
       else if (left.mType == Tokenizer.TokenID.PERIOD_CONSTANT) {
@@ -178,14 +178,14 @@ public class Formula {
         l = new Long(right.mLong);
 
       if (opcode == AST.Opcode.PLUS)
-        left.mFloat += l;
+        left.mDouble += l;
       else if (opcode == AST.Opcode.MINUS)
-        left.mFloat -= l;
+        left.mDouble -= l;
       else if (opcode == AST.Opcode.MULTIPLY)
-        left.mFloat *= l;
+        left.mDouble *= l;
       else if (opcode == AST.Opcode.DIVIDE) {
         if (l != 0)
-          left.mFloat /= l;
+          left.mDouble /= l;
       }
     }
 
@@ -214,14 +214,14 @@ public class Formula {
       }
     } else if (right.mType == Tokenizer.TokenID.FLOAT_VALUE) {
       if (opcode == AST.Opcode.PLUS)
-        left.mFloat = left.mLong + right.mFloat;
+        left.mDouble = left.mLong + right.mDouble;
       else if (opcode == AST.Opcode.MINUS)
-        left.mFloat = left.mLong - right.mFloat;
+        left.mDouble = left.mLong - right.mDouble;
       else if (opcode == AST.Opcode.MULTIPLY)
-        left.mFloat = left.mLong * right.mFloat;
+        left.mDouble = left.mLong * right.mDouble;
       else if (opcode == AST.Opcode.DIVIDE) {
-        if (right.mFloat != 0)
-          left.mFloat = left.mLong / right.mFloat;
+        if (right.mDouble != 0)
+          left.mDouble = left.mLong / right.mDouble;
       }
     }
 
