@@ -630,19 +630,19 @@ public class InputActivity extends EvenTrendActivity {
     }
   }
 
-  //  public void redrawSyntheticViews() {
-//    for (int i = 0; i < mFlipper.getChildCount(); i++) {
-//      ListView lv = (ListView) mFlipper.getChildAt(i);
-//
-//      for (int j = 0; j < lv.getChildCount(); j++) {
-//        CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
-//        if (row.getDbRow().getSynthetic() == true) {
-//          row.populateFields();
-//          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, getCtx());
-//        }
-//      }
-//    }
-//  }
+  public void redrawSyntheticViews() {
+    for (int i = 0; i < mFlipper.getChildCount(); i++) {
+      ListView lv = (ListView) mFlipper.getChildAt(i);
+
+      for (int j = 0; j < lv.getChildCount(); j++) {
+        CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
+        if (row.mRow.mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC) == true) {
+          row.populateFields();
+//          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, mCtx);
+        }
+      }
+    }
+  }
 
   // *** Transitions elsewhere ... ***//
 

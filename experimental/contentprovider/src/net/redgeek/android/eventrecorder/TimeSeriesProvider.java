@@ -26,8 +26,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.net.Uri.Builder;
-import android.os.Debug;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -36,6 +34,8 @@ import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrecorder.synthetic.Formula;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -364,135 +364,226 @@ public class TimeSeriesProvider extends ContentProvider {
         throw new IllegalArgumentException("getType: Unknown URI " + uri);
     }      
   }
+  
+  private Formula fetchFormula(SQLiteDatabase db, long timeSeriesId) {
+    Formula formula = null;
+    String[] projection = new String[] { TimeSeries.FORMULA };
+    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();      
+    qb.setTables(TimeSeries.TABLE_NAME);
+    qb.setProjectionMap(sTimeSeriesProjection);
+    Cursor c = qb.query(db, projection, TimeSeries._ID + " = ? ", 
+        new String[] { "" + timeSeriesId }, null, null, null);
+    c.moveToFirst();
+    String f = TimeSeries.getFormula(c);
+    c.close();
+    if (f != null && f.equals("") == false) {
+      formula = new Formula(f);
+    }
+    return formula;
+  }
+  
+  private ArrayList<Long> fetchSourceSeries(SQLiteDatabase db, long timeSeriesId) 
+      throws Exception {
+    ArrayList<Long> sourceIds = new ArrayList<Long>();
+    String[] projection = new String[] { FormulaCache.SOURCE_SERIES };
+    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+    qb.setTables(FormulaCache.TABLE_NAME);
+    Cursor c = qb.query(db, projection, FormulaCache.RESULT_SERIES + " = ? ",
+        new String[] { "" + timeSeriesId }, null, null, null);
+    int count = c.getCount();
+    c.moveToFirst();
+    for (int i = 0; i < count; i++) {
+      Long l = Long.valueOf(FormulaCache.getSourceSeries(c));
+      if (l == timeSeriesId) {
+        c.close();
+        throw new Exception("A synthetic series may not depend on itself!");
+      }
+      sourceIds.add(l);
+      c.moveToNext();
+    }
+    c.close();
+
+    return sourceIds;
+  }
+  
+  private ArrayList<Long> fetchDependentSeries(SQLiteDatabase db, long timeSeriesId)
+      throws Exception {
+    ArrayList<Long> resultIds = new ArrayList<Long>();
+    String[] projection = new String[] { FormulaCache.RESULT_SERIES };
+    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
+    qb.setDistinct(true);
+    qb.setTables(FormulaCache.TABLE_NAME);
+    Cursor c = qb.query(db, projection, FormulaCache.SOURCE_SERIES + " = ? ",
+        new String[] { "" + timeSeriesId }, null, null, null);
+    int count = c.getCount();
+    c.moveToFirst();
+    for (int i = 0; i < count; i++) {
+      Long l = Long.valueOf(FormulaCache.getResultSeries(c));
+      if (l == timeSeriesId) {
+        c.close();
+        throw new Exception("A synthetic series may not depend on itself!");
+      }
+      resultIds.add(l);
+      c.moveToNext();
+    }
+    c.close();
+
+    return resultIds;
+  }
+
+  
+  private ArrayList<SeriesData> fetchSourceData(SQLiteDatabase db, 
+      ArrayList<Long> sourceIds, int fromTimestamp) {
+    SQLiteQueryBuilder qb;
+    Cursor c;
+    String[] dpProjection = new String[] { Datapoint.TS_START, Datapoint.TS_END,
+        Datapoint.VALUE, Datapoint.ENTRIES };
+    int count;
+    ArrayList<SeriesData> sources = new ArrayList<SeriesData>();
+
+    int size = sourceIds.size();
+    for (int i = 0; i < size; i++) {
+      long id = sourceIds.get(i);
+      boolean avg = false;
+
+      String[] tsProjection = new String[] { TimeSeries.FORMULA, 
+          TimeSeries.AGGREGATION, TimeSeries.TIMESERIES_NAME };
+      qb = new SQLiteQueryBuilder();
+      qb.setTables(TimeSeries.TABLE_NAME);
+      qb.setProjectionMap(sTimeSeriesProjection);
+      c = qb.query(db, tsProjection, TimeSeries._ID + " = ? ",
+          new String[] { "" + id }, null, null, null);
+      c.moveToFirst();
+      if (TimeSeries.getAggregation(c).equals(TimeSeries.AGGREGATION_AVG))
+        avg = true;
+      String name = TimeSeries.getTimeSeriesName(c);
+      c.close();
+
+      // grab the previous point in order to connect dots:
+      qb = new SQLiteQueryBuilder();
+      qb.setTables(Datapoint.TABLE_NAME);
+      qb.setProjectionMap(sDatapointProjection);
+      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id + " and ");
+      qb.appendWhere(Datapoint.TS_START + " < " + fromTimestamp);
+      String orderBy = Datapoint.TS_START + " desc ";
+      // we need to fetch as many datapoint back as we have timeseries, since
+      // interpolation needs to take into account previous datapoints in order
+      // to be accurate.
+      String limit = "" + size;
+
+      Datum d;
+      SeriesData ts = new SeriesData();
+      ts.mTsEarliest = Integer.MAX_VALUE;
+      ts.mName = name;
+      c = qb.query(db, dpProjection, null, null, null, null, orderBy, limit);
+      count = c.getCount();
+      c.moveToLast();
+      for (int j = 0; j < count; j++) {
+        d = new Datum();
+        d.mTsStart = Datapoint.getTsStart(c);
+        if (d.mTsStart < ts.mTsEarliest) {
+          ts.mTsEarliest = d.mTsStart;
+        }
+        d.mTsEnd = Datapoint.getTsEnd(c);
+        d.mValue = Datapoint.getValue(c);
+        int entries = Datapoint.getEntries(c);
+        if (avg == true) {
+          d.mValue /= entries;
+        }
+        ts.mData.add(d);
+        c.moveToPrevious();
+      }
+      c.close();
+        
+      // now grab the rest:
+      qb = new SQLiteQueryBuilder();
+      qb.setTables(Datapoint.TABLE_NAME);
+      qb.setProjectionMap(sDatapointProjection);
+      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id + " and " );
+      qb.appendWhere(Datapoint.TS_START + " >= " + fromTimestamp);
+      orderBy = Datapoint.DEFAULT_SORT_ORDER;
+
+      c = qb.query(db, dpProjection, null, null, null, null, orderBy);
+      count = c.getCount();
+      c.moveToFirst();
+      for (int j = 0; j < count; j++) {
+        d = new Datum();
+        d.mTsStart = Datapoint.getTsStart(c);
+        d.mTsEnd = Datapoint.getTsEnd(c);
+        d.mValue = Datapoint.getValue(c);
+        int entries = Datapoint.getEntries(c);
+        if (avg == true) {
+          d.mValue /= entries;
+        }
+        ts.mData.add(d);
+        c.moveToNext();
+      }
+      c.close();
+      sources.add(ts);
+    }
+    
+    return sources;
+  }
 
   private void updateFormulaData(SQLiteDatabase db, long timeSeriesId, 
-      Formula formula) throws Exception {
-//    ArrayList<Long> sourceIds = new ArrayList<Long>();
-//    ArrayList<SeriesData> sources = new ArrayList<SeriesData>();
-//    SQLiteQueryBuilder qb;         
-//    String[] projection;
-//    Cursor c;
-//    int count;
-//
-//    if (formula == null) {
-//      projection = new String[] { TimeSeries.FORMULA };
-//      qb = new SQLiteQueryBuilder();      
-//      qb.setTables(TimeSeries.TABLE_NAME);
-//      qb.setProjectionMap(sTimeSeriesProjection);
-//      c = qb.query(db, projection, TimeSeries._ID + " = ? ", 
-//          new String[] { "" + timeSeriesId }, null, null, null);
-//      c.moveToFirst();
-//      String f = TimeSeries.getFormula(c);
-//      c.close();
-//      if (f != null && f.equals("") == false) {
-//        formula = new Formula(f);
-//      }
-//    }
-//    
-//    if (formula != null) {
-//      // Get the source series ids:
-//      projection = new String[] { FormulaCache.SOURCE_SERIES };
-//      qb = new SQLiteQueryBuilder();
-//      qb.setTables(FormulaCache.TABLE_NAME);
-//      c = qb.query(db, projection, FormulaCache.RESULT_SERIES + " = ? ",
-//          new String[] { "" + timeSeriesId }, null, null, null);
-//      count = c.getCount();
-//      c.moveToFirst();
-//      for (int i = 0; i < count; i++) {
-//        Long l = Long.valueOf(FormulaCache.getSourceSeries(c));
-//        if (l == timeSeriesId) {
-//          c.close();
-//          throw new Exception("A synthetic series may not depend on itself!");
-//        }
-//        sourceIds.add(l);
-//        c.moveToNext();
-//      }
-//      c.close();
-//
-//      // Gather the data for each:
-//      projection = new String[] { Datapoint.TS_START, Datapoint.TS_END,
-//          Datapoint.SUM, Datapoint.ENTRIES, };
-//      int size = sourceIds.size();
-//      for (int i = 0; i < size; i++) {
-//        long id = sourceIds.get(i);
-//        boolean avg = false;
-//
-//        projection = new String[] { TimeSeries.FORMULA, TimeSeries.AGGREGATION };
-//        qb = new SQLiteQueryBuilder();
-//        qb.setTables(TimeSeries.TABLE_NAME);
-//        qb.setProjectionMap(sTimeSeriesProjection);
-//        c = qb.query(db, projection, TimeSeries._ID + " = ? ",
-//            new String[] { "" + id }, null, null, null);
-//        c.moveToFirst();
-//        if (TimeSeries.getAggregation(c).equals(TimeSeries.AGGREGATION_AVG))
-//          avg = true;
-//        c.close();
-//
-//        qb = new SQLiteQueryBuilder();
-//        qb.setTables(Datapoint.TABLE_NAME);
-//        qb.setProjectionMap(sDatapointProjection);
-//        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id);
-//        String orderBy = Datapoint.DEFAULT_SORT_ORDER;
-//
-//        Datum d;
-//        SeriesData ts = new SeriesData();
-//        c = qb.query(db, projection, null, null, null, null, orderBy);
-//        count = c.getCount();
-//        c.moveToFirst();
-//        for (int j = 0; j < count; j++) {
-//          d = new Datum();
-//          d.mTsStart = Datapoint.getTsStart(c);
-//          d.mTsEnd = Datapoint.getTsEnd(c);
-//          d.mValue = Datapoint.getSum(c);
-//          int entries = Datapoint.getEntries(c);
-//          if (avg == true) {
-//            d.mValue /= entries;
-//          }
-//          ts.mData.add(d);
-//          c.moveToNext();
-//        }
-//        c.close();
-//        sources.add(ts);
-//      }
-//
-//      SeriesData result = formula.apply(sources);
-//
-//      // Store the results
-//      Datum d;
-//      ContentValues values = new ContentValues();
-//      count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + "="
-//          + timeSeriesId, null);
-//      size = result.mData.size();
-//      for (int i = 0; i < size; i++) {
-//        d = result.mData.get(i);
-//        values.clear();
-//        values.put(Datapoint.TS_START, d.mTsStart);
-//        values.put(Datapoint.TS_END, d.mTsEnd);
-//        values.put(Datapoint.SUM, d.mValue);
-//        values.put(Datapoint.ENTRIES, 1);
-//        values.put(Datapoint.SUMSQR, 0.0f);
-//        values.put(Datapoint.TREND, 0.0f);
-//        db.insert(Datapoint.TABLE_NAME, null, values);
-//        insertAggregations(db, timeSeriesId, d.mTsStart, d.mValue);
-//      }
-//      updateStats(db, timeSeriesId, 0);
-//    }
-//    // Get any series dependent on this one and recalc
-//    projection = new String[] { FormulaCache.RESULT_SERIES };
-//    qb = new SQLiteQueryBuilder();
-//    qb.setTables(FormulaCache.TABLE_NAME);
-//    c = qb.query(db, projection, FormulaCache.SOURCE_SERIES + " = ? ", 
-//        new String[] { "" + timeSeriesId}, null, null, null);
-//    count = c.getCount();
-//    c.moveToFirst();
-//    for (int i = 0; i < count; i++) {
-//      // TODO:  prevent recursing to ourself
-//      long id = FormulaCache.getResultSeries(c);
-//      updateFormulaData(db, id, null);
-//      c.moveToNext();
-//    }
-//    c.close();
+      int fromTimestamp, Formula formula) throws Exception {
+    ArrayList<Long> sourceIds;
+    ArrayList<Long> resultIds;
+    ArrayList<SeriesData> sources;
+    SQLiteQueryBuilder qb;         
+    String[] projection;
+    Cursor c;
+    int count;
+    
+    // get the formula if we we're supplied with one:
+    if (formula == null) {
+      formula = fetchFormula(db, timeSeriesId);
+    }
+    
+    if (formula != null) {
+      // Get the source series ids:
+      sourceIds = fetchSourceSeries(db, timeSeriesId);
+      sources = fetchSourceData(db, sourceIds, fromTimestamp);
 
+      SeriesData result = formula.apply(sources);
+
+      int minTime = Integer.MAX_VALUE;
+      for (int i = 0; i < sources.size(); i++) {
+        int timestamp = sources.get(i).mTsEarliest;
+        if (timestamp < minTime) {
+          minTime = timestamp;
+        }
+      }
+      
+      // Store the results
+      Datum d;
+      ContentValues values = new ContentValues();
+      count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + " = "
+          + timeSeriesId + " and " + Datapoint.TS_START + " >= " + minTime, 
+          null);
+      int size = result.mData.size();
+      for (int i = 0; i < size; i++) {
+        d = result.mData.get(i);
+        values.clear();
+
+        Datapoint.setTimeSeriesId(values, timeSeriesId);
+        Datapoint.setTsStart(values, d.mTsStart);
+        Datapoint.setTsEnd(values, d.mTsEnd);
+        Datapoint.setValue(values, d.mValue);
+        Datapoint.setEntries(values, 1);
+
+        setContentValues(db, values, timeSeriesId, d.mTsStart, d.mValue, 1);
+        db.insert(Datapoint.TABLE_NAME, null, values);
+      }
+    }
+    
+    // Now try updating all series that may be dependent on this one:
+    resultIds = fetchDependentSeries(db, timeSeriesId);
+    int size = resultIds.size();
+    for (int i = 0; i < size; i++) {
+      updateFormulaData(db, resultIds.get(i), fromTimestamp, null);
+    }
+    
     return;
   }
   
@@ -533,7 +624,7 @@ public class TimeSeriesProvider extends ContentProvider {
         throw new Exception("Unabled to insert into formula table.");
     }
     
-    updateFormulaData(db, timeSeriesId, f);
+    updateFormulaData(db, timeSeriesId, 0, f);
     
     return;
   }
@@ -715,24 +806,6 @@ public class TimeSeriesProvider extends ContentProvider {
     return;
   }
 
-  private void removeFromAggregations(SQLiteDatabase db, long timeSeriesId, 
-      int tsStart) throws Exception {
-//    long id;
-//    int period, periodStart;
-//    String[] tables = TimeSeriesData.Datapoint.AGGREGATE_SUFFIX;
-//    String table, sql;
-//    
-//    for (int i = 0; i < tables.length; i++) {
-//      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
-//      table = TimeSeriesData.Datapoint.TABLE_NAME + "_" + tables[i];
-//
-//      periodStart = mDateMap.secondsOfPeriodStart(tsStart, period);
-//      recalcAggregation(db, table, period, timeSeriesId, periodStart);
-//    }
-//
-//    return;
-  }
-  
   private double calculateTrend(double newValue, double oldTrend, double smoothing) {
     // T(n) = T(n-1) + (smoothing * (V(n) - T(n-1)))
     return oldTrend + (smoothing * (newValue - oldTrend));
@@ -1019,7 +1092,7 @@ public class TimeSeriesProvider extends ContentProvider {
           
           // TODO: update for new schema
           updateAggregations(db, timeSeriesId, tsStart, value, entries);
-          updateFormulaData(db, timeSeriesId, null);
+          updateFormulaData(db, timeSeriesId, tsStart, null);
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -1207,7 +1280,7 @@ public class TimeSeriesProvider extends ContentProvider {
           
           if (values.containsKey(TimeSeries.FORMULA)) {
             updateFormula(db, Long.valueOf(timeSeriesId), values.getAsString(TimeSeries.FORMULA));
-            updateFormulaData(db, Long.valueOf(timeSeriesId), null);
+            updateFormulaData(db, Long.valueOf(timeSeriesId), 0, null);
           }
           
           db.setTransactionSuccessful();
@@ -1265,7 +1338,7 @@ public class TimeSeriesProvider extends ContentProvider {
           updateAggregations(db, tsId, newStart, newValue, newEntries);      
           updateStats(db, tsId, oldStart < newStart ? oldStart : newStart, 
               Integer.MAX_VALUE);
-          updateFormulaData(db, tsId, null);
+          updateFormulaData(db, tsId, oldStart < newStart ? oldStart : newStart, null);
 
           db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -1351,7 +1424,7 @@ public class TimeSeriesProvider extends ContentProvider {
                     
           updateAggregations(db, tsId, oldStart, -oldValue, -oldEntries);
           updateStats(db, tsId, oldStart, Integer.MAX_VALUE);
-          updateFormulaData(db, tsId, null);
+          updateFormulaData(db, tsId, oldStart, null);
 
           db.setTransactionSuccessful();
         } catch (Exception e) {

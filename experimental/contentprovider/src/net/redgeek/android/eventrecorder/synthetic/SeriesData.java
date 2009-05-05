@@ -25,29 +25,47 @@ import java.util.TreeMap;
 
 public final class SeriesData {
   public static class Datum {
-    public int   mTsStart;
-    public int   mTsEnd;
-    public float mValue;
+    public int    mTsStart;
+    public int    mTsEnd;
+    public double mValue;
     
     public Datum() {
     }
     
-    public Datum(int tsStart, int tsEnd, float value) {
+    public Datum(int tsStart, int tsEnd, double value) {
        mTsStart = tsStart;
        mTsEnd = tsEnd;
        mValue = value;
     }
+    
+    @Override
+    public String toString() {
+      return "[" + mTsStart + ", " + mTsEnd + "] " + mValue;
+    }
   }
   
-  public ArrayList<Datum>       mData;
-  public String                 mName;
+  public ArrayList<Datum> mData;
+  public String           mName;
+  public int              mTsEarliest;
   
   public SeriesData() {
+    mTsEarliest = Integer.MAX_VALUE;
     mData = new ArrayList<Datum>();
     mName = "";
   }
+  
+  @Override
+  public String toString() {
+    int size = mData.size();
+    String s = mName + ": ";
+    for (int i = 0; i < size; i++) {
+      Datum d = mData.get(i);
+      s += d.toString() + " ";
+    }
+    return s;
+  }
 
-  public void floatOp(Float f, AST.Opcode op, boolean pre) {
+  public void floatOp(Double f, AST.Opcode op, boolean pre) {
     if (f == null || f.isNaN() || f.isInfinite())
       return;
 
@@ -80,35 +98,35 @@ public final class SeriesData {
     }
   }
 
-  public void plusPre(Float f) {
+  public void plusPre(Double f) {
     floatOp(f, AST.Opcode.PLUS, true);
   }
 
-  public void minusPre(Float f) {
+  public void minusPre(Double f) {
     floatOp(f, AST.Opcode.MINUS, true);
   }
 
-  public void multiplyPre(Float f) {
+  public void multiplyPre(Double f) {
     floatOp(f, AST.Opcode.MULTIPLY, true);
   }
 
-  public void dividePre(Float f) {
+  public void dividePre(Double f) {
     floatOp(f, AST.Opcode.DIVIDE, true);
   }
 
-  public void plusPost(Float f) {
+  public void plusPost(Double f) {
     floatOp(f, AST.Opcode.PLUS, false);
   }
 
-  public void minusPost(Float f) {
+  public void minusPost(Double f) {
     floatOp(f, AST.Opcode.MINUS, false);
   }
 
-  public void multiplyPost(Float f) {
+  public void multiplyPost(Double f) {
     floatOp(f, AST.Opcode.MULTIPLY, false);
   }
 
-  public void dividePost(Float f) {
+  public void dividePost(Double f) {
     floatOp(f, AST.Opcode.DIVIDE, false);
   }
 
@@ -277,10 +295,15 @@ public final class SeriesData {
     if (d1 == null)
       return null;
 
+    if (d1.mTsStart == d2.mTsStart && d1.mValue == d2.mValue) {
+      result.mValue = d1.mValue;
+      return result;
+    }
+
     if (d1.mTsStart == d2.mTsStart)
       return null;
     
-    float slope = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
+    double slope = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
     result.mValue = d1.mValue + (slope * (timestamp - d1.mTsStart));
       
     return result;
@@ -325,9 +348,9 @@ public final class SeriesData {
         if (res2 == null)
           res2 = new Datum(seconds, seconds, 0.0f);
       }
-      if (res1 == null || Float.isNaN(res1.mValue) || Float.isInfinite(res1.mValue))
+      if (res1 == null || Double.isNaN(res1.mValue) || Double.isInfinite(res1.mValue))
         continue;
-      if (res2 == null || Float.isNaN(res2.mValue) || Float.isInfinite(res2.mValue))
+      if (res2 == null || Double.isNaN(res2.mValue) || Double.isInfinite(res2.mValue))
         continue;
 
       if (op == AST.Opcode.PLUS)

@@ -72,8 +72,9 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private View.OnClickListener mMinusButtonListener;
   private View.OnClickListener mAddListener;
 
+  public CategoryRow mRow;
+
   // Private data
-  private CategoryRow mRow;
   private long mNewDatapointId;
 
   private int mColorInt;
@@ -123,15 +124,21 @@ public class CategoryRowView extends LinearLayout implements GUITask {
             .doubleValue();
         mNewDatapointId = service.recordEvent(mRow.mId, mRow.mTimestamp,
             mAddValue);
+        if (mNewDatapointId < 0)
+          throw new Exception("recordEvent failed with error " + mNewDatapointId);
       } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
         if (mRow.mRecordingDatapointId > 0) {
           mNewDatapointId = service.recordEventStop(mRow.mId);
           if (mNewDatapointId > 0)
             mRow.mRecordingDatapointId = 0;
+          if (mNewDatapointId < 0)
+            throw new Exception("recordEventStop failed with error " + mNewDatapointId);
         } else {
           mNewDatapointId = service.recordEventStart(mRow.mId);
           if (mNewDatapointId > 0)
             mRow.mRecordingDatapointId = mNewDatapointId;
+          if (mNewDatapointId < 0)
+            throw new Exception("recordEventStart failed with error " + mNewDatapointId);
         }
       }
     }
@@ -167,15 +174,20 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     // updateTrendIcon(cat.getTrendState());
     // float trendValue = Number.Round(cat.getLastTrend(), mDecimals);
     // mTrendValueView.setText(Float.valueOf(trendValue).toString());
-    //
-    // ((InputActivity) mCtx).redrawSyntheticViews();
+
+    ((InputActivity) mCtx).redrawSyntheticViews();
   }
 
   public void onFailure(Throwable t) {
+    setLayoutAnimationWiggle(mRowView, mCtx);
     Toast.makeText(mCtx, "Input failed: " + t.getMessage(), Toast.LENGTH_SHORT)
         .show();
     mAddButton.setClickable(true);
     mAddButton.setTextColor(Color.BLACK);
+  }
+  
+  public void showFailure() {
+    
   }
 
   private void setupTasks() {
@@ -341,6 +353,34 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         Animation.RELATIVE_TO_SELF, 0.0f);
     animation.setStartOffset(0);
     animation.setDuration(500);
+    animation.setRepeatCount(1);
+    animation.setRepeatMode(Animation.REVERSE);
+    set.addAnimation(animation);
+    set.setDuration(500);
+
+    LayoutAnimationController controller = new LayoutAnimationController(set,
+        0.25f);
+    controller.setOrder(LayoutAnimationController.ORDER_NORMAL);
+    panel.setLayoutAnimation(controller);
+  }
+  
+  public static void setLayoutAnimationWiggle(ViewGroup panel, Context ctx) {
+    AnimationSet set = new AnimationSet(true);
+    Animation animation;
+
+    animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+        Animation.RELATIVE_TO_SELF, -0.25f, Animation.RELATIVE_TO_SELF, 0.0f,
+        Animation.RELATIVE_TO_SELF, 0.0f);
+    animation.setStartOffset(0);
+    animation.setDuration(100);
+    animation.setRepeatCount(1);
+    animation.setRepeatMode(Animation.REVERSE);
+    set.addAnimation(animation);
+    animation = new TranslateAnimation(Animation.RELATIVE_TO_SELF, 0.0f,
+        Animation.RELATIVE_TO_SELF, 0.25f, Animation.RELATIVE_TO_SELF, 0.0f,
+        Animation.RELATIVE_TO_SELF, 0.0f);
+    animation.setStartOffset(0);
+    animation.setDuration(100);
     animation.setRepeatCount(1);
     animation.setRepeatMode(Animation.REVERSE);
     set.addAnimation(animation);
