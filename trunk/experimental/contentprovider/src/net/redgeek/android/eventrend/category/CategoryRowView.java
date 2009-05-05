@@ -138,19 +138,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void afterExecute() {
-    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-      mAddButton.setClickable(true);
-      mAddButton.setTextColor(Color.BLACK);
-    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
-      if (mRow.mRecordingDatapointId == 0) {
-        mAddButton.setText("Stop");
-        mAddButton.setTextColor(Color.RED);
-      } else {
-        mAddButton.setText("Start");
-        mAddButton.setTextColor(Color.BLACK);
-      }
-    }
-
     populateFields();
 
     // String status;
@@ -182,9 +169,6 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     // mTrendValueView.setText(Float.valueOf(trendValue).toString());
     //
     // ((InputActivity) mCtx).redrawSyntheticViews();
-
-    mAddButton.setClickable(true);
-    mAddButton.setTextColor(Color.BLACK);
   }
 
   public void onFailure(Throwable t) {
@@ -265,16 +249,21 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mCategoryNameView.setText(mRow.mTimeSeriesName);
     mCategoryNameView.setTextColor(mColorInt);
 
+    mAddButton.setClickable(true);
     if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
       mAddButton.setText("Add");      
+      mAddButton.setTextColor(Color.BLACK);
     } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
       mDefaultValue.setVisibility(View.INVISIBLE);
-      if (mRow.mRecordingDatapointId > 0)
+      if (mRow.mRecordingDatapointId > 0) {
         mAddButton.setText("Stop");
-      else
+        mAddButton.setTextColor(Color.RED);
+      } else {
         mAddButton.setText("Start");
+        mAddButton.setTextColor(Color.BLACK);
+      }
     } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
@@ -437,16 +426,13 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void addEntry() {
-    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
-      mAddButton.setClickable(false);
-      mAddButton.setTextColor(Color.LTGRAY);
-    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+    mAddButton.setClickable(false);
+    mAddButton.setTextColor(Color.DKGRAY);
+    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
       if (mRow.mRecordingDatapointId == 0) {
         mAddButton.setText("Stop");
-        mAddButton.setTextColor(Color.RED);
       } else {
         mAddButton.setText("Start");
-        mAddButton.setTextColor(Color.BLACK);
       }
     }
 

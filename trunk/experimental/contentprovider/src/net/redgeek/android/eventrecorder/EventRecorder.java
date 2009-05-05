@@ -178,7 +178,7 @@ public class EventRecorder extends Service {
       values.put(TimeSeriesData.Datapoint.TS_START, now);
       values.put(TimeSeriesData.Datapoint.TS_END, 0);
       values.put(TimeSeriesData.Datapoint.VALUE, 0);
-      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+      values.put(TimeSeriesData.Datapoint.ENTRIES, 0);
 
       Uri uri = ContentUris.withAppendedId(
           TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
@@ -265,6 +265,7 @@ public class EventRecorder extends Service {
       long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
       values.put(TimeSeriesData.Datapoint.TS_END, now);
       values.put(TimeSeriesData.Datapoint.VALUE, now - tsStart);
+      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
       int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
