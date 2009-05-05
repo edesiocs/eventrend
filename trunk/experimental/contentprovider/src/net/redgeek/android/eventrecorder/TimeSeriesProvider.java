@@ -697,7 +697,7 @@ public class TimeSeriesProvider extends ContentProvider {
     sql = "update " + Datapoint.TABLE_NAME + " set "
       + Datapoint.SUM_VALUE + " = " + Datapoint.SUM_VALUE + " + " + value + ", "
       + Datapoint.SUM_VALUE_SQR + " = " + Datapoint.SUM_VALUE_SQR + " + " + valSqr + ", "
-      + Datapoint.SUM_ENTRIES + " = " + Datapoint.SUM_ENTRIES + " + " + entries + ", ";
+      + Datapoint.SUM_ENTRIES + " = " + Datapoint.SUM_ENTRIES + " + " + entries + " ";
     for (int i = 0; i < aggregations.length; i++) {
       suffix = Datapoint.AGGREGATE_SUFFIX[i];
       sql += ", " + Datapoint.VALUE + "_" + suffix + " = " 
