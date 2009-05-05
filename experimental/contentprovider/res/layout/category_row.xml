@@ -44,20 +44,20 @@
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
 			android:layout_gravity="center_vertical|center_horizontal" 
-			android:text="-">
+			android:text="-" android:minWidth="50px">
 		</Button>
 		<Button 
 			android:id="@+id/category_input_plus" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
 			android:layout_gravity="center_vertical|center_horizontal" 
-			android:text="+">
+			android:text="+" android:minWidth="50px">
 		</Button>
 		<EditText 
 			android:id="@+id/category_input_value" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
-			android:layout_gravity="right|center_vertical" android:numeric="signed|decimal">
+			android:layout_gravity="right|center_vertical" android:numeric="signed|decimal" android:gravity="right|center_vertical" android:minEms="4">
 		</EditText>
 		<Button 
 			android:id="@+id/category_input_add" 
