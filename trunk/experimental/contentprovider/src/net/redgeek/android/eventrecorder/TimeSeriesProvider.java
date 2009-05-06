@@ -16,6 +16,19 @@
 
 package net.redgeek.android.eventrecorder;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrecorder.synthetic.Formula;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -26,22 +39,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Debug;
 import android.text.TextUtils;
 import android.util.Log;
-
-import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
-import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
-import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.synthetic.Formula;
-import net.redgeek.android.eventrecorder.synthetic.SeriesData;
-import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 // TODO:  support calculated series
 // TODO:  flesh out interpolator plugins
@@ -1045,6 +1045,8 @@ public class TimeSeriesProvider extends ContentProvider {
     int period, oldPeriodStart, newPeriodStart, oldPeriodEnd, newPeriodEnd;
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
     
+    Debug.startMethodTracing("cpInsert");
+    
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         LockUtil.waitForLock(mLock);
@@ -1110,6 +1112,8 @@ public class TimeSeriesProvider extends ContentProvider {
     
     if (outputUri != null)
       getContext().getContentResolver().notifyChange(outputUri, null);
+    
+    Debug.stopMethodTracing();
     
     return outputUri;
   }

@@ -148,18 +148,18 @@ public class TimeSeriesData {
     
     /* for raw (un-aggregated) data:
       -- value => instantaneous value
+      -- entries => instantaneous value
       -- trend => trend[n-1] + (smoothing * ((value[n-1] / entries) - trend[n-1])) || value
       -- sumsqr => sumsqr[n-1] + value^2 || value^2
       -- stddev => sqrt(sumsqr / entries - (mean)^2) || 0
        for aggregated data
       -- value, entries, trend, stddev are instantaneous
-  -- sum_* are monotonically increasing
-  -- value => value[n-1] + value || value
-  -- entries => entries[n-1] + 1 || 1
-  -- entries => entries[n-1] + 1 || 1
-  -- sumsqr => sumsqr[n-1] + row.value^2 || row.value^2
-  -- trend => trend[n-1] + (smoothing * ((value[n-1] / entries) - trend[n-1])) || avg(trend)
-  -- stddev => sqrt(period.sumsqr / count(value) - (mean)^2)
+      -- sum_* are monotonically increasing
+      -- value => value[n-1] + value || value
+      -- entries => entries[n-1] + 1 || entries
+      -- sumsqr => sumsqr[n-1] + row.value^2 || row.value^2
+      -- trend => trend[n-1] + (smoothing * ((value[n-1] / entries) - trend[n-1])) || avg(trend)
+      -- stddev => sqrt(period.sumsqr / count(value) - (mean)^2)
     */
     public static final String TABLE_CREATE = "create table "
         + TABLE_NAME + " ( "
@@ -226,6 +226,139 @@ public class TimeSeriesData {
         + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " double not null default 0.0 "
         + ");";
         
+    /* since we have so many columns, and getColumnIndexOrThrow and appendColumn
+     * (called from SQLiteQueryBuilder) are so slow, we'll frequently use static
+     * column selection clauses and column indexes directly, which means these 
+     * indices need to stay in order of table creation statement and static where
+     * clause:
+     */
+    public static final String DATAPOINT_SELECT_ALL_COLUMNS = " "
+      + Datapoint._ID + ", "
+      + Datapoint.TIMESERIES_ID + ", "
+      + Datapoint.TS_START + ", "
+      + Datapoint.TS_END + ", "
+      + Datapoint.VALUE + ", "
+      + Datapoint.ENTRIES + ", "
+      + Datapoint.TREND + ", "
+      + Datapoint.STDDEV + ", "
+      + Datapoint.SUM_ENTRIES + ", "
+      + Datapoint.SUM_VALUE + ", "
+      + Datapoint.SUM_VALUE_SQR + ", "
+
+      + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[0] + ", "
+      + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[0] + ", "
+
+      + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[1] + ", "
+      + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[1] + ", "
+
+      + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[2] + ", "
+      + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[2] + ", "
+
+      + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[3] + ", "
+      + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[3] + ", "
+
+      + Datapoint.TS_START + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.TS_END + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.VALUE + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.ENTRIES + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.TREND + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.STDDEV + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.SUM_ENTRIES + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.SUM_VALUE + "_" + AGGREGATE_SUFFIX[4] + ", "
+      + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " ";
+    
+    public static final int DATAPOINT_ID_IDX                    =  0;
+    public static final int DATAPOINT_TIMESERIS_ID_IDX          =  1;
+    public static final int DATAPOINT_TS_START_IDX              =  2;
+    public static final int DATAPOINT_TS_END_IDX                =  3;
+    public static final int DATAPOINT_VALUE_IDX                 =  4;
+    public static final int DATAPOINT_ENTRIES_IDX               =  5;
+    public static final int DATAPOINT_TREND_IDX                 =  6;
+    public static final int DATAPOINT_STDDEV_IDX                =  7;
+    public static final int DATAPOINT_SUM_ENTRIES_IDX           =  8;
+    public static final int DATAPOINT_SUM_VALUE_IDX             =  9;
+    public static final int DATAPOINT_SUM_VALUE_SQR_IDX         = 10;
+    
+    public static final int DATAPOINT_TS_START_DAY_IDX          = 11;
+    public static final int DATAPOINT_TS_END_DAY_IDX            = 12;
+    public static final int DATAPOINT_VALUE_DAY_IDX             = 13;
+    public static final int DATAPOINT_ENTRIES_DAY_IDX           = 14;
+    public static final int DATAPOINT_TREND_DAY_IDX             = 15;
+    public static final int DATAPOINT_STDDEV_DAY_IDX            = 16;
+    public static final int DATAPOINT_SUM_ENTRIES_DAY_IDX       = 17;
+    public static final int DATAPOINT_SUM_VALUE_DAY_IDX         = 18;
+    public static final int DATAPOINT_SUM_VALUE_SQR_DAY_IDX     = 19;
+
+    public static final int DATAPOINT_TS_START_WEEK_IDX         = 20;
+    public static final int DATAPOINT_TS_END_WEEK_IDX           = 21;
+    public static final int DATAPOINT_VALUE_WEEK_IDX            = 22;
+    public static final int DATAPOINT_ENTRIES_WEEK_IDX          = 23;
+    public static final int DATAPOINT_TREND_WEEK_IDX            = 24;
+    public static final int DATAPOINT_STDDEV_WEEK_IDX           = 25;
+    public static final int DATAPOINT_SUM_ENTRIES_WEEK_IDX      = 26;
+    public static final int DATAPOINT_SUM_VALUE_WEEK_IDX        = 27;
+    public static final int DATAPOINT_SUM_VALUE_SQR_WEEK_IDX    = 28;
+
+    public static final int DATAPOINT_TS_START_MONTH_IDX        = 29;
+    public static final int DATAPOINT_TS_END_MONTH_IDX          = 30;
+    public static final int DATAPOINT_VALUE_MONTH_IDX           = 31;
+    public static final int DATAPOINT_ENTRIES_MONTH_IDX         = 32;
+    public static final int DATAPOINT_TREND_MONTH_IDX           = 33;
+    public static final int DATAPOINT_STDDEV_MONTH_IDX          = 34;
+    public static final int DATAPOINT_SUM_ENTRIES_MONTH_IDX     = 35;
+    public static final int DATAPOINT_SUM_VALUE_MONTH_IDX       = 36;
+    public static final int DATAPOINT_SUM_VALUE_SQR_MONTH_IDX   = 37;
+
+    public static final int DATAPOINT_TS_START_QUARTER_IDX      = 38;
+    public static final int DATAPOINT_TS_END_QUARTER_IDX        = 39;
+    public static final int DATAPOINT_VALUE_QUARTER_IDX         = 40;
+    public static final int DATAPOINT_ENTRIES_QUARTER_IDX       = 41;
+    public static final int DATAPOINT_TREND_QUARTER_IDX         = 42;
+    public static final int DATAPOINT_STDDEV_QUARTER_IDX        = 43;
+    public static final int DATAPOINT_SUM_ENTRIES_QUARTER_IDX   = 44;
+    public static final int DATAPOINT_SUM_VALUE_QUARTER_IDX     = 45;
+    public static final int DATAPOINT_SUM_VALUE_SQR_QUARTER_IDX = 46;
+
+    public static final int DATAPOINT_TS_START_YEAR_IDX         = 47;
+    public static final int DATAPOINT_TS_END_YEAR_IDX           = 48;
+    public static final int DATAPOINT_VALUE_YEAR_IDX            = 49;
+    public static final int DATAPOINT_ENTRIES_YEAR_IDX          = 50;
+    public static final int DATAPOINT_TREND_YEAR_IDX            = 51;
+    public static final int DATAPOINT_STDDEV_YEAR_IDX           = 52;
+    public static final int DATAPOINT_SUM_ENTRIES_YEAR_IDX      = 53;
+    public static final int DATAPOINT_SUM_VALUE_YEAR_IDX        = 54;
+    public static final int DATAPOINT_SUM_VALUE_SQR_YEAR_IDX    = 55;
+
+
+    
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(_ID));
     }

@@ -16,16 +16,14 @@
 
 package net.redgeek.android.eventrecorder.synthetic;
 
-import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import java.util.ArrayList;
+
 import net.redgeek.android.eventrecorder.synthetic.AST.BinaryOperation;
 import net.redgeek.android.eventrecorder.synthetic.AST.GroupOperand;
 import net.redgeek.android.eventrecorder.synthetic.AST.Operand;
 import net.redgeek.android.eventrecorder.synthetic.AST.Operation;
 import net.redgeek.android.eventrecorder.synthetic.AST.UnaryOperation;
 import net.redgeek.android.eventrend.util.DateUtil;
-
-import java.util.ArrayList;
 
 /**
  * A representation of formulas for generating synthetic time series. Note that
