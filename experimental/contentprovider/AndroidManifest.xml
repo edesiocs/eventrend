@@ -112,10 +112,6 @@
 		</activity>
 -->
 
-		<activity 
-		  android:name="net.redgeek.android.eventrend.Preferences">
-		</activity>
-
     <activity 
       android:name="net.redgeek.android.eventrend.category.FormulaEditorActivity">
     </activity>

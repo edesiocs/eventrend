@@ -16,9 +16,6 @@
 
 package net.redgeek.android.eventrecorder.synthetic;
 
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.TreeMap;
