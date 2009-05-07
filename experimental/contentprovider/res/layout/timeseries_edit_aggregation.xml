@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:orientation="vertical"
+  android:scrollbars="vertical" android:layout_height="fill_parent"
+  android:layout_gravity="center_horizontal">
+  <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
+    android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
+    <LinearLayout android:id="@+id/LinearLayout01"
+      android:layout_height="wrap_content" android:layout_width="fill_parent"
+      android:orientation="vertical">
+      <TextView android:id="@+id/TextView03" android:layout_height="wrap_content"
+        android:textStyle="bold" android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_width="fill_parent" android:gravity="center_vertical|center_horizontal"
+        android:paddingTop="3px" android:paddingBottom="3px" android:text="Category Editor: Aggregation"></TextView>
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:clickable="false"
+        android:layout_gravity="top|left" android:id="@+id/TextView01"
+        android:text="Data within a category can be aggregated in different ways.  Say you mentally 'zoom out' and look at a whole month's worth of data represented as a single number.  Should that number be a sum of all the events, or an average?">
+      </TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_formula_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Aggregation Type"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_agg_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <RadioGroup android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_agg"
+          android:orientation="horizontal" android:checkedButton="@+id/category_edit_agg_sum"
+          android:layout_gravity="right|center_vertical">
+          <RadioButton android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:text="Sum"
+            android:id="@+id/category_edit_agg_sum">
+          </RadioButton>
+          <RadioButton android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/category_edit_agg_rating"
+            android:text="Average">
+          </RadioButton>
+        </RadioGroup>
+      </LinearLayout>
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:clickable="false"
+        android:layout_gravity="top|left" android:id="@+id/TextView02"
+        android:text="A category can have it's data grouped into chunks of time, such as per-day or per-month.  How do you want this category displayed?">
+      </TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_formula_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="View By"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_agg_period_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <net.redgeek.android.eventrend.util.DynamicSpinner 
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:id="@+id/category_edit_agg_period_menu"/>
+      </LinearLayout>
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:clickable="false"
+        android:layout_gravity="top|left" android:id="@+id/TextView02"
+        android:text="What happens no events associated with this category occur during a given chunk of time?  Check the box if a '0' be automatically inserted.">
+      </TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_formula_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Zerofill"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_zerofill_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <CheckBox android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_zerofill"></CheckBox>
+      </LinearLayout>
+
+      <LinearLayout android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal" android:orientation="horizontal"
+        android:paddingBottom="3px" android:paddingLeft="3px"
+        android:paddingRight="5px" android:paddingTop="5px"
+        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical"
+        android:id="@+id/category_edit_type_row">
+
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Cancel"
+          android:id="@+id/category_edit_cancel" android:layout_gravity="right|center_vertical">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_back" android:text="&lt; Back">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Next &gt;"
+          android:id="@+id/category_edit_next" android:layout_gravity="right|center_vertical">
+        </Button>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </ScrollView>
+
+  <ListView android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/android:list" android:choiceMode="singleChoice"
+    android:longClickable="true">
+  </ListView>
+
+</LinearLayout>
