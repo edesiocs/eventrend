@@ -1060,9 +1060,7 @@ public class TimeSeriesProvider extends ContentProvider {
     long id;
     int period, oldPeriodStart, newPeriodStart, oldPeriodEnd, newPeriodEnd;
     SQLiteDatabase db = mDbHelper.getWritableDatabase();
-    
-    Debug.startMethodTracing("cpInsert");
-    
+        
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES:
         LockUtil.waitForLock(mLock);
@@ -1143,8 +1141,6 @@ public class TimeSeriesProvider extends ContentProvider {
     if (outputUri != null)
       getContext().getContentResolver().notifyChange(outputUri, null);
     
-    Debug.stopMethodTracing();
-
     return outputUri;
   }
   

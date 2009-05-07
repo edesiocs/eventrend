@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:orientation="vertical"
+  android:scrollbars="vertical" android:layout_height="fill_parent"
+  android:layout_gravity="center_horizontal">
+  <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
+    android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
+    <LinearLayout android:id="@+id/LinearLayout01"
+      android:layout_height="wrap_content" android:layout_width="fill_parent"
+      android:orientation="vertical">
+      <TextView android:id="@+id/TextView03" android:layout_height="wrap_content"
+        android:textStyle="bold" android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_width="fill_parent" android:gravity="center_vertical|center_horizontal"
+        android:paddingTop="3px" android:paddingBottom="3px" android:text="Category Editor: Type"></TextView>
+
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_name_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Category Name"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_name_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <EditText android:layout_height="wrap_content"
+          android:layout_width="fill_parent" android:id="@+id/category_edit_name">
+        </EditText>
+      </LinearLayout>
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:id="@+id/TextView02"
+        android:text="Categories can be grouped such that all categories within a group appear in a list on their own page.  If you'd like to group this category with others, enter a group name below or select one from the pop-up menu."></TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:id="@+id/category_edit_group_row" android:gravity="center_vertical|center_horizontal"
+        android:orientation="horizontal" android:paddingBottom="3px"
+        android:paddingLeft="3px" android:paddingRight="5px" android:paddingTop="5px"
+        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
+          android:text="Group" android:clickable="true" android:id="@+id/category_edit_group_view"
+          android:textColor="#3366ff" android:paddingLeft="3px"
+          android:paddingRight="3px">
+        </TextView>
+
+        <net.redgeek.android.eventrend.util.ComboBox
+          android:layout_height="wrap_content" android:layout_width="fill_parent"
+          android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_group" />
+
+      </LinearLayout>
+
+
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:id="@+id/TextView02"
+        android:text="A category can be of three different types.  The first is 'discrete', where a single number is entered when data is to be recorded -- this number is free-form; it can represent any units of measurement.  Later on you'll be able to specify the units.  The second type is 'range', where you press 'start' and 'stop' to record ranges of time.  The third type is 'synthetic', which is a more advanced and probably shouldn't be used until you're familiar with the program.  Synthetic categories have values calculated based on the values of other categories -- warning:  synthetic operations can take a long time to compute."></TextView>
+
+      <LinearLayout android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal" android:orientation="horizontal"
+        android:paddingBottom="3px" android:paddingLeft="3px"
+        android:paddingRight="5px" android:paddingTop="5px"
+        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical"
+        android:id="@+id/category_edit_type_row">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
+          android:clickable="true" android:textColor="#3366ff"
+          android:paddingLeft="3px" android:paddingRight="3px"
+          android:id="@+id/category_edit_type_view" android:text="Series Type">
+        </TextView>
+
+        <net.redgeek.android.eventrend.util.DynamicSpinner
+          android:layout_height="wrap_content" android:layout_width="fill_parent"
+          android:id="@+id/category_edit_series_type_menu" />
+
+
+      </LinearLayout>
+
+      <LinearLayout android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal" android:orientation="horizontal"
+        android:paddingBottom="3px" android:paddingLeft="3px"
+        android:paddingRight="5px" android:paddingTop="5px"
+        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical" android:id="@+id/category_edit_nav_row">
+
+
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Cancel"
+          android:id="@+id/category_edit_cancel" android:layout_gravity="right|center_vertical">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_back" android:text="&lt; Back">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Next &gt;"
+          android:id="@+id/category_edit_next" android:layout_gravity="right|center_vertical">
+        </Button>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </ScrollView>
+
+  <ListView android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/android:list" android:choiceMode="singleChoice"
+    android:longClickable="true">
+  </ListView>
+
+</LinearLayout>
