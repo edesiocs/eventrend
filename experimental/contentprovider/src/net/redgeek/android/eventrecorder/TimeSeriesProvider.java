@@ -16,19 +16,6 @@
 
 package net.redgeek.android.eventrecorder;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
-import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
-import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
-import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.synthetic.Formula;
-import net.redgeek.android.eventrecorder.synthetic.SeriesData;
-import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -42,6 +29,20 @@ import android.net.Uri;
 import android.os.Debug;
 import android.text.TextUtils;
 import android.util.Log;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import net.redgeek.android.eventrecorder.TimeSeriesData.FormulaCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrecorder.synthetic.Formula;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData;
+import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // TODO:  support calculated series
 // TODO:  flesh out interpolator plugins
@@ -368,15 +369,17 @@ public class TimeSeriesProvider extends ContentProvider {
   private Formula fetchFormula(SQLiteDatabase db, long timeSeriesId) {
     Formula formula = null;
     String[] projection = new String[] { TimeSeries.FORMULA };
+    StringBuilder where = new StringBuilder();
+    
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();      
     qb.setTables(TimeSeries.TABLE_NAME);
     qb.setProjectionMap(sTimeSeriesProjection);
-    Cursor c = qb.query(db, projection, TimeSeries._ID + " = ? ", 
-        new String[] { "" + timeSeriesId }, null, null, null);
+    where.append(TimeSeries._ID).append(" = ").append(timeSeriesId);
+    Cursor c = qb.query(db, projection, where.toString(), null, null, null, null);
     c.moveToFirst();
     String f = TimeSeries.getFormula(c);
     c.close();
-    if (f != null && f.equals("") == false) {
+    if (TextUtils.isEmpty(f) == false) {
       formula = new Formula(f);
     }
     return formula;
@@ -386,10 +389,13 @@ public class TimeSeriesProvider extends ContentProvider {
       throws Exception {
     ArrayList<Long> sourceIds = new ArrayList<Long>();
     String[] projection = new String[] { FormulaCache.SOURCE_SERIES };
+    StringBuilder where = new StringBuilder();
+
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     qb.setTables(FormulaCache.TABLE_NAME);
-    Cursor c = qb.query(db, projection, FormulaCache.RESULT_SERIES + " = ? ",
-        new String[] { "" + timeSeriesId }, null, null, null);
+    where.append(FormulaCache.RESULT_SERIES).append(" = ").append(timeSeriesId);
+    
+    Cursor c = qb.query(db, projection, where.toString(), null, null, null, null);
     int count = c.getCount();
     c.moveToFirst();
     for (int i = 0; i < count; i++) {
@@ -410,11 +416,14 @@ public class TimeSeriesProvider extends ContentProvider {
       throws Exception {
     ArrayList<Long> resultIds = new ArrayList<Long>();
     String[] projection = new String[] { FormulaCache.RESULT_SERIES };
+    StringBuilder where = new StringBuilder();
+
     SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
     qb.setDistinct(true);
     qb.setTables(FormulaCache.TABLE_NAME);
-    Cursor c = qb.query(db, projection, FormulaCache.SOURCE_SERIES + " = ? ",
-        new String[] { "" + timeSeriesId }, null, null, null);
+    where.append(FormulaCache.SOURCE_SERIES).append(" = ").append(timeSeriesId);
+    
+    Cursor c = qb.query(db, projection, where.toString(), null, null, null, null);
     int count = c.getCount();
     c.moveToFirst();
     for (int i = 0; i < count; i++) {
@@ -440,6 +449,7 @@ public class TimeSeriesProvider extends ContentProvider {
         Datapoint.VALUE, Datapoint.ENTRIES };
     int count;
     ArrayList<SeriesData> sources = new ArrayList<SeriesData>();
+    StringBuilder where = new StringBuilder();
 
     int size = sourceIds.size();
     for (int i = 0; i < size; i++) {
@@ -451,42 +461,40 @@ public class TimeSeriesProvider extends ContentProvider {
       qb = new SQLiteQueryBuilder();
       qb.setTables(TimeSeries.TABLE_NAME);
       qb.setProjectionMap(sTimeSeriesProjection);
-      c = qb.query(db, tsProjection, TimeSeries._ID + " = ? ",
-          new String[] { "" + id }, null, null, null);
+      where.setLength(0);
+      where.append(TimeSeries._ID).append(" = ").append(id);
+      
+      c = qb.query(db, tsProjection, where.toString(), null, null, null, null);
       c.moveToFirst();
       if (TimeSeries.getAggregation(c).equals(TimeSeries.AGGREGATION_AVG))
         avg = true;
       String name = TimeSeries.getTimeSeriesName(c);
       c.close();
 
-      // grab the previous point in order to connect dots:
-      qb = new SQLiteQueryBuilder();
-      qb.setTables(Datapoint.TABLE_NAME);
-      qb.setProjectionMap(sDatapointProjection);
-      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id + " and ");
-      qb.appendWhere(Datapoint.TS_START + " < " + fromTimestamp);
-      String orderBy = Datapoint.TS_START + " desc ";
-      // we need to fetch as many datapoint back as we have timeseries, since
-      // interpolation needs to take into account previous datapoints in order
-      // to be accurate.
-      String limit = "" + size;
-
       Datum d;
       SeriesData ts = new SeriesData();
       ts.mTsEarliest = Integer.MAX_VALUE;
       ts.mName = name;
-      c = qb.query(db, dpProjection, null, null, null, null, orderBy, limit);
+
+      // grab the previous point in order to connect dots:
+      where.setLength(0);
+      where.append(Datapoint.TIMESERIES_ID).append(" = ").append(id).append(" and ");
+      where.append(Datapoint.TS_START).append(" < ").append(fromTimestamp);
+      String sortOrder = Datapoint.TS_START + " desc ";
+      String limit = "" + size;
+      c = queryDatapointInternal(where.toString(), null, null, sortOrder, limit);
+      
       count = c.getCount();
       c.moveToLast();
       for (int j = 0; j < count; j++) {
         d = new Datum();
-        d.mTsStart = Datapoint.getTsStart(c);
+        d.mTsStart = Datapoint.getTsStartIdx(c, null);
         if (d.mTsStart < ts.mTsEarliest) {
           ts.mTsEarliest = d.mTsStart;
         }
-        d.mTsEnd = Datapoint.getTsEnd(c);
-        d.mValue = Datapoint.getValue(c);
-        int entries = Datapoint.getEntries(c);
+        d.mTsEnd = Datapoint.getTsEndIdx(c, null);
+        d.mValue = Datapoint.getValueIdx(c, null);
+        int entries = Datapoint.getEntriesIdx(c, null);
         if (avg == true) {
           d.mValue /= entries;
         }
@@ -496,22 +504,20 @@ public class TimeSeriesProvider extends ContentProvider {
       c.close();
         
       // now grab the rest:
-      qb = new SQLiteQueryBuilder();
-      qb.setTables(Datapoint.TABLE_NAME);
-      qb.setProjectionMap(sDatapointProjection);
-      qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + id + " and " );
-      qb.appendWhere(Datapoint.TS_START + " >= " + fromTimestamp);
-      orderBy = Datapoint.DEFAULT_SORT_ORDER;
-
-      c = qb.query(db, dpProjection, null, null, null, null, orderBy);
+      where.setLength(0);
+      where.append(Datapoint.TIMESERIES_ID).append(" = ").append(id).append(" and ");
+      where.append(Datapoint.TS_START).append(" >= ").append(fromTimestamp);
+      sortOrder = Datapoint.TS_START + " asc ";
+      c = queryDatapointInternal(where.toString(), null, null, sortOrder, null);
+      
       count = c.getCount();
       c.moveToFirst();
       for (int j = 0; j < count; j++) {
         d = new Datum();
-        d.mTsStart = Datapoint.getTsStart(c);
-        d.mTsEnd = Datapoint.getTsEnd(c);
-        d.mValue = Datapoint.getValue(c);
-        int entries = Datapoint.getEntries(c);
+        d.mTsStart = Datapoint.getTsStartIdx(c, null);
+        d.mTsEnd = Datapoint.getTsEndIdx(c, null);
+        d.mValue = Datapoint.getValueIdx(c, null);
+        int entries = Datapoint.getEntriesIdx(c, null);
         if (avg == true) {
           d.mValue /= entries;
         }
@@ -532,6 +538,7 @@ public class TimeSeriesProvider extends ContentProvider {
     ArrayList<SeriesData> sources;
     SQLiteQueryBuilder qb;         
     String[] projection;
+    StringBuilder where = new StringBuilder();
     Cursor c;
     int count;
     
@@ -555,12 +562,25 @@ public class TimeSeriesProvider extends ContentProvider {
         }
       }
       
+      // fetch the smoothing and history parameters of the resultant timeseries
+      Uri timeseriesParams = ContentUris.withAppendedId(
+          TimeSeries.CONTENT_URI, timeSeriesId);
+      c = query(timeseriesParams, 
+          new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY,
+          TimeSeries.RECORDING_DATAPOINT_ID }, 
+          null, null, null);
+      c.moveToFirst();
+      double smoothing = TimeSeries.getSmoothing(c);
+      int history = TimeSeries.getHistory(c);
+      long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
+      c.close();
+
       // Store the results
       Datum d;
       ContentValues values = new ContentValues();
-      count = db.delete(Datapoint.TABLE_NAME, Datapoint.TIMESERIES_ID + " = "
-          + timeSeriesId + " and " + Datapoint.TS_START + " >= " + minTime, 
-          null);
+      where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+      where.append(Datapoint.TS_START).append(" >= ").append(minTime);
+      count = db.delete(Datapoint.TABLE_NAME, where.toString(), null);
       int size = result.mData.size();
       for (int i = 0; i < size; i++) {
         d = result.mData.get(i);
@@ -572,7 +592,8 @@ public class TimeSeriesProvider extends ContentProvider {
         Datapoint.setValue(values, d.mValue);
         Datapoint.setEntries(values, 1);
 
-        setContentValues(db, values, timeSeriesId, d.mTsStart, d.mValue, 1);
+        setContentValues(db, values, timeSeriesId, recordingDatapointId,
+            d.mTsStart, d.mValue, 1, smoothing, history);
         db.insert(Datapoint.TABLE_NAME, null, values);
       }
     }
@@ -638,16 +659,17 @@ public class TimeSeriesProvider extends ContentProvider {
     long id;
     int newPeriodStart, newPeriodEnd;
     Uri sumsUri;
+    StringBuilder where = new StringBuilder();
 
     Datapoint.setTimeSeriesId(values, timeSeriesId);
     
-    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-    qb.setTables(Datapoint.TABLE_NAME);
-    qb.setProjectionMap(sDatapointProjectionAll);
-    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
-    qb.appendWhere(Datapoint.TS_START + " <= " + tsStart);
-    String orderBy = Datapoint.TS_START + " desc ";
-    Cursor c = qb.query(db, null, null, null, null, null, orderBy, "2");
+    where.setLength(0);
+    where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+    where.append(Datapoint.TS_START).append(" <= ").append(tsStart);
+    String sortOrder = Datapoint.TS_START + " desc ";
+    String limit = "2";
+    Cursor c = queryDatapointInternal(where.toString(), null, null, sortOrder, limit);
+
     c.moveToFirst();
     if (c.getCount() == 1) {
       // have one datapoint, which means it's the first in the series.
@@ -684,14 +706,13 @@ public class TimeSeriesProvider extends ContentProvider {
     c.close();
 
     // now fetch all the datapoints at or after the start time
-    qb = new SQLiteQueryBuilder();
-    qb.setTables(Datapoint.TABLE_NAME);
-    qb.setProjectionMap(sDatapointProjectionAll);
-    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
-    qb.appendWhere(Datapoint.TS_START + " >= " + tsStart + " and ");
-    qb.appendWhere(Datapoint.TS_START + " < " + tsStart);
-    orderBy = Datapoint.TS_START + " asc ";
-    c = qb.query(db, null, null, null, null, null, orderBy);
+    where.setLength(0);
+    where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+    where.append(Datapoint.TS_START).append(" >= ").append(tsStart).append(" and ");
+    where.append(Datapoint.TS_START).append(" < ").append(tsStart);
+    sortOrder = Datapoint.TS_START + " asc ";
+    c = queryDatapointInternal(where.toString(), null, null, sortOrder, null);
+
     if (c.getCount() < 1) {
       c.close();
       return;
@@ -701,36 +722,35 @@ public class TimeSeriesProvider extends ContentProvider {
     c.moveToFirst();
     int count = c.getCount();
     for (int i = 0; i < count; i++) {
-      id = Datapoint.getId(c);
+      id = Datapoint.getIdIdx(c);
 
       // set the aggregated stats
       int length = Datapoint.AGGREGATE_SUFFIX.length;
       for (int j = 0; j < length; j++) {
         String suffix = Datapoint.AGGREGATE_SUFFIX[j];
-        newPeriodStart = Datapoint.getTsStart(c, suffix);
-        newPeriodEnd = Datapoint.getTsEnd(c, suffix);
-        value = Datapoint.getValue(c, suffix);
-        entries = Datapoint.getEntries(c, suffix);
+        newPeriodStart = Datapoint.getTsStartIdx(c, suffix);
+        newPeriodEnd = Datapoint.getTsEndIdx(c, suffix);
+        value = Datapoint.getValueIdx(c, suffix);
+        entries = Datapoint.getEntriesIdx(c, suffix);
 
         // fetch data for the previous entry as aggregated for the period
-        qb = new SQLiteQueryBuilder();
-        qb.setTables(Datapoint.TABLE_NAME);
-        orderBy = Datapoint.TS_START + " desc ";
-        qb.setProjectionMap(fetchProjectionMap(suffix));
-        String groupBy = Datapoint.TS_START + "_" + suffix;
-        qb.appendWhere(TimeSeries._ID + " = " + timeSeriesId + " AND ");
-        qb.appendWhere(Datapoint.TS_START + " < " + newPeriodStart + " ");
-        String limit = "" + history;
         
-        Cursor c2 = qb.query(db, null, null, null, groupBy, null, orderBy, limit);
+        where.setLength(0);
+        where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+        where.append(Datapoint.TS_START).append(" < ").append(newPeriodStart).append(" ");
+        sortOrder = Datapoint.TS_START + " desc ";
+        String groupBy = Datapoint.TS_START + "_" + suffix;
+        limit = "" + history;
+        Cursor c2 = queryDatapointInternal(where.toString(), null, groupBy, sortOrder, limit);
+
         c2.moveToLast();
-        int oldPeriodStart = Datapoint.getTsStart(c2);
-        double oldValue = Datapoint.getValue(c2);
-        double oldValueSum = Datapoint.getSumValue(c2);
-        double oldValueSumSqr = Datapoint.getSumValueSqr(c2);
-        int oldEntries = Datapoint.getEntries(c2);
-        int oldEntriesSum = Datapoint.getSumEntries(c2);
-        double oldTrend = Datapoint.getTrend(c2);
+        int oldPeriodStart = Datapoint.getTsStartIdx(c2, suffix);
+        double oldValue = Datapoint.getValueIdx(c2, suffix);
+        double oldValueSum = Datapoint.getSumValueIdx(c2, suffix);
+        double oldValueSumSqr = Datapoint.getSumValueSqrIdx(c2, suffix);
+        int oldEntries = Datapoint.getEntriesIdx(c2, suffix);
+        int oldEntriesSum = Datapoint.getSumEntriesIdx(c2, suffix);
+        double oldTrend = Datapoint.getTrendIdx(c2, suffix);
         double trend;
 
         if (newPeriodStart > oldPeriodStart) {
@@ -761,9 +781,9 @@ public class TimeSeriesProvider extends ContentProvider {
           // only subtract out the initial values if we have a full history
           // window
           c2.moveToLast();
-          firstValueSum = Datapoint.getSumValue(c2, suffix);
-          firstValueSumSqr = Datapoint.getSumValueSqr(c2, suffix);
-          firstEntriesSum = Datapoint.getSumEntries(c2, suffix);
+          firstValueSum = Datapoint.getSumValueIdx(c2, suffix);
+          firstValueSumSqr = Datapoint.getSumValueSqrIdx(c2, suffix);
+          firstEntriesSum = Datapoint.getSumEntriesIdx(c2, suffix);
         }
         double stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
             firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
@@ -782,27 +802,32 @@ public class TimeSeriesProvider extends ContentProvider {
   private void updateAggregations(SQLiteDatabase db, long timeSeriesId, 
       int fromTimestamp, double value, int entries) throws Exception {
     String[] aggregations = Datapoint.AGGREGATE_SUFFIX;
-    String suffix, sql;
-
+    String suffix;
+    StringBuilder sql = new StringBuilder();
+    
     double valSqr = value * value;
-    sql = "update " + Datapoint.TABLE_NAME + " set "
-      + Datapoint.SUM_VALUE + " = " + Datapoint.SUM_VALUE + " + " + value + ", "
-      + Datapoint.SUM_VALUE_SQR + " = " + Datapoint.SUM_VALUE_SQR + " + " + valSqr + ", "
-      + Datapoint.SUM_ENTRIES + " = " + Datapoint.SUM_ENTRIES + " + " + entries + " ";
+
+    sql.append("update ").append(Datapoint.TABLE_NAME).append(" set ");
+    sql.append(Datapoint.SUM_VALUE).append(" = ");
+    sql.append(Datapoint.SUM_VALUE).append(" + ").append(value).append(", ");
+    sql.append(Datapoint.SUM_VALUE_SQR).append(" = ");
+    sql.append(Datapoint.SUM_VALUE_SQR).append(" + ").append(valSqr).append(", ");
+    sql.append(Datapoint.SUM_ENTRIES).append(" = ");
+    sql.append(Datapoint.SUM_ENTRIES).append(" + ").append(entries).append(" ");
+
     for (int i = 0; i < aggregations.length; i++) {
       suffix = Datapoint.AGGREGATE_SUFFIX[i];
-      sql += ", " + Datapoint.VALUE + "_" + suffix + " = " 
-                  + Datapoint.VALUE + "_" + suffix + " + " + value
-          +  ", " + Datapoint.SUM_VALUE_SQR + "_" + suffix + " = " 
-                  + Datapoint.SUM_VALUE_SQR + "_" + suffix + " + " + valSqr
-          +  ", " + Datapoint.SUM_ENTRIES + "_" + suffix + " = " 
-                  + Datapoint.SUM_ENTRIES + "_" + suffix + " + " + entries;
+      sql.append(", ").append(Datapoint.VALUE).append("_").append(suffix).append(" = ");
+      sql.append(Datapoint.VALUE).append("_").append(suffix).append(" + ").append(value);
+      sql.append(", ").append(Datapoint.SUM_VALUE_SQR).append("_").append(suffix).append(" = ");
+      sql.append(Datapoint.SUM_VALUE_SQR).append("_").append(suffix).append(" + ").append(valSqr);
+      sql.append(", ").append(Datapoint.SUM_ENTRIES).append("_").append(suffix).append(" = ");
+      sql.append(Datapoint.SUM_ENTRIES).append("_").append(suffix).append(" + ").append(entries);
     }
-    sql += " where " + Datapoint.TIMESERIES_ID + " == ? and "
-      + Datapoint.TS_START + " > ?; ";
-
-    
-    db.rawQuery(sql, new String[] { "" + timeSeriesId, "" + fromTimestamp });
+    sql.append(" where ").append(Datapoint.TIMESERIES_ID).append(" == ").append(timeSeriesId).append(" and ");
+    sql.append(Datapoint.TS_START).append(" > ").append(fromTimestamp);
+        
+    db.rawQuery(sql.toString(), null);
     return;
   }
 
@@ -825,15 +850,15 @@ public class TimeSeriesProvider extends ContentProvider {
     
   private Cursor getPreviousDatapoints(SQLiteDatabase db, long timeSeriesId, 
       long recordingDatapointId, int timestamp, int history) {
-    SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
-    qb.setTables(Datapoint.TABLE_NAME);
-    qb.setProjectionMap(sDatapointProjectionAll);
-    qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + timeSeriesId + " and ");
-    qb.appendWhere(Datapoint.TS_START + " < " + timestamp + " and ");
-    qb.appendWhere(Datapoint._ID + " != " + recordingDatapointId);
-    String orderBy = Datapoint.TS_START + " desc";
-    String limit = "" + history;        
-    return qb.query(db, null, null, null, null, null, orderBy, limit);
+    StringBuilder where = new StringBuilder();
+
+    where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+    where.append(Datapoint.TS_START).append(" < ").append(timestamp).append(" and ");
+    where.append(Datapoint._ID).append(" != ").append(recordingDatapointId).append(" ");
+    String sortOrder = Datapoint.TS_START + " desc ";
+    String groupBy = Datapoint.TS_START;
+    String limit = "" + history;
+    return queryDatapointInternal(where.toString(), null, groupBy, sortOrder, limit);
   }
 
   private void setBaseContentValues(ContentValues values, int timestamp, double value,
@@ -875,12 +900,12 @@ public class TimeSeriesProvider extends ContentProvider {
     c.moveToFirst();
 
     // update the non-aggregated stats
-    double oldValue = Datapoint.getValue(c);
-    double oldValueSum = Datapoint.getSumValue(c);
-    double oldValueSumSqr = Datapoint.getSumValueSqr(c);
-    int oldEntries = Datapoint.getEntries(c);
-    int oldEntriesSum = Datapoint.getSumEntries(c);
-    double oldTrend = Datapoint.getTrend(c);
+    double oldValue = Datapoint.getValueIdx(c, null);
+    double oldValueSum = Datapoint.getSumValueIdx(c, null);
+    double oldValueSumSqr = Datapoint.getSumValueSqrIdx(c, null);
+    int oldEntries = Datapoint.getEntriesIdx(c, null);
+    int oldEntriesSum = Datapoint.getSumEntriesIdx(c, null);
+    double oldTrend = Datapoint.getTrendIdx(c, null);
 
     double newValueSum = oldValueSum + value;
     double newValueSumSqr = oldValueSumSqr + (value * value);
@@ -898,9 +923,9 @@ public class TimeSeriesProvider extends ContentProvider {
     if (c.getCount() == history) {
       // only subtract out the initial values if we have a full history window
       c.moveToLast();
-      firstValueSum = Datapoint.getSumValue(c);
-      firstValueSumSqr = Datapoint.getSumValueSqr(c);
-      firstEntriesSum = Datapoint.getSumEntries(c);
+      firstValueSum = Datapoint.getSumValueIdx(c, null);
+      firstValueSumSqr = Datapoint.getSumValueSqrIdx(c, null);
+      firstEntriesSum = Datapoint.getSumEntriesIdx(c, null);
     }
     double stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
         firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
@@ -925,6 +950,7 @@ public class TimeSeriesProvider extends ContentProvider {
     long id;
     Uri sumsUri;
     Cursor c;
+    StringBuilder where = new StringBuilder();
 
     // update the aggregated stats
     int length = Datapoint.AGGREGATE_SUFFIX.length;
@@ -936,19 +962,21 @@ public class TimeSeriesProvider extends ContentProvider {
       oldPeriodStart = mDateMap.secondsOfPeriodStart(lastTimestamp, period);
 
       // fetch data for the previous entry as aggregated for the period
-      sumsUri = ContentUris.withAppendedId(
-          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-          .appendPath("recent").appendPath("" + history).
-          appendPath(suffix).build();
-      c = queryInternal(sumsUri, null, Datapoint._ID + " != ?", new String[] {
-          "" + recordingDatapointId }, null, sDatapointProjectionAll);
+      where.setLength(0);
+      where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
+      where.append(Datapoint._ID).append(" != ").append(recordingDatapointId).append(" ");
+      String groupBy = Datapoint.TS_START + "_" + suffix + " ";
+      String sortOrder = Datapoint.TS_START + " desc ";
+      String limit = "" + history;
+      c = queryDatapointInternal(where.toString(), null, groupBy, sortOrder, limit);      
+      
       c.moveToFirst();
-      oldValue = Datapoint.getValue(c);
-      oldValueSum = Datapoint.getSumValue(c);
-      oldValueSumSqr = Datapoint.getSumValueSqr(c);
-      oldEntries = Datapoint.getEntries(c);
-      oldEntriesSum = Datapoint.getSumEntries(c);
-      oldTrend = Datapoint.getTrend(c);
+      oldValue = Datapoint.getValueIdx(c, suffix);
+      oldValueSum = Datapoint.getSumValueIdx(c, suffix);
+      oldValueSumSqr = Datapoint.getSumValueSqrIdx(c, suffix);
+      oldEntries = Datapoint.getEntriesIdx(c, suffix);
+      oldEntriesSum = Datapoint.getSumEntriesIdx(c, suffix);
+      oldTrend = Datapoint.getTrendIdx(c, suffix);
 
       Datapoint.setTsStart(values, suffix, newPeriodStart);
       Datapoint.setTsEnd(values, suffix, newPeriodEnd);
@@ -988,9 +1016,9 @@ public class TimeSeriesProvider extends ContentProvider {
         // only subtract out the initial values if we have a full history
         // window
         c.moveToLast();
-        firstValueSum = Datapoint.getSumValue(c, suffix);
-        firstValueSumSqr = Datapoint.getSumValueSqr(c, suffix);
-        firstEntriesSum = Datapoint.getSumEntries(c, suffix);
+        firstValueSum = Datapoint.getSumValueIdx(c, suffix);
+        firstValueSumSqr = Datapoint.getSumValueSqrIdx(c, suffix);
+        firstEntriesSum = Datapoint.getSumEntriesIdx(c, suffix);
       }
       stddev = calculateStdDev(firstValueSumSqr, newValueSumSqr,
           firstValueSum, newValueSum, firstEntriesSum, newEntriesSum);
@@ -1002,21 +1030,9 @@ public class TimeSeriesProvider extends ContentProvider {
   }
   
   private void setContentValues(SQLiteDatabase db, ContentValues values,
-      long timeSeriesId, int tsStart, double value, int entries) {
-    // first fetch the smoothing and history parameters of the timeseries
-    Uri timeseriesParams = ContentUris.withAppendedId(
-        TimeSeries.CONTENT_URI, timeSeriesId);
-    Cursor c = query(timeseriesParams, 
-        new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY,
-        TimeSeries.RECORDING_DATAPOINT_ID }, 
-        null, null, null);
-    c.moveToFirst();
-    double smoothing = TimeSeries.getSmoothing(c);
-    int history = TimeSeries.getHistory(c);
-    long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
-    c.close();
-
-    c = getPreviousDatapoints(db, timeSeriesId, recordingDatapointId, tsStart, history);
+      long timeSeriesId, long recordingDatapointId, int tsStart, double value, 
+      int entries, double smoothing, int history) {
+    Cursor c = getPreviousDatapoints(db, timeSeriesId, recordingDatapointId, tsStart, history);
     if (c.getCount() < 1) {
       // no earlier entries for this timestamp
       c.close();
@@ -1081,7 +1097,21 @@ public class TimeSeriesProvider extends ContentProvider {
 
           Datapoint.setTimeSeriesId(values, timeSeriesId);
           
-          setContentValues(db, values, timeSeriesId, tsStart, value, entries);
+          // first fetch the smoothing and history parameters of the timeseries
+          Uri timeseriesParams = ContentUris.withAppendedId(
+              TimeSeries.CONTENT_URI, timeSeriesId);
+          Cursor c = query(timeseriesParams, 
+              new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY,
+              TimeSeries.RECORDING_DATAPOINT_ID }, 
+              null, null, null);
+          c.moveToFirst();
+          double smoothing = TimeSeries.getSmoothing(c);
+          int history = TimeSeries.getHistory(c);
+          long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
+          c.close();
+
+          setContentValues(db, values, timeSeriesId, recordingDatapointId,
+              tsStart, value, entries, smoothing, history);
           
           id = db.insert(Datapoint.TABLE_NAME, null, values);
           if (id == -1) {
@@ -1114,7 +1144,7 @@ public class TimeSeriesProvider extends ContentProvider {
       getContext().getContentResolver().notifyChange(outputUri, null);
     
     Debug.stopMethodTracing();
-    
+
     return outputUri;
   }
   
@@ -1141,6 +1171,28 @@ public class TimeSeriesProvider extends ContentProvider {
     return sDatapointProjection;
   }
       
+  private Cursor queryDatapointInternal(String selection, String[] selectionArgs,
+      String groupBy, String sortOrder, String limit) {
+    SQLiteDatabase db = mDbHelper.getReadableDatabase();
+    StringBuilder sql = new StringBuilder();
+    sql.append("select ").append(Datapoint.DATAPOINT_SELECT_ALL_COLUMNS);
+    sql.append(" from ").append(Datapoint.TABLE_NAME).append(" ");
+    if (TextUtils.isEmpty(selection) != true) {
+      sql.append(" where ").append(selection).append(" ");
+    }
+    if (TextUtils.isEmpty(groupBy) != true) {
+      sql.append(" group by ").append(groupBy).append(" ");
+    }
+    if (TextUtils.isEmpty(sortOrder) != true) {
+      sql.append(" order by ").append(sortOrder).append(" ");
+    }
+    if (TextUtils.isEmpty(limit) != true) {
+      sql.append(" limit ").append(limit).append(" ");
+    }
+    
+    return db.rawQuery(sql.toString(), selectionArgs);
+  }
+
   private Cursor queryInternal(Uri uri, String[] projection, String selection,
       String[] selectionArgs, String sortOrder, HashMap<String, String> map) {
     String agg;
@@ -1332,7 +1384,21 @@ public class TimeSeriesProvider extends ContentProvider {
           if (values.containsKey(Datapoint.ENTRIES))
             newEntries = values.getAsInteger(Datapoint.ENTRIES);
           
-          setContentValues(db, values, tsId, newStart, newValue, newEntries);
+          // fetch the smoothing and history parameters of the timeseries
+          Uri timeseriesParams = ContentUris.withAppendedId(
+              TimeSeries.CONTENT_URI, tsId);
+          c = query(timeseriesParams, 
+              new String[] { TimeSeries.SMOOTHING, TimeSeries.HISTORY,
+              TimeSeries.RECORDING_DATAPOINT_ID }, 
+              null, null, null);
+          c.moveToFirst();
+          double smoothing = TimeSeries.getSmoothing(c);
+          int history = TimeSeries.getHistory(c);
+          long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
+          c.close();
+
+          setContentValues(db, values, tsId, recordingDatapointId, newStart, 
+              newValue, newEntries, smoothing, history);
 
           count = db.update(Datapoint.TABLE_NAME, values, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
