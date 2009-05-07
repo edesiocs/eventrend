@@ -20,6 +20,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 public class TimeSeriesData {
   public static final String AUTHORITY = "net.redgeek.android.eventrecorder";
@@ -296,7 +297,7 @@ public class TimeSeriesData {
       + Datapoint.SUM_VALUE_SQR + "_" + AGGREGATE_SUFFIX[4] + " ";
     
     public static final int DATAPOINT_ID_IDX                    =  0;
-    public static final int DATAPOINT_TIMESERIS_ID_IDX          =  1;
+    public static final int DATAPOINT_TIMESERIES_ID_IDX         =  1;
     public static final int DATAPOINT_TS_START_IDX              =  2;
     public static final int DATAPOINT_TS_END_IDX                =  3;
     public static final int DATAPOINT_VALUE_IDX                 =  4;
@@ -363,8 +364,16 @@ public class TimeSeriesData {
       return c.getLong(c.getColumnIndexOrThrow(_ID));
     }
 
+    public static long getIdIdx(Cursor c) {
+      return c.getLong(DATAPOINT_ID_IDX);
+    }
+
     public static long getTimeSeriesId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(TIMESERIES_ID));
+    }
+    
+    public static long getTimeSeriesIdIdx(Cursor c) {
+      return c.getLong(DATAPOINT_TIMESERIES_ID_IDX);
     }
 
     public static double getValue(Cursor c) {
@@ -373,6 +382,28 @@ public class TimeSeriesData {
 
     public static double getValue(Cursor c, String suffix) {
       return c.getDouble(c.getColumnIndexOrThrow(VALUE + "_" + suffix));
+    }
+    
+    public static double getValueIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getDouble(DATAPOINT_VALUE_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getDouble(DATAPOINT_VALUE_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getDouble(DATAPOINT_VALUE_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getDouble(DATAPOINT_VALUE_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getDouble(DATAPOINT_VALUE_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getDouble(DATAPOINT_VALUE_YEAR_IDX);        
+      }
+      return c.getDouble(DATAPOINT_VALUE_IDX);
     }
 
     public static int getEntries(Cursor c) {
@@ -383,12 +414,56 @@ public class TimeSeriesData {
       return c.getInt(c.getColumnIndexOrThrow(ENTRIES + "_" + suffix));
     }
 
+    public static int getEntriesIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getInt(DATAPOINT_ENTRIES_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getInt(DATAPOINT_ENTRIES_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getInt(DATAPOINT_ENTRIES_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getInt(DATAPOINT_ENTRIES_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getInt(DATAPOINT_ENTRIES_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getInt(DATAPOINT_ENTRIES_YEAR_IDX);        
+      }
+      return c.getInt(DATAPOINT_ENTRIES_IDX);
+    }
+
     public static int getTsStart(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(TS_START));
     }
 
     public static int getTsStart(Cursor c, String suffix) {
       return c.getInt(c.getColumnIndexOrThrow(TS_START + "_" + suffix));
+    }
+    
+    public static int getTsStartIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getInt(DATAPOINT_TS_START_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getInt(DATAPOINT_TS_START_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getInt(DATAPOINT_TS_START_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getInt(DATAPOINT_TS_START_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getInt(DATAPOINT_TS_START_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getInt(DATAPOINT_TS_START_YEAR_IDX);        
+      }
+      return c.getInt(DATAPOINT_TS_START_IDX);
     }
 
     public static int getTsEnd(Cursor c) {
@@ -399,12 +474,56 @@ public class TimeSeriesData {
       return c.getInt(c.getColumnIndexOrThrow(TS_END + "_" + suffix));
     }
 
+    public static int getTsEndIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getInt(DATAPOINT_TS_END_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getInt(DATAPOINT_TS_END_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getInt(DATAPOINT_TS_END_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getInt(DATAPOINT_TS_END_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getInt(DATAPOINT_TS_END_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getInt(DATAPOINT_TS_END_YEAR_IDX);        
+      }
+      return c.getInt(DATAPOINT_TS_END_IDX);
+    }
+
     public static double getTrend(Cursor c) {
       return c.getDouble(c.getColumnIndexOrThrow(TREND));
     }
 
     public static double getTrend(Cursor c, String suffix) {
       return c.getDouble(c.getColumnIndexOrThrow(TREND + "_" + suffix));
+    }
+
+    public static double getTrendIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getDouble(DATAPOINT_TREND_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getDouble(DATAPOINT_TREND_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getDouble(DATAPOINT_TREND_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getDouble(DATAPOINT_TREND_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getDouble(DATAPOINT_TREND_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getDouble(DATAPOINT_TREND_YEAR_IDX);        
+      }
+      return c.getDouble(DATAPOINT_TREND_IDX);
     }
 
     public static double getStdDev(Cursor c) {
@@ -415,12 +534,56 @@ public class TimeSeriesData {
       return c.getDouble(c.getColumnIndexOrThrow(STDDEV + "_" + suffix));
     }
 
+    public static double getStdDevIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getDouble(DATAPOINT_STDDEV_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getDouble(DATAPOINT_STDDEV_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getDouble(DATAPOINT_STDDEV_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getDouble(DATAPOINT_STDDEV_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getDouble(DATAPOINT_STDDEV_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getDouble(DATAPOINT_STDDEV_YEAR_IDX);        
+      }
+      return c.getDouble(DATAPOINT_STDDEV_IDX);
+    }
+
     public static int getSumEntries(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(SUM_ENTRIES));
     }
 
     public static int getSumEntries(Cursor c, String suffix) {
       return c.getInt(c.getColumnIndexOrThrow(SUM_ENTRIES + "_" + suffix));
+    }
+    
+    public static int getSumEntriesIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getInt(DATAPOINT_SUM_ENTRIES_YEAR_IDX);        
+      }
+      return c.getInt(DATAPOINT_SUM_ENTRIES_IDX);
     }
 
     public static double getSumValue(Cursor c) {
@@ -431,12 +594,56 @@ public class TimeSeriesData {
       return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE + "_" + suffix));
     }
 
+    public static double getSumValueIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_YEAR_IDX);        
+      }
+      return c.getDouble(DATAPOINT_SUM_VALUE_IDX);
+    }
+
     public static double getSumValueSqr(Cursor c) {
       return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE_SQR));
     }
 
     public static double getSumValueSqr(Cursor c, String suffix) {
       return c.getDouble(c.getColumnIndexOrThrow(SUM_VALUE_SQR + "_" + suffix));
+    }
+
+    public static double getSumValueSqrIdx(Cursor c, String suffix) {
+      if (TextUtils.isEmpty(suffix)) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_IDX);
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[0])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_DAY_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[1])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_WEEK_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[2])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_MONTH_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[3])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_QUARTER_IDX);        
+      }
+      else if(suffix.equals(AGGREGATE_SUFFIX[4])) {
+        return c.getDouble(DATAPOINT_SUM_VALUE_SQR_YEAR_IDX);        
+      }
+      return c.getDouble(DATAPOINT_SUM_VALUE_SQR_IDX);
     }
 
     public static void setId(ContentValues cv, long id) {
