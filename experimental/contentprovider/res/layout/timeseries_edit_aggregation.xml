@@ -74,7 +74,7 @@
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:clickable="false"
         android:layout_gravity="top|left" android:id="@+id/category_edit_zerofill_row_help"
-        android:text="You've chosen to aggregate your data.  Check the box below if you want a 0 automatically inserted when no events for this category occur during the chunk of time listed above.">
+        android:text="You've chosen to aggregate your data, with a type of 'sum'.  Check the box below if you want a 0 automatically inserted when no events for this category occur during the chunk of time listed above.">
       </TextView>
       <LinearLayout android:layout_height="wrap_content"
         android:layout_width="fill_parent" android:orientation="horizontal"
