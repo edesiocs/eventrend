@@ -150,7 +150,7 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
   // Private data
   private CategoryRow mRow;
   private String mGroupName;
-  private int mPeriodSeconds;
+  private int mPeriodSeconds = 0;
 
   private Paint mPickerPaint;
   private String mColorStr;
@@ -477,6 +477,16 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
         mPeriodSeconds = (int) mAggregatePeriodSpinner.getMappingFromPosition(position);
+        if (mPeriodSeconds == 0
+            || mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)
+            || mAggRadio.getText().toString().toLowerCase().equals(
+                TimeSeries.AGGREGATION_AVG)) {
+          mZerofillHelp.setVisibility(View.GONE);
+          mZerofillLayout.setVisibility(View.GONE);
+        } else {
+          mZerofillHelp.setVisibility(View.VISIBLE);
+          mZerofillLayout.setVisibility(View.VISIBLE);
+        }
         return;
       }
 

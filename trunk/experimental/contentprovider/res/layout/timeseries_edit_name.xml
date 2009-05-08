@@ -53,8 +53,7 @@
         </TextView>
 
         <net.redgeek.android.eventrend.util.ComboBox
-          android:layout_height="wrap_content" android:layout_width="fill_parent"
-          android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_group" />
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_group" android:layout_width="wrap_content"/>
 
       </LinearLayout>
 
