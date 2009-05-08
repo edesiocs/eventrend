@@ -116,6 +116,7 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
 
   // Page 3b: synthetics setting:
   private Button   mFormulaEdit;
+  private TextView mFormulaText;
   private Button   mCancelPage3b;
   private Button   mBackPage3b;
   private Button   mNextPage3b;
@@ -428,6 +429,10 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
     mFormulaEdit.setOnClickListener(mFormulaEditListener);
     setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
 
+    mFormulaText = (TextView) page.findViewById(R.id.category_edit_formula_text);
+    if (mRow != null && mRow.mFormula != null)
+      mFormulaText.setText(mRow.mFormula);
+    
     // Cancel and next:
     mCancelPage3b = (Button) page.findViewById(R.id.category_edit_cancel);
     mCancelPage3b.setOnClickListener(new View.OnClickListener() {
@@ -713,6 +718,9 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
 
       mZeroFillCheck.setChecked(mRow.mZerofill > 0 ? true : false);
       
+      if (mRow.mFormula != null)
+        mFormulaText.setText(mRow.mFormula);
+
       mPeriodSeconds = mRow.mPeriod;
       int index = TimeSeries.periodToIndex(mPeriodSeconds);
       if (index < 0)
