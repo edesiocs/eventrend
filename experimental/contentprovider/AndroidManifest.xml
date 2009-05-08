@@ -30,7 +30,7 @@
 		</activity>
 
     <activity 
-      android:label="Category Editor (Advanced)" 
+      android:label="Category Editor (Expert)" 
       android:alwaysRetainTaskState="true"
       android:name="net.redgeek.android.eventrend.category.CategoryEditActivity">
       <intent-filter>
@@ -47,7 +47,7 @@
     </activity>
 
     <activity 
-      android:label="Category Editor (Wizard)" 
+      android:label="Category Editor (Basic Wizard)" 
       android:alwaysRetainTaskState="true"
       android:name="net.redgeek.android.eventrend.category.CategoryWizardEditActivity">
       <intent-filter>

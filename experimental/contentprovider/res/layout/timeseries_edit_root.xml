@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout 
+  android:layout_width="fill_parent" 
+  android:layout_height="fill_parent" 
+  xmlns:android="http://schemas.android.com/apk/res/android" 
+  android:layout_gravity="center_vertical|center_horizontal"
+  android:orientation="vertical">
+  <LinearLayout 
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent" 
+    xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:orientation="vertical" 
+    android:id="@+id/wizard_flipper_layout">
+    <ViewFlipper
+      android:layout_width="fill_parent" 
+      android:layout_height="fill_parent" 
+      android:id="@+id/wizard_flipper">
+      </ViewFlipper>  
+  </LinearLayout>
+  
+  <ListView 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content" 
+    android:id="@+id/android:list" 
+    android:choiceMode="singleChoice" 
+    android:longClickable="true">
+    </ListView>
+</LinearLayout>
+

@@ -3,7 +3,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent" android:orientation="vertical"
   android:scrollbars="vertical" android:layout_height="fill_parent"
-  android:layout_gravity="center_horizontal">
+  android:layout_gravity="center_horizontal"
+  android:id="@+id/timeseries_edit_page1"
+  >
   <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
     android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
     <LinearLayout android:id="@+id/LinearLayout01"
@@ -59,7 +61,7 @@
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:clickable="false"
         android:layout_gravity="top|left" android:id="@+id/TextView01"
-        android:text="Select 'Next' to continue, 'Cancel' to exit, or 'Advanced' to jump to the advanced configuration screen where all options are available on the same page.">
+        android:text="Select 'Next' to continue, or 'Cancel' to exit and discard changes.">
       </TextView>
 
       <LinearLayout android:layout_height="wrap_content"
@@ -76,11 +78,6 @@
           android:layout_height="wrap_content" android:text="Next &gt;"
           android:id="@+id/category_edit_next" android:layout_gravity="right|center_vertical">
         </Button>
-        <Button android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Advanced Options"
-          android:id="@+id/category_edit_advanced" android:layout_gravity="right|center_vertical">
-        </Button>
-
       </LinearLayout>
 
     </LinearLayout>
