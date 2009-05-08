@@ -58,7 +58,7 @@ import net.redgeek.android.eventrend.util.Number;
 
 import java.util.ArrayList;
 
-public class TimeSeriesEditorActivity extends EvenTrendActivity {
+public class CategoryWizardEditActivity extends EvenTrendActivity {
   public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 1;
   public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 2;
   public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 3;
