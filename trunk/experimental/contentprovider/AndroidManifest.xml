@@ -30,8 +30,26 @@
 		</activity>
 
     <activity 
+      android:label="Category Editor (Advanced)" 
       android:alwaysRetainTaskState="true"
       android:name="net.redgeek.android.eventrend.category.CategoryEditActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.EDIT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+    </activity>
+
+    <activity 
+      android:label="Category Editor (Wizard)" 
+      android:alwaysRetainTaskState="true"
+      android:name="net.redgeek.android.eventrend.category.CategoryWizardEditActivity">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.EDIT" />
