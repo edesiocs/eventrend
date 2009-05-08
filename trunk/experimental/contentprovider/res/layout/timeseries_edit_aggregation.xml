@@ -3,7 +3,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent" android:orientation="vertical"
   android:scrollbars="vertical" android:layout_height="fill_parent"
-  android:layout_gravity="center_horizontal">
+  android:layout_gravity="center_horizontal"
+  android:id="@+id/timeseries_edit_page4"
+  >
   <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
     android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
     <LinearLayout android:id="@+id/LinearLayout01"
@@ -58,7 +60,7 @@
         android:paddingRight="5px" android:paddingLeft="3px"
         android:layout_gravity="center_horizontal|center_vertical">
         <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="View By"
+          android:layout_height="wrap_content" android:text="Aggregate By"
           android:layout_gravity="left|center_vertical" android:clickable="true"
           android:id="@+id/category_edit_agg_period_view" android:textColor="#3366ff"
           android:paddingRight="3px" android:paddingLeft="3px">
@@ -71,12 +73,12 @@
 
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:clickable="false"
-        android:layout_gravity="top|left" android:id="@+id/TextView02"
-        android:text="What happens no events associated with this category occur during a given chunk of time?  Check the box if a '0' be automatically inserted.">
+        android:layout_gravity="top|left" android:id="@+id/category_edit_zerofill_row_help"
+        android:text="You've chosen to aggregate your data.  Check the box below if you want a 0 automatically inserted when no events for this category occur during the chunk of time listed above.">
       </TextView>
       <LinearLayout android:layout_height="wrap_content"
         android:layout_width="fill_parent" android:orientation="horizontal"
-        android:id="@+id/category_edit_formula_row" android:paddingBottom="3px"
+        android:id="@+id/category_edit_zerofill_row" android:paddingBottom="3px"
         android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
         android:paddingRight="5px" android:paddingLeft="3px"
         android:layout_gravity="center_horizontal|center_vertical">

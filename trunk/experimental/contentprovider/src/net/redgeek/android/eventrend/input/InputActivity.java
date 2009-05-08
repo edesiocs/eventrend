@@ -88,6 +88,7 @@ public class InputActivity extends EvenTrendActivity {
   private static final int CONTEXT_EDIT = Menu.FIRST + 10;
   private static final int CONTEXT_MOVE_UP = Menu.FIRST + 11;
   private static final int CONTEXT_MOVE_DOWN = Menu.FIRST + 12;
+  private static final int CONTEXT_DELETE = Menu.FIRST + 13;
 
   // Dialog IDs
   private static final int TIME_DIALOG_ID = 0;
@@ -455,6 +456,7 @@ public class InputActivity extends EvenTrendActivity {
     menu.add(0, CONTEXT_EDIT, 0, R.string.context_edit_category);
     menu.add(0, CONTEXT_MOVE_UP, 0, R.string.context_move_up);
     menu.add(0, CONTEXT_MOVE_DOWN, 0, R.string.context_move_down);
+    menu.add(0, CONTEXT_DELETE, 0, R.string.context_delete_category);
   }
 
   @Override

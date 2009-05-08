@@ -21,10 +21,10 @@ import android.app.Dialog;
 import android.app.AlertDialog.Builder;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
@@ -32,7 +32,11 @@ import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.Spanned;
 import android.text.TextUtils;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -44,11 +48,11 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TableRow;
 import android.widget.TextView;
+import android.widget.ViewFlipper;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
@@ -59,9 +63,10 @@ import net.redgeek.android.eventrend.util.Number;
 import java.util.ArrayList;
 
 public class CategoryWizardEditActivity extends EvenTrendActivity {
-  public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 1;
-  public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 2;
-  public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 3;
+  public static final int CATEGORY_CANCELED = RESULT_FIRST_USER + 1;
+  public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 2;
+  public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 3;
+  public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 4;
   public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
   
   static final int DELETE_DIALOG_ID = 0;
@@ -87,42 +92,60 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
   static final int DIALOG_HELP_SENSITIVITY = 18;
 
   // UI elements
-  private LinearLayout mPeriodRow;
-  private TableRow mGroupRow;
-  private ComboBox mGroupCombo;
+  private ViewFlipper    mFlipper;
+  private LayoutInflater mInflater;
+
+  // Page 1:  name + group editing:
   private EditText mCategoryText;
-  private Button mColorButton;
-  private DynamicSpinner mAggregatePeriodSpinner;
-  private EditText mGoalText;
-  private Button mOk;
-  private Button mDelete;
-  private CheckBox mAdvancedCheck;
-  private TableRow mSeriesTypeRow;
+  private ComboBox mGroupCombo;
+  private Button   mCancelPage1;
+  private Button   mNextPage1;
+  
+  // Page 2:  category type:
   private DynamicSpinner mSeriesTypeSpinner;
+  private Button   mCancelPage2;
+  private Button   mBackPage2;
+  private Button   mNextPage2;
+
+  // Page 3a: discrete settings:
+  private EditText mDefaultValueText;
+  private EditText mIncrementText;
+  private Button   mCancelPage3a;
+  private Button   mBackPage3a;
+  private Button   mNextPage3a;
+
+  // Page 3b: synthetics setting:
+  private Button   mFormulaEdit;
+  private Button   mCancelPage3b;
+  private Button   mBackPage3b;
+  private Button   mNextPage3b;
+
+  // Page 4:  aggregation
   private RadioGroup mAggRadioGroup;
   private RadioButton mAggRadio;
-  // synthetic elements:
-  private TableRow mFormulaRow;
-  private Button mFormulaEdit;
-  // standard elements:
-  private TableRow mDefaultValueRow;
-  private EditText mDefaultValueText;
-  private TableRow mIncrementRow;
-  private EditText mIncrementText;
-  private TableRow mZeroFillRow;
+  private DynamicSpinner mAggregatePeriodSpinner;
   private CheckBox mZeroFillCheck;
-  // previously in prefs
-  private TableRow mTrendLabelRow;
-  private TableRow mUnitsRow;
+  private Button   mCancelPage4;
+  private Button   mBackPage4;
+  private Button   mNextPage4;
+  private TextView mZerofillHelp;
+  private LinearLayout mZerofillLayout;
+  
+  // Page 5:  customization
+  private Button mColorButton;
   private EditText mUnitsText;
-  private TableRow mHistoryRow;
+  private EditText mGoalText;
+  private Button   mCancelPage5;
+  private Button   mSavePage5;
+  private Button   mAdvancedPage5;
+
+  // page 6:  trending
   private EditText mHistoryText;
-  private TableRow mDecimalsRow;
   private EditText mDecimalsText;
-  private TableRow mSmoothingRow;
   private EditText mSmoothingText;
-  private TableRow mSensitivityRow;
   private EditText mSensitivityText;
+  private Button   mCancelPage6;
+  private Button   mSavePage6;
 
   // Private data
   private CategoryRow mRow;
@@ -224,91 +247,35 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
   }
 
   private void setupUI() {
-    setContentView(R.layout.category_edit_advanced);
+    setContentView(R.layout.timeseries_edit_root);
 
-    setupListeners();
+    mInflater = (LayoutInflater) mCtx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    mFlipper = (ViewFlipper) findViewById(R.id.wizard_flipper);
+    mFlipper.setInAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left));
+    mFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right));
 
-    mCategoryText = (EditText) findViewById(R.id.category_edit_name);
+    setuiUIPage1();
+    setuiUIPage2();
+    setuiUIPage3a();
+    setuiUIPage3b();
+    setuiUIPage4();
+    setuiUIPage5();
+    setuiUIPage6();
+  }
+  
+  private void setuiUIPage1() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_name, null);
+    mFlipper.addView(page);
+
+    // Category name:
+    mCategoryText = (EditText) page.findViewById(R.id.category_edit_name);
     InputFilter[] FilterArray = new InputFilter[1];
     FilterArray[0] = new RestrictedNameFilter("[\"\\\\]");
     mCategoryText.setFilters(FilterArray);
-
     setHelpDialog(R.id.category_edit_name_view, DIALOG_HELP_CATEGORY);
 
-    mGoalText = (EditText) findViewById(R.id.category_edit_goal);
-    setHelpDialog(R.id.category_edit_goal_view, DIALOG_HELP_GOAL);
-
-    mColorButton = (Button) findViewById(R.id.category_edit_color);
-    mColorButton.setOnClickListener(mColorButtonListener);
-    setHelpDialog(R.id.category_edit_color_view, DIALOG_HELP_COLOR);
-
-    mPeriodRow = (TableRow) findViewById(R.id.category_edit_agg_period_row);
-    mAggregatePeriodSpinner = (DynamicSpinner) findViewById(R.id.category_edit_agg_period_menu);
-    for (int i = 0; i < TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
-      mAggregatePeriodSpinner.addSpinnerItem(
-          TimeSeries.AGGREGATION_PERIOD_NAMES[i], new Long(
-              TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
-    }
-    mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListener);
-    mAggregatePeriodSpinner.setSelection(0);
-    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE_PERIOD);
-
-    mSeriesTypeRow = (TableRow) findViewById(R.id.category_edit_series_type_row);
-    mSeriesTypeSpinner = (DynamicSpinner) findViewById(R.id.category_edit_series_type_menu);
-    mSeriesTypeSpinner.setSelection(0);
-    for (int i = 0; i < TimeSeries.TYPES.length; i++) {
-      mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
-      if (mRow.mType != null && mRow.mType.equals(TimeSeries.TYPES[i])) {
-        mSeriesTypeSpinner.setSelection(i);
-        mType = mRow.mType;
-      }
-    }
-    mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
-    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_SERIES_TYPE);
-
-    mOk = (Button) findViewById(R.id.category_edit_ok);
-    mOk.setOnClickListener(mOkListener);
-
-    mDelete = (Button) findViewById(R.id.category_edit_delete);
-    mDelete.setOnClickListener(mDeleteListener);
-    if (mRowId == null) {
-      mDelete.setVisibility(View.INVISIBLE);
-    }
-
-    mAggRadioGroup = (RadioGroup) findViewById(R.id.category_edit_agg);
-    mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
-    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
-        .getCheckedRadioButtonId());
-    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE);
-
-    // synthetic elements:
-    mFormulaRow = (TableRow) findViewById(R.id.category_edit_formula_row);
-    mFormulaRow.setVisibility(View.GONE);
-    mFormulaEdit = (Button) findViewById(R.id.category_edit_formula);
-    mFormulaEdit.setOnClickListener(mFormulaEditListener);
-    setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
-
-    // standard elements:
-    mDefaultValueRow = (TableRow) findViewById(R.id.category_edit_default_value_row);
-    mDefaultValueText = (EditText) findViewById(R.id.category_edit_default_value);
-    setHelpDialog(R.id.category_edit_default_value_view,
-        DIALOG_HELP_DEFAULT_VALUE);
-
-    mIncrementRow = (TableRow) findViewById(R.id.category_edit_increment_row);
-    mIncrementText = (EditText) findViewById(R.id.category_edit_increment);
-    setHelpDialog(R.id.category_edit_increment_view, DIALOG_HELP_INCREMENT);
-
-    mZeroFillRow = (TableRow) findViewById(R.id.category_edit_zerofill_row);
-    mZeroFillRow.setVisibility(View.GONE);
-    mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
-    setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
-
-    mUnitsRow = (TableRow) findViewById(R.id.category_edit_units_row);
-    mUnitsText = (EditText) findViewById(R.id.category_edit_units);
-    setHelpDialog(R.id.category_edit_units_view, DIALOG_HELP_UNITS);
-
-    mGroupRow = (TableRow) findViewById(R.id.category_edit_group_row);
-    mGroupCombo = (ComboBox) findViewById(R.id.category_edit_group);
+    // Group name:
+    mGroupCombo = (ComboBox) page.findViewById(R.id.category_edit_group);
     ArrayList<String> groups = fetchAllGroups();
     int size = groups.size();
     String group;
@@ -320,31 +287,368 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
     }
     setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
-    mHistoryRow = (TableRow) findViewById(R.id.category_edit_history_row);
+    // Cancel and next:
+    mCancelPage1 = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage1.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mNextPage1 = (Button) page.findViewById(R.id.category_edit_next);
+    mNextPage1.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideLeft();
+      }
+    });
+  }
+
+  private void setuiUIPage2() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_type, null);
+    mFlipper.addView(page);
+
+    // Category type (discrete, range, type):
+    mSeriesTypeSpinner = (DynamicSpinner) page.findViewById(R.id.category_edit_series_type_menu);
+    for (int i = 0; i < TimeSeries.TYPES.length; i++) {
+      mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
+      if (mRow.mType != null && mRow.mType.equals(TimeSeries.TYPES[i])) {
+        mSeriesTypeSpinner.setSelection(i);
+        mType = mRow.mType;
+      }
+    }
+    mSeriesTypeListener = new Spinner.OnItemSelectedListener() {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
+        mType = ((TextView) v).getText().toString();
+        return;
+      }
+
+      public void onNothingSelected(AdapterView arg0) {
+        return;
+      }
+    };
+    mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
+    mSeriesTypeSpinner.setSelection(0);
+    setHelpDialog(R.id.category_edit_type_view, DIALOG_HELP_SERIES_TYPE);
+
+    // Cancel and next:
+    mCancelPage2 = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage2.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mBackPage2 = (Button) page.findViewById(R.id.category_edit_back);
+    mBackPage2.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideRight();
+      }
+    });
+
+    mNextPage2 = (Button) page.findViewById(R.id.category_edit_next);
+    mNextPage2.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        if (mType.toLowerCase().equals(TimeSeries.TYPE_DISCRETE)) {
+          slideLeft();
+        }
+        else if (mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
+          slideLeft();
+          slideLeft();
+        }
+        else if (mType.toLowerCase().equals(TimeSeries.TYPE_RANGE)) {
+          slideLeft();
+          slideLeft();
+          slideLeft();
+        }        
+      }
+    });
+  }
+
+  private void setuiUIPage3a() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_discrete, null);
+    mFlipper.addView(page);
+
+    // Default value:
+    mDefaultValueText = (EditText) page.findViewById(R.id.category_edit_default_value);
+    setHelpDialog(R.id.category_edit_default_value_view,
+        DIALOG_HELP_DEFAULT_VALUE);
+
+    // Increment/decrement:
+    mIncrementText = (EditText) page.findViewById(R.id.category_edit_increment);
+    setHelpDialog(R.id.category_edit_increment_view, DIALOG_HELP_INCREMENT);
+
+    // Cancel and next:
+    mCancelPage3a = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage3a.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mBackPage3a = (Button) page.findViewById(R.id.category_edit_back);
+    mBackPage3a.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideRight();
+      }
+    });
+
+    mNextPage3a = (Button) page.findViewById(R.id.category_edit_next);
+    mNextPage3a.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideLeft();
+        slideLeft();
+      }
+    });
+  }
+
+  private void setuiUIPage3b() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_formula, null);
+    mFlipper.addView(page);
+
+    // Formula:
+    mFormulaEdit = (Button) page.findViewById(R.id.category_edit_formula);
+    mFormulaEditListener = new View.OnClickListener() {
+      public void onClick(View view) {
+        // TODO:  make this not have to save the category first:
+        mSave = true;
+        saveState();
+        mSave = false;
+        Intent i = new Intent(mCtx, FormulaEditorActivity.class);
+        i.putExtra(TimeSeries._ID, mRowId);
+        startActivityForResult(i, ARC_FORMULA_EDIT);
+      }
+    };
+    mFormulaEdit.setOnClickListener(mFormulaEditListener);
+    setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
+
+    // Cancel and next:
+    mCancelPage3b = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage3b.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mBackPage3b = (Button) page.findViewById(R.id.category_edit_back);
+    mBackPage3b.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideRight();
+        slideRight();
+      }
+    });
+
+    mNextPage3b = (Button) page.findViewById(R.id.category_edit_next);
+    mNextPage3b.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideLeft();
+      }
+    });
+  }
+
+  private void setuiUIPage4() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_aggregation, null);
+    mFlipper.addView(page);
+
+    // zerofill:
+    mZerofillHelp = (TextView) page.findViewById(R.id.category_edit_zerofill_row_help);
+    mZerofillLayout = (LinearLayout) page.findViewById(R.id.category_edit_zerofill_row);
+    mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
+    setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
+    mZerofillHelp.setVisibility(View.GONE);
+    mZerofillLayout.setVisibility(View.GONE);
+    
+    // aggregation period:
+    mAggregatePeriodSpinner = (DynamicSpinner) page.findViewById(R.id.category_edit_agg_period_menu);
+    for (int i = 0; i < TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
+      mAggregatePeriodSpinner.addSpinnerItem(
+          TimeSeries.AGGREGATION_PERIOD_NAMES[i], new Long(
+              TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
+    }
+    mAggregatePeriodListener = new Spinner.OnItemSelectedListener() {
+      public void onItemSelected(AdapterView parent, View v, int position,
+          long id) {
+        mPeriodSeconds = (int) mAggregatePeriodSpinner.getMappingFromPosition(position);
+        return;
+      }
+
+      public void onNothingSelected(AdapterView arg0) {
+        return;
+      }
+    };
+    mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListener);
+    mAggregatePeriodSpinner.setSelection(0);
+    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE_PERIOD);
+
+    // aggregation type: sum or average:
+    mAggRadioGroup = (RadioGroup) page.findViewById(R.id.category_edit_agg);
+    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
+        .getCheckedRadioButtonId());
+    setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE);
+    mAggListener = new RadioGroup.OnCheckedChangeListener() {
+      public void onCheckedChanged(RadioGroup group, int checkedId) {
+        mAggRadio = (RadioButton) findViewById(checkedId);
+        if (mAggRadio == null || mType == null)
+          return;
+
+        if (mPeriodSeconds == 0
+            || mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)
+            || mAggRadio.getText().toString().toLowerCase().equals(
+                TimeSeries.AGGREGATION_AVG)) {
+          mZerofillHelp.setVisibility(View.GONE);
+          mZerofillLayout.setVisibility(View.GONE);
+        } else {
+          mZerofillHelp.setVisibility(View.VISIBLE);
+          mZerofillLayout.setVisibility(View.VISIBLE);
+        }
+      }
+    };
+    mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
+
+    // Cancel and next:
+    mCancelPage4 = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage4.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mBackPage4 = (Button) page.findViewById(R.id.category_edit_back);
+    mBackPage4.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        if (mType.toLowerCase().equals(TimeSeries.TYPE_DISCRETE)) {
+          slideRight();
+          slideRight();
+        }
+        else if (mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
+          slideRight();
+        }
+        else if (mType.toLowerCase().equals(TimeSeries.TYPE_RANGE)) {
+          slideRight();
+          slideRight();
+          slideRight();
+        }        
+      }
+    });
+
+    mNextPage4 = (Button) page.findViewById(R.id.category_edit_next);
+    mNextPage4.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideLeft();
+      }
+    });
+  }
+
+  private void setuiUIPage5() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_customize, null);
+    mFlipper.addView(page);
+
+    // Color:
+    mColorButton = (Button) findViewById(R.id.category_edit_color);
+    mColorChangeListener = new ColorPickerDialog.OnColorChangedListener() {
+      public void colorChanged(int color) {
+        mPickerPaint.setColor(color);
+        mColorButton.setBackgroundColor(color);
+        mColorStr = String.format("#%02x%02x%02x", Color.red(color), Color
+            .green(color), Color.blue(color));
+      }
+    };
+
+    mColorButtonListener = new View.OnClickListener() {
+      public void onClick(View view) {
+        ColorPickerDialog d = new ColorPickerDialog(mCtx, mColorChangeListener,
+            mPickerPaint.getColor());
+        d.show();
+      }
+    };
+    mColorButton.setOnClickListener(mColorButtonListener);
+    setHelpDialog(R.id.category_edit_color_view, DIALOG_HELP_COLOR);
+
+    // Goal:
+    mGoalText = (EditText) findViewById(R.id.category_edit_goal);
+    setHelpDialog(R.id.category_edit_goal_view, DIALOG_HELP_GOAL);
+
+    // Units:
+    mUnitsText = (EditText) findViewById(R.id.category_edit_units);
+    setHelpDialog(R.id.category_edit_units_view, DIALOG_HELP_UNITS);
+
+    // Cancel and next:
+    mCancelPage5 = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage5.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mSavePage5 = (Button) page.findViewById(R.id.category_edit_save);
+    mSavePage5.setOnClickListener(new View.OnClickListener() {
+        public void onClick(View view) {
+        mSave = true;
+        setResult(CATEGORY_CREATED);
+        finish();
+      }
+    });
+
+    mAdvancedPage5 = (Button) page.findViewById(R.id.category_edit_next);
+    mAdvancedPage5.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideLeft();
+      }
+    });
+  }
+
+  private void setuiUIPage6() {
+    LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_trending, null);
+    mFlipper.addView(page);
+
+    // History:
     mHistoryText = (EditText) findViewById(R.id.category_edit_history);
     setHelpDialog(R.id.category_edit_history_view, DIALOG_HELP_HISTORY);
 
-    mDecimalsRow = (TableRow) findViewById(R.id.category_edit_decimals_row);
+    // Decimal Places:
     mDecimalsText = (EditText) findViewById(R.id.category_edit_decimals);
     setHelpDialog(R.id.category_edit_decimals_view, DIALOG_HELP_DECIMALS);
 
-    mSmoothingRow = (TableRow) findViewById(R.id.category_edit_smoothing_row);
+    // Smoothing:
     mSmoothingText = (EditText) findViewById(R.id.category_edit_smoothing);
     setHelpDialog(R.id.category_edit_smoothing_view, DIALOG_HELP_SMOOTHING);
 
-    mSensitivityRow = (TableRow) findViewById(R.id.category_edit_sensitivity_row);
+    // Sensitivity:
     mSensitivityText = (EditText) findViewById(R.id.category_edit_sensitivity);
     setHelpDialog(R.id.category_edit_sensitivity_view, DIALOG_HELP_SENSITIVITY);
-
-    mTrendLabelRow = (TableRow) findViewById(R.id.category_edit_trend_row);
-      
-    // these changes the layout, so needs to be last
-    mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
-    mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
-    mAdvancedCheck.setChecked(false);
-    setVisibleViews();
+    
+    // Cancel and next:
+    mCancelPage6 = (Button) page.findViewById(R.id.category_edit_cancel);
+    mCancelPage6.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        mSave = false;
+        setResult(CATEGORY_CANCELED);
+        finish();
+      }
+    });
+    
+    mSavePage6 = (Button) page.findViewById(R.id.category_edit_save);
+    mSavePage6.setOnClickListener(new View.OnClickListener() {
+        public void onClick(View view) {
+        mSave = true;
+        setResult(CATEGORY_CREATED);
+        finish();
+      }
+    });
   }
-
+  
   private ArrayList<String> fetchAllGroups() {
     ArrayList<String> groups = new ArrayList<String>();
     String[] projection = new String[] { TimeSeries.GROUP_NAME };
@@ -365,154 +669,6 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
       c.close();
     }
     return groups;
-  }
-
-  private void setZerofillCheckStatus() {
-    if (mAggRadio == null || mAdvancedCheck == null || mType == null)
-      return;
-      
-    if (mPeriodSeconds == 0 
-        || mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)
-        || mAggRadio.getText().toString().toLowerCase().equals(TimeSeries.AGGREGATION_AVG)
-        || mAdvancedCheck.isChecked() == false) {
-      mZeroFillRow.setVisibility(View.GONE);
-    } else {
-      mZeroFillRow.setVisibility(View.VISIBLE);
-    }
-  }
-  
-  private void setUserDefinedInput() {
-    if (mType == null)
-      return;
-    
-    if (mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
-      mFormulaRow.setVisibility(View.VISIBLE);
-      mDefaultValueRow.setVisibility(View.GONE);
-      mIncrementRow.setVisibility(View.GONE);
-    } else if (mType.toLowerCase().equals(TimeSeries.TYPE_RANGE)) {
-      mFormulaRow.setVisibility(View.GONE);
-      mDefaultValueRow.setVisibility(View.GONE);
-      mIncrementRow.setVisibility(View.GONE);
-    } else {
-      mFormulaRow.setVisibility(View.GONE);
-      mDefaultValueRow.setVisibility(View.VISIBLE);
-      mIncrementRow.setVisibility(View.VISIBLE);
-    }
-  }
-  
-  private void setVisibleViews() {
-    if (mAdvancedCheck == null)
-      return;
-
-    if (mAdvancedCheck != null && mAdvancedCheck.isChecked() == true) {
-      mPeriodRow.setVisibility(View.VISIBLE);
-      mSeriesTypeRow.setVisibility(View.VISIBLE);
-      mGroupRow.setVisibility(View.VISIBLE);
-      mTrendLabelRow.setVisibility(View.VISIBLE);
-      mHistoryRow.setVisibility(View.VISIBLE);
-      mDecimalsRow.setVisibility(View.VISIBLE);
-      mSmoothingRow.setVisibility(View.VISIBLE);
-      mSensitivityRow.setVisibility(View.VISIBLE);
-      mUnitsRow.setVisibility(View.VISIBLE);
-    } else {
-      mPeriodRow.setVisibility(View.GONE);
-      mSeriesTypeRow.setVisibility(View.GONE);
-      mGroupRow.setVisibility(View.GONE);
-      mTrendLabelRow.setVisibility(View.GONE);
-      mHistoryRow.setVisibility(View.GONE);
-      mDecimalsRow.setVisibility(View.GONE);
-      mSmoothingRow.setVisibility(View.GONE);
-      mSensitivityRow.setVisibility(View.GONE);
-      mUnitsRow.setVisibility(View.GONE);
-    }
-    setZerofillCheckStatus();
-    setUserDefinedInput();
-  }  
-  
-  private void setupListeners() {
-    mAggListener = new RadioGroup.OnCheckedChangeListener() {
-      public void onCheckedChanged(RadioGroup group, int checkedId) {
-        mAggRadio = (RadioButton) findViewById(checkedId);
-        setVisibleViews();
-      }
-    };
-
-    mColorChangeListener = new ColorPickerDialog.OnColorChangedListener() {
-      public void colorChanged(int color) {
-        mPickerPaint.setColor(color);
-        mColorButton.setBackgroundColor(color);
-        mColorStr = String.format("#%02x%02x%02x", Color.red(color), Color
-            .green(color), Color.blue(color));
-      }
-    };
-
-    mColorButtonListener = new View.OnClickListener() {
-      public void onClick(View view) {
-        ColorPickerDialog d = new ColorPickerDialog(mCtx, mColorChangeListener,
-            mPickerPaint.getColor());
-        d.show();
-      }
-    };
-
-    mAggregatePeriodListener = new Spinner.OnItemSelectedListener() {
-      public void onItemSelected(AdapterView parent, View v, int position,
-          long id) {
-        mPeriodSeconds = (int) mAggregatePeriodSpinner
-            .getMappingFromPosition(position);
-        setVisibleViews();
-        return;
-      }
-
-      public void onNothingSelected(AdapterView arg0) {
-        return;
-      }
-    };
-
-    mSeriesTypeListener = new Spinner.OnItemSelectedListener() {
-      public void onItemSelected(AdapterView parent, View v, int position,
-          long id) {
-        mType = ((TextView) v).getText().toString();
-        setVisibleViews();
-        return;
-      }
-
-      public void onNothingSelected(AdapterView arg0) {
-        return;
-      }
-    };
-
-    mAdvancedListener = new CompoundButton.OnCheckedChangeListener() {
-      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setVisibleViews();
-      }
-    };
-
-    mFormulaEditListener = new View.OnClickListener() {
-      public void onClick(View view) {
-        // TODO: formula-related stuff
-         mSave = true;
-         saveState();
-         mSave = false;
-         Intent i = new Intent(mCtx, FormulaEditorActivity.class);
-         i.putExtra(TimeSeries._ID, mRowId);
-         startActivityForResult(i, ARC_FORMULA_EDIT);
-      }
-    };
-
-    mOkListener = new View.OnClickListener() {
-      public void onClick(View view) {
-        mSave = true;
-        setResult(RESULT_OK);
-        finish();
-      }
-    };
-
-    mDeleteListener = new View.OnClickListener() {
-      public void onClick(View view) {
-        // TODO:  don't allow deleting of dependee series
-        showDialog(DELETE_DIALOG_ID);
-      }
-    };
   }
 
   private void updatePaint(String color) {
@@ -791,5 +947,36 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
         showDialog(dialog);
       }
     });
+  }
+  
+  protected void slideLeft() {
+    Animation slideInLeft = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+        1.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+        0.0f, Animation.RELATIVE_TO_SELF, 0.0f);
+    Animation slideOutRight = new TranslateAnimation(
+        Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, -1.0f,
+        Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF, 0.0f);
+    slideInLeft.setDuration(500);
+    slideOutRight.setDuration(500);
+
+    mFlipper.setInAnimation(slideInLeft);
+    mFlipper.setOutAnimation(slideOutRight);
+
+    mFlipper.showNext();
+  }
+
+  protected void slideRight() {
+    Animation slideOutLeft = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+        0.0f, Animation.RELATIVE_TO_SELF, 1.0f, Animation.RELATIVE_TO_SELF,
+        0.0f, Animation.RELATIVE_TO_SELF, 0.0f);
+    Animation slideInRight = new TranslateAnimation(Animation.RELATIVE_TO_SELF,
+        -1.0f, Animation.RELATIVE_TO_SELF, 0.0f, Animation.RELATIVE_TO_SELF,
+        0.0f, Animation.RELATIVE_TO_SELF, 0.0f);
+    slideOutLeft.setDuration(500);
+    slideInRight.setDuration(500);
+
+    mFlipper.setInAnimation(slideInRight);
+    mFlipper.setOutAnimation(slideOutLeft);
+    mFlipper.showPrevious();
   }
 }

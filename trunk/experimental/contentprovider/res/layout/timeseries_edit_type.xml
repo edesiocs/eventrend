@@ -3,7 +3,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:layout_width="fill_parent" android:orientation="vertical"
   android:scrollbars="vertical" android:layout_height="fill_parent"
-  android:layout_gravity="center_horizontal">
+  android:layout_gravity="center_horizontal"
+  android:id="@+id/timeseries_edit_page2"
+  >
   <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
     android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
     <LinearLayout android:id="@+id/LinearLayout01"
@@ -13,45 +15,6 @@
         android:textStyle="bold" android:layout_gravity="center_vertical|center_horizontal"
         android:layout_width="fill_parent" android:gravity="center_vertical|center_horizontal"
         android:paddingTop="3px" android:paddingBottom="3px" android:text="Category Editor: Type"></TextView>
-
-      <LinearLayout android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:orientation="horizontal"
-        android:id="@+id/category_edit_name_row" android:paddingBottom="3px"
-        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
-        android:paddingRight="5px" android:paddingLeft="3px"
-        android:layout_gravity="center_horizontal|center_vertical">
-        <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Category Name"
-          android:layout_gravity="left|center_vertical" android:clickable="true"
-          android:id="@+id/category_edit_name_view" android:textColor="#3366ff"
-          android:paddingRight="3px" android:paddingLeft="3px">
-        </TextView>
-        <EditText android:layout_height="wrap_content"
-          android:layout_width="fill_parent" android:id="@+id/category_edit_name">
-        </EditText>
-      </LinearLayout>
-      <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:id="@+id/TextView02"
-        android:text="Categories can be grouped such that all categories within a group appear in a list on their own page.  If you'd like to group this category with others, enter a group name below or select one from the pop-up menu."></TextView>
-      <LinearLayout android:layout_height="wrap_content"
-        android:id="@+id/category_edit_group_row" android:gravity="center_vertical|center_horizontal"
-        android:orientation="horizontal" android:paddingBottom="3px"
-        android:paddingLeft="3px" android:paddingRight="5px" android:paddingTop="5px"
-        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical">
-        <TextView android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:layout_gravity="left|center_vertical"
-          android:text="Group" android:clickable="true" android:id="@+id/category_edit_group_view"
-          android:textColor="#3366ff" android:paddingLeft="3px"
-          android:paddingRight="3px">
-        </TextView>
-
-        <net.redgeek.android.eventrend.util.ComboBox
-          android:layout_height="wrap_content" android:layout_width="fill_parent"
-          android:layout_gravity="right|center_vertical" android:id="@+id/category_edit_group" />
-
-      </LinearLayout>
-
-
 
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:id="@+id/TextView02"
