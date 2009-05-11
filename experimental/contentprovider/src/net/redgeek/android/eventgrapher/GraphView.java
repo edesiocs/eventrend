@@ -27,7 +27,7 @@ import android.view.View.OnLongClickListener;
 import android.widget.TextView;
 import android.widget.ZoomControls;
 
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
@@ -88,7 +88,7 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   private Context mCtx;
   private TimeSeriesCollector mTSC;
   private Calendar mCal;
-  private Tuple mLastEvent;
+  private FloatTuple mLastEvent;
 
   // Tasks and handlers
   private Handler mZoomHandler;
@@ -190,8 +190,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     scheduleHideZoomControls();
     if (event.getAction() == MotionEvent.ACTION_DOWN) {
       requestFocus();
-      mLastEvent = new Tuple(event.getX(), event.getY());
-      Tuple plotCoords = new Tuple(mLastEvent);
+      mLastEvent = new FloatTuple(event.getX(), event.getY());
+      FloatTuple plotCoords = new FloatTuple(mLastEvent);
       plotCoords.minus(mGraph.getPlotOffset());
       lookupDatapoint(plotCoords);
       return super.onTouchEvent(event);
@@ -201,11 +201,11 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
       return super.onTouchEvent(event);
     }
 
-    Tuple movement = new Tuple(event.getX(), event.getY());
+    FloatTuple movement = new FloatTuple(event.getX(), event.getY());
     if (mLastEvent != null) {
       movement = movement.minus(mLastEvent);
     } else if (event.getHistorySize() > 0) {
-      movement = movement.minus(new Tuple(event.getHistoricalX(0), event
+      movement = movement.minus(new FloatTuple(event.getHistoricalX(0), event
           .getHistoricalY(0)));
     } else {
       mLastEvent = movement;
@@ -298,7 +298,7 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
 
     if (mGraph.mSelectedDatapoint != null) {
       str += mGraph.mSelectedDatapoint.toLabelString() + ": "
-          + mGraph.mSelectedDatapoint.mValue.y;
+          + mGraph.mSelectedDatapoint.mY.y;
       mStatus.setText(str);
       mStatus.setTextColor(mGraph.mSelectedColor);
       return;
@@ -351,7 +351,7 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     mGraph.viewMarkers(b);
   }
 
-  public void lookupDatapoint(Tuple t) {
+  public void lookupDatapoint(FloatTuple t) {
     mGraph.lookupDatapoint(t);
     updateStatus();
   }

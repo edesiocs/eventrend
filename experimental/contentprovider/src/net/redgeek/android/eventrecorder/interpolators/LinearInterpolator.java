@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrecorder.interpolators;
 
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventrend.R;
 import android.graphics.Path;
 
@@ -40,9 +40,9 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
     return NAME;
   }
 
-  public Tuple[] interpolate(Tuple first, Tuple second) {
-    Tuple[] result = new Tuple[1];
-    Tuple r1 = new Tuple(second);
+  public FloatTuple[] interpolate(FloatTuple first, FloatTuple second) {
+    FloatTuple[] result = new FloatTuple[1];
+    FloatTuple r1 = new FloatTuple(second);
     result[0] = r1;
     if (first.equals(second) == true)
       return result;
@@ -53,7 +53,7 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
     return result;
   }
 
-  public Float interpolateX(Tuple first, Tuple second, float atY) {
+  public Float interpolateX(FloatTuple first, FloatTuple second, float atY) {
     if (first.equals(second) == true)
       return null;
     if (first.x == second.x)
@@ -63,7 +63,7 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
     return new Float(first.x + (slope * (atY - first.y)));
   }
 
-  public Float interpolateY(Tuple first, Tuple second, float atX) {
+  public Float interpolateY(FloatTuple first, FloatTuple second, float atX) {
     if (first.equals(second) == true)
       return null;
     if (first.x == second.x)
@@ -73,7 +73,7 @@ public class LinearInterpolator implements TimeSeriesInterpolator {
     return new Float(first.y + (slope * (atX - first.x)));
   }
 
-  public void updatePath(Path path, Tuple first, Tuple second) {
+  public void updatePath(Path path, FloatTuple first, FloatTuple second) {
     if (first == null && second != null)
       path.moveTo(second.x, second.y);
     else if (first != null && second == null)

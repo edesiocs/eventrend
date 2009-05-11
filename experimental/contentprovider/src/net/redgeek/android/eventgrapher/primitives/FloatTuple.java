@@ -22,14 +22,14 @@ package net.redgeek.android.eventgrapher.primitives;
  * 
  * @author barclay
  */
-public class Tuple implements Comparable<Tuple> {
+public class FloatTuple implements Comparable<FloatTuple> {
   public float x;
   public float y;
 
   /**
    * Creates a Tuple initialized to (0.0f, 0.0f).
    */
-  public Tuple() {
+  public FloatTuple() {
     x = 0.0f;
     y = 0.0f;
   }
@@ -42,7 +42,7 @@ public class Tuple implements Comparable<Tuple> {
    * @param y
    *          Y-value.
    */
-  public Tuple(float x, float y) {
+  public FloatTuple(float x, float y) {
     this.x = x;
     this.y = y;
   }
@@ -53,7 +53,7 @@ public class Tuple implements Comparable<Tuple> {
    * @param t
    *          The Tuple with which to copy values from.
    */
-  public Tuple(Tuple t) {
+  public FloatTuple(FloatTuple t) {
     this.x = t.x;
     this.y = t.y;
   }
@@ -66,7 +66,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple with which to copy values from.
    * @return The original Tuple.
    */
-  public Tuple set(Tuple t) {
+  public FloatTuple set(FloatTuple t) {
     x = t.x;
     y = t.y;
     return this;
@@ -82,7 +82,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The y value to assign.
    * @return The original Tuple.
    */
-  public Tuple set(float x, float y) {
+  public FloatTuple set(float x, float y) {
     this.x = x;
     this.y = y;
     return this;
@@ -95,9 +95,9 @@ public class Tuple implements Comparable<Tuple> {
    */
   @Override
   public boolean equals(Object obj) {
-    if (obj == null || !(obj instanceof Tuple))
+    if (obj == null || !(obj instanceof FloatTuple))
       return false;
-    Tuple other = (Tuple) obj;
+    FloatTuple other = (FloatTuple) obj;
     return x == other.x && y == other.y;
   }
 
@@ -108,7 +108,7 @@ public class Tuple implements Comparable<Tuple> {
    * 
    * @return int
    */
-  public int compareTo(Tuple other) {
+  public int compareTo(FloatTuple other) {
     if (this.x < other.x)
       return -1;
     else if (this.x > other.x)
@@ -144,7 +144,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to add.
    * @return <code>this</code>
    */
-  public Tuple plus(Tuple other) {
+  public FloatTuple plus(FloatTuple other) {
     x += other.x;
     y += other.y;
     return this;
@@ -158,7 +158,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The value to add to both <code>x</code> and <code>y</code>.
    * @return <code>this</code>
    */
-  public Tuple plus(float other) {
+  public FloatTuple plus(float other) {
     x += other;
     y += other;
     return this;
@@ -174,8 +174,8 @@ public class Tuple implements Comparable<Tuple> {
    *          A Tuple
    * @return A new Tuple that is the sum of <code>a</code> and <code>b</code>.
    */
-  public static Tuple plus(Tuple a, Tuple b) {
-    return new Tuple(a.x + b.x, a.y + b.y);
+  public static FloatTuple plus(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x + b.x, a.y + b.y);
   }
 
   /**
@@ -186,7 +186,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to subtract.
    * @return <code>this</code>
    */
-  public Tuple minus(Tuple other) {
+  public FloatTuple minus(FloatTuple other) {
     x -= other.x;
     y -= other.y;
     return this;
@@ -200,7 +200,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The value to subtract from both <code>x</code> and <code>y</code>.
    * @return <code>this</code>
    */
-  public Tuple minus(float other) {
+  public FloatTuple minus(float other) {
     x -= other;
     y -= other;
     return this;
@@ -217,8 +217,8 @@ public class Tuple implements Comparable<Tuple> {
    * @return A new Tuple that is the different of <code>a</code> and
    *         <code>b</code>.
    */
-  public static Tuple minus(Tuple a, Tuple b) {
-    return new Tuple(a.x - b.x, a.y - b.y);
+  public static FloatTuple minus(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x - b.x, a.y - b.y);
   }
 
   /**
@@ -229,7 +229,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to multiply by.
    * @return <code>this</code>
    */
-  public Tuple multiply(Tuple other) {
+  public FloatTuple multiply(FloatTuple other) {
     x *= other.x;
     y *= other.y;
     return this;
@@ -243,7 +243,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The value to multiply both <code>x</code> and <code>y</code> by.
    * @return <code>this</code>
    */
-  public Tuple multiply(float other) {
+  public FloatTuple multiply(float other) {
     x *= other;
     y *= other;
     return this;
@@ -260,8 +260,8 @@ public class Tuple implements Comparable<Tuple> {
    * @return A new Tuple that is the product of <code>a</code> and
    *         <code>b</code>.
    */
-  public static Tuple multiply(Tuple a, Tuple b) {
-    return new Tuple(a.x * b.x, a.y * b.y);
+  public static FloatTuple multiply(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x * b.x, a.y * b.y);
   }
 
   /**
@@ -272,7 +272,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to divide by.
    * @return <code>this</code>
    */
-  public Tuple divide(Tuple other) {
+  public FloatTuple divide(FloatTuple other) {
     x /= other.x;
     y /= other.y;
     return this;
@@ -287,7 +287,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The value to divide both <code>x</code> and <code>y</code> by.
    * @return <code>this</code>
    */
-  public Tuple divide(float other) {
+  public FloatTuple divide(float other) {
     x /= other;
     y /= other;
     return this;
@@ -305,8 +305,8 @@ public class Tuple implements Comparable<Tuple> {
    * @return A new Tuple that is the quotient of <code>a</code> and
    *         <code>b</code>.
    */
-  public static Tuple divide(Tuple a, Tuple b) {
-    return new Tuple(a.x / b.x, a.y / b.y);
+  public static FloatTuple divide(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x / b.x, a.y / b.y);
   }
 
   /**
@@ -317,7 +317,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to compare to.
    * @return <code>this</code>
    */
-  public Tuple min(Tuple other) {
+  public FloatTuple min(FloatTuple other) {
     x = other.x < x ? other.x : x;
     y = other.y < y ? other.y : y;
     return this;
@@ -335,8 +335,8 @@ public class Tuple implements Comparable<Tuple> {
    * @return A new Tuple containing the minimum values of the source Tuples
    *         components.
    */
-  public static Tuple min(Tuple a, Tuple b) {
-    return new Tuple(a.x < b.x ? a.x : b.x, a.y < b.y ? a.y : b.y);
+  public static FloatTuple min(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x < b.x ? a.x : b.x, a.y < b.y ? a.y : b.y);
   }
 
   /**
@@ -347,7 +347,7 @@ public class Tuple implements Comparable<Tuple> {
    *          The Tuple to compare to.
    * @return <code>this</code>
    */
-  public Tuple max(Tuple other) {
+  public FloatTuple max(FloatTuple other) {
     x = other.x > x ? other.x : x;
     y = other.y > y ? other.y : y;
     return this;
@@ -365,7 +365,7 @@ public class Tuple implements Comparable<Tuple> {
    * @return A new Tuple containing the maximum values of the source Tuples
    *         components.
    */
-  public static Tuple max(Tuple a, Tuple b) {
-    return new Tuple(a.x > b.x ? a.x : b.x, a.y > b.y ? a.y : b.y);
+  public static FloatTuple max(FloatTuple a, FloatTuple b) {
+    return new FloatTuple(a.x > b.x ? a.x : b.x, a.y > b.y ? a.y : b.y);
   }
 }

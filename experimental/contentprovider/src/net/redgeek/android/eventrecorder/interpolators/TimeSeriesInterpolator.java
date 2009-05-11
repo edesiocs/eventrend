@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrecorder.interpolators;
 
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 
 import android.graphics.Path;
 
@@ -80,7 +80,7 @@ public interface TimeSeriesInterpolator {
    * @param second
    * @return Tuple[] of points between the two points, may be null.
    */
-  Tuple[] interpolate(Tuple first, Tuple second);
+  FloatTuple[] interpolate(FloatTuple first, FloatTuple second);
 
   /**
    * Calculates the X-value of the interpolation between points
@@ -93,7 +93,7 @@ public interface TimeSeriesInterpolator {
    * @param atY
    * @return The X value at value Y, or null.
    */
-  Float interpolateX(Tuple first, Tuple second, float atY);
+  Float interpolateX(FloatTuple first, FloatTuple second, float atY);
 
   /**
    * Calculates the Y-value of the interpolation between points
@@ -106,7 +106,7 @@ public interface TimeSeriesInterpolator {
    * @param atX
    * @return The Y value at value X, or null.
    */
-  Float interpolateY(Tuple first, Tuple second, float atX);
+  Float interpolateY(FloatTuple first, FloatTuple second, float atX);
 
   /**
    * Draws a path between the two points. Note that for the first point of the
@@ -118,5 +118,5 @@ public interface TimeSeriesInterpolator {
    * @param first
    * @param second
    */
-  void updatePath(Path path, Tuple first, Tuple second);
+  void updatePath(Path path, FloatTuple first, FloatTuple second);
 }
