@@ -794,7 +794,6 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
       values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
       values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
       values.put(TimeSeries.INTERPOLATION, "");
-      // TODO:  formula-related stuff
       if (mRow.mFormula == null || TextUtils.isEmpty(mRow.mFormula))
         values.put(TimeSeries.FORMULA, "");
       else
