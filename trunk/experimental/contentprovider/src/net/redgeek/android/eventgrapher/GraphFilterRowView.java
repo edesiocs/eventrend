@@ -24,6 +24,8 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+
 public class GraphFilterRowView extends LinearLayout {
   // UI elements
   private TextView mCategoryNameView;

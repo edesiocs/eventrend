@@ -204,18 +204,18 @@ public final class TimeSeries {
     for (int i = 0; i < mDatapoints.size(); i++) {
       Datapoint d = mDatapoints.get(i);
       if (i >= mVisibleFirstIdx && i <= mVisibleLastIdx) {
-        mVisibleMinY = Math.min(mVisibleMinY, d.mValue.mY);
-        mVisibleMaxY = Math.max(mVisibleMaxY, d.mValue.mY);
-        mVisibleMinX = Math.min(mVisibleMinX, d.mValue.mX1);
-        mVisibleMaxX = Math.max(mVisibleMaxX, d.mValue.mX1);
+        mVisibleMinY = Math.min(mVisibleMinY, d.mValue);
+        mVisibleMaxY = Math.max(mVisibleMaxY, d.mValue);
+        mVisibleMinX = Math.min(mVisibleMinX, d.mTsStart);
+        mVisibleMaxX = Math.max(mVisibleMaxX, d.mTsStart);
 
         // we run stats on the y-values themselves,
         // but use the delta of the timestamps for x-stats:
         if (i > 0) {
-          long delta = (d.mValue.mX1 - mTimestampLast);
+          long delta = (d.mTsStart - mTimestampLast);
           mTimestampStats.update(delta, d.mEntries + firstNEntries);
         }
-        mTimestampLast = (d.mValue.mX1);
+        mTimestampLast = (d.mTsStart);
         firstNEntries = 0;
         if (i == 0)
           firstNEntries = d.mEntries;
@@ -223,13 +223,13 @@ public final class TimeSeries {
         // d.mTrend will be used for plotting the trend line,
         // so we don't want to change the x value, since that
         // should still be an absolute time
-        d.mTrend.mX1 = d.mValue.mX1;
-        d.mTrend.mX2 = d.mValue.mX2;
+        d.mScreenTrend1.set(d.mScreenValue1);
+        d.mScreenTrend2.set(d.mScreenValue2);
 
         mNumEntries += d.mEntries;
       } else {
-        d.mTrend.mX1 = d.mValue.mX1;
-        d.mTrend.mX2 = d.mValue.mX2;
+        d.mScreenTrend1.set(d.mScreenValue1);
+        d.mScreenTrend2.set(d.mScreenValue2);
       }
     }
     interpolateBoundsToOffscreen();
@@ -294,16 +294,16 @@ public final class TimeSeries {
       for (int i = mVisibleFirstIdx; i <= mVisibleLastIdx; i++) {
         d = mDatapoints.get(i);
 
-        if (press.x >= d.mValue.mX1 - mTouchRadius
-            && press.x <= d.mValue.mX1 + mTouchRadius
-            && press.y >= d.mValue.mY - mTouchRadius
-            && press.y <= d.mValue.mY + mTouchRadius) {
+        if (press.x >= d.mScreenValue1.x - mTouchRadius
+            && press.x <= d.mScreenValue1.x + mTouchRadius
+            && press.y >= d.mScreenValue1.y - mTouchRadius
+            && press.y <= d.mScreenValue1.y + mTouchRadius) {
           return d;
         }
-        if (press.x >= d.mValue.mX2 - mTouchRadius
-            && press.x <= d.mValue.mX2 + mTouchRadius
-            && press.y >= d.mValue.mY - mTouchRadius
-            && press.y <= d.mValue.mY + mTouchRadius) {
+        if (press.x >= d.mScreenValue2.x - mTouchRadius
+            && press.x <= d.mScreenValue2.x + mTouchRadius
+            && press.y >= d.mScreenValue2.y - mTouchRadius
+            && press.y <= d.mScreenValue2.y + mTouchRadius) {
           return d;
         }
       }
@@ -323,18 +323,18 @@ public final class TimeSeries {
 
     d = mDatapoints.get(mid);
     while (d != null) {
-      if (d.mValue.mX1 == timestamp) {
+      if (d.mTsStart == timestamp) {
         return d;
       } else if (max < min) {
         if (pre == true) {
-          if (d.mValue.mX1 > timestamp) {
+          if (d.mTsStart > timestamp) {
             if (mid - 1 >= 0)
               d = mDatapoints.get(mid - 1);
             else
               d = null;
           }
         } else {
-          if (d.mValue.mX1 < timestamp) {
+          if (d.mTsStart < timestamp) {
             if (mid + 1 < mDatapoints.size())
               d = mDatapoints.get(mid + 1);
             else
@@ -342,9 +342,9 @@ public final class TimeSeries {
           }
         }
         return d;
-      } else if (d.mValue.mX1 < timestamp) {
+      } else if (d.mTsStart < timestamp) {
         min = mid + 1;
-      } else if (d.mValue.mX1 > timestamp) {
+      } else if (d.mTsStart > timestamp) {
         max = mid - 1;
       }
       mid = min + ((max - min) / 2);
@@ -470,13 +470,13 @@ public final class TimeSeries {
         return;
       }
 
-      if (d2.mValue.mX1 > d1.mValue.mX1) {
-        iy = (d2.mValue.mY - d1.mValue.mY) / (d2.mValue.mX1 - d1.mValue.mX1);
-        if (iy > 0 && d2.mValue.mY > mVisibleMaxY) {
-          mVisibleMaxY = d2.mValue.mY;
+      if (d2.mTsStart > d1.mTsStart) {
+        iy = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
+        if (iy > 0 && d2.mValue > mVisibleMaxY) {
+          mVisibleMaxY = d2.mValue;
         }
-        if (iy < 0 && d2.mValue.mY < mVisibleMinY) {
-          mVisibleMinY = d2.mValue.mY;
+        if (iy < 0 && d2.mValue < mVisibleMinY) {
+          mVisibleMinY = d2.mValue;
         }
       }
     }
@@ -495,13 +495,13 @@ public final class TimeSeries {
         return;
       }
 
-      if (d1.mValue.mX1 < d2.mValue.mX1) {
-        iy = (d2.mValue.mY - d1.mValue.mY) / (d2.mValue.mX1 - d1.mValue.mX1);
-        if (iy < 0 && d1.mValue.mY > mVisibleMaxY) {
-          mVisibleMaxY = d1.mValue.mY;
+      if (d1.mTsStart < d2.mTsStart) {
+        iy = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
+        if (iy < 0 && d1.mValue > mVisibleMaxY) {
+          mVisibleMaxY = d1.mValue;
         }
-        if (iy > 0 && d1.mValue.mY < mVisibleMinY) {
-          mVisibleMinY = d1.mValue.mY;
+        if (iy > 0 && d1.mValue < mVisibleMinY) {
+          mVisibleMinY = d1.mValue;
         }
       }
     }

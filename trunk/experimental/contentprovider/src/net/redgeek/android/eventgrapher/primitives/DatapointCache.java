@@ -133,20 +133,18 @@ public class DatapointCache {
     for (int i = 0; i < count; i++) {
       Datapoint d = new Datapoint();
       d.mDatapointId = TimeSeriesData.Datapoint.getId(c);
-      d.mValue.mX1 = TimeSeriesData.Datapoint.getTsStart(c);
-      d.mValue.mX2 = TimeSeriesData.Datapoint.getTsEnd(c);
-      d.mValue.mY = (float) TimeSeriesData.Datapoint.getValue(c);
-      d.mTrend.mX1 = d.mValue.mX1;
-      d.mTrend.mX2 = d.mValue.mX1;
-      d.mTrend.mY = (float) TimeSeriesData.Datapoint.getTrend(c);      
+      d.mTsStart = TimeSeriesData.Datapoint.getTsStart(c);
+      d.mTsEnd = TimeSeriesData.Datapoint.getTsEnd(c);
+      d.mValue = (float) TimeSeriesData.Datapoint.getValue(c);
+      d.mTrend = (float) TimeSeriesData.Datapoint.getTrend(c);      
       d.mDatapointId = TimeSeriesData.Datapoint.getId(c);
       d.mEntries = TimeSeriesData.Datapoint.getEntries(c);
       d.mStdDev = (float) TimeSeriesData.Datapoint.getStdDev(c);
       d.mTimeSeriesId = catId;
       
-      if (d.mValue.mX1 < lastEntryTS)
-        lastEntryTS = d.mValue.mX1;
-      if (d.mValue.mX1 <= oldEnd && d.mValue.mX1 >= oldStart)
+      if (d.mTsStart < lastEntryTS)
+        lastEntryTS = d.mTsStart;
+      if (d.mTsStart <= oldEnd && d.mTsStart >= oldStart)
         overlap = true;
       else
         // we can't append the datapoints directly to the cache here, since that
@@ -292,12 +290,10 @@ public class DatapointCache {
       for (int j = 0; j < c.getCount(); j++) {
         Datapoint d = new Datapoint();
         d.mDatapointId = TimeSeriesData.Datapoint.getId(c);
-        d.mValue.mX1 = TimeSeriesData.Datapoint.getTsStart(c);
-        d.mValue.mX2 = TimeSeriesData.Datapoint.getTsEnd(c);
-        d.mValue.mY = (float) TimeSeriesData.Datapoint.getValue(c);
-        d.mTrend.mX1 = d.mValue.mX1;
-        d.mTrend.mX2 = d.mValue.mX1;
-        d.mTrend.mY = (float) TimeSeriesData.Datapoint.getTrend(c);      
+        d.mTsStart = TimeSeriesData.Datapoint.getTsStart(c);
+        d.mTsEnd = TimeSeriesData.Datapoint.getTsEnd(c);
+        d.mValue = (float) TimeSeriesData.Datapoint.getValue(c);
+        d.mTrend = (float) TimeSeriesData.Datapoint.getTrend(c);      
         d.mDatapointId = TimeSeriesData.Datapoint.getId(c);
         d.mEntries = TimeSeriesData.Datapoint.getEntries(c);
         d.mStdDev = (float) TimeSeriesData.Datapoint.getStdDev(c);

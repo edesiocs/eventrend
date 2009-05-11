@@ -29,8 +29,14 @@ import java.util.Comparator;
  * 
  */
 public final class Datapoint implements Comparator<Datapoint> {
-  public GraphTuple mValue;
-  public GraphTuple mTrend;
+  public long  mTsStart;
+  public long  mTsEnd;
+  public float mValue;
+  public float mTrend;
+  public FloatTuple mScreenValue1;
+  public FloatTuple mScreenValue2;
+  public FloatTuple mScreenTrend1;
+  public FloatTuple mScreenTrend2;
   public float mStdDev;
   public int mEntries;
     
@@ -42,8 +48,10 @@ public final class Datapoint implements Comparator<Datapoint> {
 
   public Datapoint(long start, long stop, float value, float trend, float stddev, 
       long tsId, long entryId, int entries) {
-    mValue = new GraphTuple(start, stop, value);
-    mTrend = new GraphTuple(start, stop, trend);
+    mScreenValue1 = new FloatTuple(0.0f, 0.0f);
+    mScreenValue2 = new FloatTuple(0.0f, 0.0f);
+    mScreenTrend1 = new FloatTuple(0.0f, 0.0f);
+    mScreenTrend2 = new FloatTuple(0.0f, 0.0f);
     
     mTimeSeriesId = tsId;
     mDatapointId = entryId;
@@ -52,9 +60,11 @@ public final class Datapoint implements Comparator<Datapoint> {
   }
 
   public Datapoint(Datapoint d) {
-    mValue = new GraphTuple(d.mValue);
-    mTrend = new GraphTuple(d.mTrend);
-    
+    mScreenValue1 = new FloatTuple(d.mScreenValue1);
+    mScreenValue2 = new FloatTuple(d.mScreenValue2);
+    mScreenTrend1 = new FloatTuple(d.mScreenTrend1);
+    mScreenTrend2 = new FloatTuple(d.mScreenTrend2);
+
     mTimeSeriesId = d.mTimeSeriesId;
     mDatapointId = d.mDatapointId;
     mEntries = d.mEntries;
@@ -63,12 +73,12 @@ public final class Datapoint implements Comparator<Datapoint> {
 
   @Override
   public String toString() {
-    return String.format("(%d -> %d, %f)", mValue.mX1, mValue.mX2, mValue);
+    return String.format("(%d -> %d, %f)", mTsStart, mTsEnd, mValue);
   }
 
   public String toLabelString() {
     Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(mValue.mX1);
+    cal.setTimeInMillis(mTsStart);
     long year = cal.get(Calendar.YEAR);
     long month = cal.get(Calendar.MONTH) + 1;
     long day = cal.get(Calendar.DAY_OF_MONTH);
@@ -83,7 +93,7 @@ public final class Datapoint implements Comparator<Datapoint> {
     if (obj == null || !(obj instanceof Datapoint))
       return false;
     Datapoint other = (Datapoint) obj;
-    if (mValue.mX1 == other.mValue.mX1 && mValue.mX2 == other.mValue.mX2
+    if (mTsStart == other.mTsStart && mTsEnd == other.mTsEnd
         && mTimeSeriesId == other.mTimeSeriesId
         && mDatapointId == other.mDatapointId && mValue == other.mValue
         && mTrend == other.mTrend) {
@@ -93,15 +103,15 @@ public final class Datapoint implements Comparator<Datapoint> {
   }
 
   public boolean timestampEqual(Datapoint other) {
-    if (this.mValue.mX1 == other.mValue.mX1 && mValue.mX2 == other.mValue.mX2)
+    if (this.mTsStart == other.mTsStart && mTsEnd == other.mTsEnd)
       return true;
     return false;
   }
 
   public int compare(Datapoint d1, Datapoint d2) {
-    if (d1.mValue.mX1 < d2.mValue.mX1)
+    if (d1.mTsStart < d2.mTsStart)
       return -1;
-    if (d1.mValue.mX1 > d2.mValue.mX1)
+    if (d1.mTsStart > d2.mTsStart)
       return 1;
     return 0;
   }

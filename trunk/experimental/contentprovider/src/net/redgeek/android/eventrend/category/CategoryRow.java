@@ -74,6 +74,30 @@ public class CategoryRow implements Comparable<CategoryRow> {
     mDecimals = TimeSeriesData.TimeSeries.getDecimals(c);
   }
 
+  public CategoryRow(CategoryRow row) {
+    mTimestamp = row.mTimestamp;
+    mId = row.mId;
+    mTimeSeriesName = row.mTimeSeriesName;
+    mGroup = row.mGroup;
+    mRecordingDatapointId = row.mRecordingDatapointId;
+    mDefaultValue = row.mDefaultValue;
+    mIncrement = row.mIncrement;
+    mGoal = row.mGoal;
+    mColor = row.mColor;
+    mPeriod = row.mPeriod;
+    mUnits = row.mUnits;
+    mRank = row.mRank;
+    mAggregation = row.mAggregation;
+    mType = row.mType;
+    mZerofill = row.mZerofill;
+    mFormula = row.mFormula;
+    mInterpolation = row.mInterpolation;
+    mSensitivity = row.mSensitivity;
+    mSmoothing = row.mSmoothing;
+    mHistory = row.mHistory;
+    mDecimals = row.mDecimals;
+  }
+
   public boolean isSelectable() {
     return mSelectable;
   }

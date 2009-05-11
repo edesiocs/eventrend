@@ -16,8 +16,40 @@
 
 package net.redgeek.android.eventgrapher;
 
-import net.redgeek.android.eventrend.EvenTrendActivity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.AlertDialog.Builder;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.AdapterView;
+import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.ToggleButton;
+import android.widget.ZoomControls;
+
+import net.redgeek.android.eventcalendar.CalendarActivity;
+import net.redgeek.android.eventgrapher.primitives.TimeSeries;
+import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.EvenTrendActivity;
+import net.redgeek.android.eventrend.Preferences;
+import net.redgeek.android.eventrend.R;
+import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.DynamicSpinner;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
+import net.redgeek.android.eventrend.util.ProgressIndicator;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 
 public class GraphActivity extends EvenTrendActivity {
   public static final String DEFAULT_VIEW_IDS = "graphViewIds";

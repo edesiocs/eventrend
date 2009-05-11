@@ -16,14 +16,15 @@
 
 package net.redgeek.android.eventgrapher;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import net.redgeek.android.eventrend.input.primitives.TimeSeriesCollector;
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+
+import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GraphFilterListAdapter extends BaseAdapter {
   private Context mCtx;

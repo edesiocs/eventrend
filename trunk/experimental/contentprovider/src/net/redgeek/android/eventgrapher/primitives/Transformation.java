@@ -143,10 +143,14 @@ public class Transformation {
 
   public void transformDatapoint(Datapoint point) {
     hasData = true;
-    transformV2P(point.mTrend, point.mTrend.mScreen1);
-    transformV2P(point.mTrend, point.mTrend.mScreen2);
-    transformV2P(point.mValue, point.mValue.mScreen1);
-    transformV2P(point.mValue, point.mValue.mScreen2);
+    FloatTuple t = new FloatTuple(point.mTsStart, point.mValue);
+    transformV2P(t, point.mScreenValue1);
+    t.set(point.mTsEnd, point.mValue);
+    transformV2P(t, point.mScreenValue2);
+    t.set(point.mTsStart, point.mTrend);
+    transformV2P(t, point.mScreenTrend1);
+    t.set(point.mTsEnd, point.mTrend);
+    transformV2P(t, point.mScreenTrend2);
   }
 
   // Virtual to Plot
