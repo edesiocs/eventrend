@@ -53,6 +53,7 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ViewFlipper;
 
+import net.redgeek.android.eventgrapher.GraphActivity;
 import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
@@ -65,6 +66,7 @@ import net.redgeek.android.eventrend.category.CategoryListAdapter;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
 import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 
 import java.util.ArrayList;
@@ -94,6 +96,7 @@ public class InputActivity extends EvenTrendActivity {
   private static final int TIME_DIALOG_ID = 0;
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
+  private static final int SERVICE_CONNECTING_DIALOG_ID = 3;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -111,6 +114,7 @@ public class InputActivity extends EvenTrendActivity {
   private ListView mVisibleCategoriesLayout;
 
   ProgressIndicator.Titlebar mProgress;
+  ProgressIndicator.DialogSoft mProgressBox;
   private GestureDetector mGestureDetector;
 
   // Trend state:
@@ -172,6 +176,8 @@ public class InputActivity extends EvenTrendActivity {
     super.onCreate(icicle);
 
     getPrefs();
+    
+    mProgressBox = new ProgressIndicator.DialogSoft(mCtx, SERVICE_CONNECTING_DIALOG_ID);
     setupTasksAndData();
     setupUI();
 
@@ -195,6 +201,7 @@ public class InputActivity extends EvenTrendActivity {
   // *** background tasks ***/
   @Override
   public void executeNonGuiTask() throws Exception {
+    startAndBind();
   }
 
   @Override
@@ -210,8 +217,9 @@ public class InputActivity extends EvenTrendActivity {
 
   private void setupTasksAndData() {
     mUndoLock = new ReentrantLock();
-
-    startAndBind();
+    
+    GUITaskQueue.getInstance().addTask(mProgressBox, this);
+    
     mTimestamp = new DateUtil.DateItem();
     mCal = Calendar.getInstance();
     mOldHour = mCal.get(Calendar.HOUR_OF_DAY);
@@ -468,9 +476,9 @@ public class InputActivity extends EvenTrendActivity {
 //      case MENU_EDIT_ID:
 //        editEntries();
 //        return true;
-//      case MENU_GRAPH_ID:
-//        graphEntries();
-//        return true;
+      case MENU_GRAPH_ID:
+        graphEntries();
+        return true;
 //      case MENU_CALENDAR_ID:
 //        calendarView();
 //        return true;
@@ -534,6 +542,9 @@ public class InputActivity extends EvenTrendActivity {
       case HELP_DIALOG_ID:
         String str = getResources().getString(R.string.overview);
         return mDialogUtil.newOkDialog("Help", str);
+      case SERVICE_CONNECTING_DIALOG_ID:
+        return mDialogUtil.newProgressDialog(
+            "Connecting to recorder service and updating stats ...");
     }
     return null;
   }
@@ -670,22 +681,23 @@ public class InputActivity extends EvenTrendActivity {
 //    Intent i = new Intent(this, Preferences.class);
 //    startActivityForResult(i, PREFS_EDIT);
 //  }
-//
-//  private void graphEntries() {
-//    Intent i = new Intent(this, GraphActivity.class);
-//    ArrayList<Integer> catIds = new ArrayList<Integer>();
-//
-//    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
-//    for (int j = 0; j < series.size(); j++) {
-//      TimeSeries ts = series.get(j);
-//      if (ts.isEnabled())
-//        catIds.add(new Integer((int) ts.getDbRow().getId()));
-//    }
-//
-//    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
-//    startActivityForResult(i, GRAPH_VIEW);
-//  }
-//
+
+  private void graphEntries() {
+    Uri uri = TimeSeries.CONTENT_URI;
+    Intent i = new Intent(Intent.ACTION_EDIT, uri);
+    
+    ArrayList<String> catIds = new ArrayList<String>();
+    
+    int child = mFlipper.getDisplayedChild();
+    CategoryListAdapter cla = mCLAs.get(child);
+    for (int j = 0; j < cla.getCount(); j++) {
+      String catId = Long.toString(((CategoryRow) cla.getItem(j)).mId);
+      catIds.add(catId);
+    }
+    i.putStringArrayListExtra(GraphActivity.DEFAULT_VIEW_IDS, catIds);
+    startActivityForResult(i, ARC_GRAPH_VIEW);
+  }
+  
 //  private void calendarView() {
 //    Intent i = new Intent(this, CalendarActivity.class);
 //    ArrayList<Integer> catIds = new ArrayList<Integer>();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.primitives;
+package net.redgeek.android.eventgrapher.primitives;
 
 /**
  * Basic tuple representation used throughout. Provide basic constructors and
@@ -133,7 +133,7 @@ public class Tuple implements Comparable<Tuple> {
    */
   @Override
   public int hashCode() {
-    return (Float.floatToRawIntBits(x) >> 16) + Float.floatToRawIntBits(y);
+    return ((Float.floatToIntBits(x) >> 16) + Float.floatToIntBits(y));
   }
 
   /**

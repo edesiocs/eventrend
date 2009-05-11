@@ -16,7 +16,8 @@
 
 package net.redgeek.android.eventrecorder.interpolators;
 
-import net.redgeek.android.eventrend.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.Tuple;
+
 import android.graphics.Path;
 
 /**

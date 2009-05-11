@@ -449,6 +449,8 @@ public class EventRecorder extends Service {
         values.put(Datapoint.TS_START, periodStart);
         if (type.equals(TimeSeries.TYPE_RANGE))
           values.put(Datapoint.TS_END, periodStart + period - 1);
+        else
+          values.put(Datapoint.TS_END, periodStart);
         values.put(Datapoint.VALUE, 0);
         values.put(Datapoint.ENTRIES, 1);
         
