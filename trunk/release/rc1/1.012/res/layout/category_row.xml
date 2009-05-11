@@ -57,7 +57,10 @@
 			android:id="@+id/category_input_value" 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
-			android:layout_gravity="right|center_vertical" android:numeric="signed|decimal" android:gravity="right|center_vertical" android:minEms="3">
+			android:layout_gravity="right|center_vertical" 
+			android:numeric="signed|decimal" 
+			android:gravity="right|center_vertical" 
+			android:minEms="3">
 		</EditText>
 		<Button 
 			android:id="@+id/category_input_add" 

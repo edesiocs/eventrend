@@ -273,7 +273,7 @@ public class InputActivity extends EvenTrendActivity {
 
     mUndo = (Button) findViewById(R.id.entry_undo);
     mUndo.setClickable(false);
-    mUndo.setTextColor(Color.LTGRAY);
+    mUndo.setTextColor(Color.GRAY);
     mUndo.setOnClickListener(mUndoListener);
 
     mFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
@@ -797,7 +797,7 @@ public class InputActivity extends EvenTrendActivity {
     slideOutRightIn(mLastAddRowView, getCtx());
 
     mUndo.setClickable(false);
-    mUndo.setTextColor(Color.LTGRAY);
+    mUndo.setTextColor(Color.GRAY);
   }
 
   private void setEnabledSeries() {
