@@ -1313,6 +1313,7 @@ public class TimeSeriesProvider extends ContentProvider {
     String timeSeriesId;
     String datapointId;
     int count = 0;
+    Cursor c;
     
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES_ID:
@@ -1321,16 +1322,39 @@ public class TimeSeriesProvider extends ContentProvider {
         LockUtil.waitForLock(mLock);
         db.beginTransaction();
 
+        // fetch the some of the existing params of the timeseries to prevent
+        // having to updates stats if they don't change.
+        Uri current = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, 
+            Long.valueOf(timeSeriesId));
+        c = query(uri, new String[] { TimeSeries.SMOOTHING, 
+            TimeSeries.HISTORY, TimeSeries.FORMULA }, 
+            null, null, null);
+        c.moveToFirst();
+        double oldSmoothing = TimeSeries.getSmoothing(c);
+        int oldHistory = TimeSeries.getHistory(c);
+        String oldFormula = TimeSeries.getFormula(c);
+        c.close();
+
         try {
+          double newSmoothing = oldSmoothing;
+          int newHistory = oldHistory;
+          String newFormula = oldFormula;
+          
+          if (values.containsKey(TimeSeries.SMOOTHING))
+            newSmoothing = values.getAsDouble(TimeSeries.SMOOTHING);
+          if (values.containsKey(TimeSeries.HISTORY))
+            newHistory = values.getAsInteger(TimeSeries.HISTORY);
+          if (values.containsKey(TimeSeries.FORMULA))
+            newFormula = values.getAsString(TimeSeries.FORMULA);
+                    
           count = db.update(TimeSeries.TABLE_NAME, values, TimeSeries._ID + "="
               + timeSeriesId + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
-          if (values.containsKey(TimeSeries.SMOOTHING) ||
-              values.containsKey(TimeSeries.HISTORY)) {
+          if (newSmoothing != oldSmoothing || newHistory != oldHistory) {
             updateStats(db, Long.valueOf(timeSeriesId), 0, Integer.MAX_VALUE);
           }
           
-          if (values.containsKey(TimeSeries.FORMULA)) {
+          if (TextUtils.isEmpty(newFormula) != true && newFormula != oldFormula) {
             updateFormula(db, Long.valueOf(timeSeriesId), values.getAsString(TimeSeries.FORMULA));
             updateFormulaData(db, Long.valueOf(timeSeriesId), 0, null);
           }
@@ -1358,7 +1382,7 @@ public class TimeSeriesProvider extends ContentProvider {
           qb.setTables(Datapoint.TABLE_NAME);
           qb.appendWhere(Datapoint._ID + " = " + datapointId + " ");
 
-          Cursor c = qb.query(db, null, null, null, null, null, null, null);
+          c = qb.query(db, null, null, null, null, null, null, null);
           if (c == null || c.getCount() < 1) {
             if (c != null)
               c.close();

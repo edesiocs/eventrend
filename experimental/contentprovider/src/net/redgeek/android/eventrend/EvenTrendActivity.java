@@ -16,11 +16,6 @@
 
 package net.redgeek.android.eventrend;
 
-import net.redgeek.android.eventrecorder.DateMapCache;
-import net.redgeek.android.eventrecorder.IEventRecorderService;
-import net.redgeek.android.eventrend.util.DialogUtil;
-import net.redgeek.android.eventrend.util.GUITask;
-import net.redgeek.android.eventrend.util.GUITaskQueue;
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -30,6 +25,12 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.widget.Toast;
+
+import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.IEventRecorderService;
+import net.redgeek.android.eventrend.util.DialogUtil;
+import net.redgeek.android.eventrend.util.GUITask;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
 
 /**
  * Base class for all activities in the application. Note that not all activity
@@ -135,5 +136,5 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
     public void onServiceDisconnected(ComponentName className) {
       mRecorderService = null;
     }
-  };
+  };  
 }
