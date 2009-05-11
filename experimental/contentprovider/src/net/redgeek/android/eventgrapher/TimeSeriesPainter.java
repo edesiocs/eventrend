@@ -23,8 +23,8 @@ import android.graphics.Paint;
 import android.graphics.Path;
 
 import net.redgeek.android.eventgrapher.primitives.Datapoint;
-import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 import net.redgeek.android.eventgrapher.primitives.FloatTuple;
+import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 
 import java.util.ArrayList;
 

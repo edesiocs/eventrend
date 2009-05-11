@@ -77,18 +77,18 @@ public class CategoryDatapointCache {
   }
 
   public Datapoint addDatapoint(Datapoint d) {
-    if (d.mValue.mX1 < mStart)
-      mStart = d.mValue.mX1;
-    if (d.mValue.mX1 > mEnd)
-      mEnd = d.mValue.mX1;
+    if (d.mTsStart < mStart)
+      mStart = d.mTsStart;
+    if (d.mTsStart > mEnd)
+      mEnd = d.mTsStart;
     mValid = true;
-    return mCache.put(d.mValue.mX1, d);
+    return mCache.put(d.mTsStart, d);
   }
 
   public Datapoint updateDatapoint(Datapoint d) {
-    if (mCache.get(d.mValue.mX1) == null)
+    if (mCache.get(d.mTsStart) == null)
       return null;
-    return mCache.put(d.mValue.mX1, d);
+    return mCache.put(d.mTsStart, d);
   }
 
   public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {

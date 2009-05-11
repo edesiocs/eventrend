@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.ZoomControls;
 
 import net.redgeek.android.eventgrapher.primitives.FloatTuple;
+import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
