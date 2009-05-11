@@ -20,6 +20,8 @@ import net.redgeek.android.eventrend.EvenTrendActivity;
 import android.os.Bundle;
 
 public class GraphActivity extends EvenTrendActivity {
+  public static final String DEFAULT_VIEW_IDS = "graphViewIds";
+  
   // Menu items
   private static final int MENU_GRAPH_FILTER_ID = Menu.FIRST;
   private static final int MENU_GRAPH_CORRELATE_ID = Menu.FIRST + 1;
