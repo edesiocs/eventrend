@@ -28,6 +28,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
 import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
 import net.redgeek.android.eventrecorder.interpolators.StepEarlyInterpolator;
@@ -126,16 +128,16 @@ public class EventRecorder extends Service {
       if (name == null)
         return -1;
       
-      String[] projection = new String[] { TimeSeriesData.TimeSeries._ID };
+      String[] projection = new String[] { TimeSeries._ID };
       if (projection == null)
         return -1;
 
-      Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
+      Uri timeseries = TimeSeries.CONTENT_URI;
       if (timeseries == null)
         return -1;
       
       Cursor c = getContentResolver().query(timeseries, 
-          projection, TimeSeriesData.TimeSeries.TIMESERIES_NAME + " = ? ",
+          projection, TimeSeries.TIMESERIES_NAME + " = ? ",
           new String[] { name }, null);
       if (c == null)
         return -1;
@@ -145,7 +147,7 @@ public class EventRecorder extends Service {
       }
 
       c.moveToFirst();
-      long id = TimeSeriesData.TimeSeries.getId(c);
+      long id = TimeSeries.getId(c);
       c.close();
 
       return id;
@@ -174,14 +176,14 @@ public class EventRecorder extends Service {
       }
 
       long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
-      values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-      values.put(TimeSeriesData.Datapoint.TS_START, now);
-      values.put(TimeSeriesData.Datapoint.TS_END, 0);
-      values.put(TimeSeriesData.Datapoint.VALUE, 0);
-      values.put(TimeSeriesData.Datapoint.ENTRIES, 0);
+      values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
+      values.put(Datapoint.TS_START, now);
+      values.put(Datapoint.TS_END, 0);
+      values.put(Datapoint.VALUE, 0);
+      values.put(Datapoint.ENTRIES, 0);
 
       Uri uri = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
           .appendPath("datapoints").build();
       uri = getContentResolver().insert(uri, values);
       if (uri == null) {
@@ -199,9 +201,9 @@ public class EventRecorder extends Service {
       }
       
       values.clear();
-      values.put(TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID, datapointId);
+      values.put(TimeSeries.RECORDING_DATAPOINT_ID, datapointId);
       Uri timeseries = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId);
+          TimeSeries.CONTENT_URI, timeSeriesId);
       if (timeseries == null) {
         LockUtil.unlock(mLock);
         return -1;
@@ -243,7 +245,7 @@ public class EventRecorder extends Service {
       }
 
       Uri uri = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
           .appendPath("datapoints").appendPath("" + datapointId).build();
       if (uri == null) {
         LockUtil.unlock(mLock);
@@ -259,13 +261,13 @@ public class EventRecorder extends Service {
       }
 
       c.moveToFirst();
-      long tsStart = TimeSeriesData.Datapoint.getTsStart(c);
+      long tsStart = Datapoint.getTsStart(c);
       c.close();
 
       long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
-      values.put(TimeSeriesData.Datapoint.TS_END, now);
-      values.put(TimeSeriesData.Datapoint.VALUE, now - tsStart);
-      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+      values.put(Datapoint.TS_END, now);
+      values.put(Datapoint.VALUE, now - tsStart);
+      values.put(Datapoint.ENTRIES, 1);
       int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
@@ -273,9 +275,9 @@ public class EventRecorder extends Service {
       }
 
       values.clear();
-      values.put(TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID, 0);
+      values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
       Uri timeseries = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId);
+          TimeSeries.CONTENT_URI, timeSeriesId);
       if (timeseries == null) {
         LockUtil.unlock(mLock);
         return -1;
@@ -312,14 +314,14 @@ public class EventRecorder extends Service {
         return -1;
       }
 
-      values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-      values.put(TimeSeriesData.Datapoint.TS_START, timestamp);
-      values.put(TimeSeriesData.Datapoint.TS_END, timestamp);
-      values.put(TimeSeriesData.Datapoint.VALUE, value);
-      values.put(TimeSeriesData.Datapoint.ENTRIES, 1);
+      values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
+      values.put(Datapoint.TS_START, timestamp);
+      values.put(Datapoint.TS_END, timestamp);
+      values.put(Datapoint.VALUE, value);
+      values.put(Datapoint.ENTRIES, 1);
 
       Uri uri = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
           .appendPath("datapoints").build();
       uri = getContentResolver().insert(uri, values);
       if (uri == null) {
@@ -349,13 +351,13 @@ public class EventRecorder extends Service {
   };
 
   private long currentlyRecordingId(long timeSeriesId) {
-    String[] projection = new String[] { TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID };
+    String[] projection = new String[] { TimeSeries.RECORDING_DATAPOINT_ID };
     if (projection == null)
       return -1;
 
     // don't add an event if there's one currently record
     Uri timeseries = ContentUris.withAppendedId(
-        TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId);
+        TimeSeries.CONTENT_URI, timeSeriesId);
     if (timeseries == null)
       return -1;
 
@@ -368,7 +370,7 @@ public class EventRecorder extends Service {
     }
 
     c.moveToFirst();
-    long id = TimeSeriesData.TimeSeries.getRecordingDatapointId(c);
+    long id = TimeSeries.getRecordingDatapointId(c);
     c.close();
     
     return id;
@@ -378,10 +380,10 @@ public class EventRecorder extends Service {
     Cursor tsCur;
     Cursor dpCur;
     String[] timeSeriesProjection = new String[] {
-        TimeSeriesData.TimeSeries._ID,
-        TimeSeriesData.TimeSeries.TYPE,
-        TimeSeriesData.TimeSeries.PERIOD, };
-    String[] datapointProjection = new String[] { TimeSeriesData.Datapoint.TS_END };
+        TimeSeries._ID,
+        TimeSeries.TYPE,
+        TimeSeries.PERIOD, };
+    String[] datapointProjection = new String[] { Datapoint.TS_END };
 
     if (timeSeriesProjection == null || datapointProjection == null)
       return;
@@ -390,15 +392,16 @@ public class EventRecorder extends Service {
     if (values == null)
       return;
 
-    Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
+    Uri timeseries = TimeSeries.CONTENT_URI;
     if (timeseries == null)
       return;
 
     LockUtil.waitForLock(mLock);
     tsCur = getContentResolver().query(timeseries, timeSeriesProjection, 
-        TimeSeriesData.TimeSeries.ZEROFILL + " != 0 and " +
-        TimeSeriesData.TimeSeries.RECORDING_DATAPOINT_ID + " > 0 and " +
-        TimeSeriesData.TimeSeries.PERIOD + " != 0 ", null, null);
+        TimeSeries.ZEROFILL + " != 0 and " +
+        TimeSeries.RECORDING_DATAPOINT_ID + " == 0 and " +
+        TimeSeries.TYPE + " != \"" + TimeSeries.TYPE_SYNTHETIC + "\" and " +
+        TimeSeries.PERIOD + " != 0 ", null, null);
     if (tsCur == null) {
       LockUtil.unlock(mLock);
       return;
@@ -414,7 +417,7 @@ public class EventRecorder extends Service {
     int count = tsCur.getCount();
     tsCur.moveToFirst();
     for (int i = 0; i < count; i++) {
-      int period = TimeSeriesData.TimeSeries.getPeriod(tsCur);
+      int period = TimeSeries.getPeriod(tsCur);
       int periodStart = mDateMap.secondsOfPeriodStart(now, period);
 
       if (period < 1) {
@@ -422,10 +425,10 @@ public class EventRecorder extends Service {
         continue;
       }
 
-      long timeSeriesId = TimeSeriesData.TimeSeries.getId(tsCur);
+      long timeSeriesId = TimeSeries.getId(tsCur);
       Uri lastDatapoint = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
-          .appendPath("range").appendPath("1").build();
+          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          .appendPath("recent").appendPath("1").build();
       if (lastDatapoint == null)
         continue;
 
@@ -434,20 +437,24 @@ public class EventRecorder extends Service {
       if (dpCur == null)
         continue;
 
-      String type = TimeSeriesData.TimeSeries.getType(tsCur);
+      String type = TimeSeries.getType(tsCur);
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
+          .appendPath("datapoints").build();
 
+      dpCur.moveToFirst();
       if (dpCur.getCount() < 1) {
         values.clear();
-        values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-        values.put(TimeSeriesData.Datapoint.TS_START, periodStart);
-        if (type.equals(TimeSeriesData.TimeSeries.TYPE_RANGE))
-          values.put(TimeSeriesData.Datapoint.TS_END, periodStart + period - 1);
-        values.put(TimeSeriesData.Datapoint.VALUE, 0);
-
-        getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
-            values);
+        values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
+        values.put(Datapoint.TS_START, periodStart);
+        if (type.equals(TimeSeries.TYPE_RANGE))
+          values.put(Datapoint.TS_END, periodStart + period - 1);
+        values.put(Datapoint.VALUE, 0);
+        values.put(Datapoint.ENTRIES, 1);
+        
+        getContentResolver().insert(uri, values);
       } else {
-        int tsEnd = TimeSeriesData.Datapoint.getTsEnd(dpCur);        
+        int tsEnd = Datapoint.getTsEnd(dpCur);        
         int secs = mDateMap.secondsOfPeriodStart(tsEnd + period, period);
 
         while (true) {
@@ -455,17 +462,16 @@ public class EventRecorder extends Service {
             break;
 
           values.clear();
-          values.put(TimeSeriesData.Datapoint.TIMESERIES_ID, timeSeriesId);
-          values.put(TimeSeriesData.Datapoint.TS_START, secs);
-          if (type.equals(TimeSeriesData.TimeSeries.TYPE_RANGE))         
-            values.put(TimeSeriesData.Datapoint.TS_END, secs + period - 1);
+          values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
+          values.put(Datapoint.TS_START, secs);
+          if (type.equals(TimeSeries.TYPE_RANGE))         
+            values.put(Datapoint.TS_END, secs + period - 1);
           else
-            values.put(TimeSeriesData.Datapoint.TS_END, secs);
-          values.put(TimeSeriesData.Datapoint.VALUE, 0);
+            values.put(Datapoint.TS_END, secs);
+          values.put(Datapoint.VALUE, 0);
+          values.put(Datapoint.ENTRIES, 1);
 
-          getContentResolver().insert(TimeSeriesData.Datapoint.CONTENT_URI,
-              values);
-
+          getContentResolver().insert(uri, values);
           secs = mDateMap.secondsOfPeriodStart(secs + period, period);
         }
       }
