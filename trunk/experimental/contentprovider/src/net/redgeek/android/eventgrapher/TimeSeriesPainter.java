@@ -24,7 +24,7 @@ import android.graphics.Path;
 
 import net.redgeek.android.eventgrapher.primitives.Datapoint;
 import net.redgeek.android.eventgrapher.primitives.TimeSeries;
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 
 import java.util.ArrayList;
 
@@ -37,9 +37,9 @@ public interface TimeSeriesPainter {
 
   public void drawTrend(Canvas canvas, TimeSeries ts);
 
-  public void drawMarker(Canvas canvas, Tuple start, Tuple end);
+  public void drawMarker(Canvas canvas, FloatTuple start, FloatTuple end);
 
-  public void drawGoal(Canvas canvas, Tuple start, Tuple end);
+  public void drawGoal(Canvas canvas, FloatTuple start, FloatTuple end);
 
   public void drawText(Canvas canvas, String text, float x, float y);
 
@@ -100,19 +100,19 @@ public interface TimeSeriesPainter {
       canvas.drawText(text, x, y, mLabelPaint);
     }
 
-    public void drawGoal(Canvas canvas, Tuple start, Tuple end) {
+    public void drawGoal(Canvas canvas, FloatTuple start, FloatTuple end) {
       canvas.drawLine(start.x, start.y, end.x, end.y, mGoalPaint);
     }
 
-    public void drawMarker(Canvas canvas, Tuple start, Tuple end) {
+    public void drawMarker(Canvas canvas, FloatTuple start, FloatTuple end) {
       canvas.drawLine(start.x, start.y, end.x, end.y, mTrendMarkerPaint);
     }
 
     public void drawPath(Canvas canvas, TimeSeries ts) {
       Datapoint thisPoint = null;
       Datapoint prevPoint = null;
-      Tuple first = null;
-      Tuple second = null;
+      FloatTuple first = null;
+      FloatTuple second = null;
       int datapointsSize;
 
       if (ts.isEnabled() == false)
@@ -159,8 +159,8 @@ public interface TimeSeriesPainter {
     public void drawTrend(Canvas canvas, TimeSeries ts) {
       Datapoint thisPoint = null;
       Datapoint prevPoint = null;
-      Tuple first = null;
-      Tuple second = null;
+      FloatTuple first = null;
+      FloatTuple second = null;
       int datapointsSize;
 
       if (ts.isEnabled() == false)

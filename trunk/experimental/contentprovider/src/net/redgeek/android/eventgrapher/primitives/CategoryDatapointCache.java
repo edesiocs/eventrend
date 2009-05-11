@@ -21,18 +21,20 @@ import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class TimeSeriesCache {
-  private long mSeriesId;
+public class CategoryDatapointCache {
+  private long mCatId;
   private boolean mValid;
   private TreeMap<Long, Datapoint> mCache;
   private long mStart;
   private long mEnd;
+  private int mHistory;
 
-  public TimeSeriesCache(long seriesId) {
-    mSeriesId = seriesId;
+  public CategoryDatapointCache(long catId, int history) {
+    mCatId = catId;
     mValid = false;
     mCache = new TreeMap<Long, Datapoint>();
     resetRangeMarkers();
+    mHistory = history;
   }
 
   public void clear() {
@@ -44,8 +46,8 @@ public class TimeSeriesCache {
     return mValid;
   }
 
-  public long getSeriesId() {
-    return mSeriesId;
+  public long getCategoryId() {
+    return mCatId;
   }
 
   public long getStart() {
@@ -66,6 +68,14 @@ public class TimeSeriesCache {
       mEnd = end;
   }
 
+  public void setHistory(int history) {
+    mHistory = history;
+  }
+
+  public int getHistory() {
+    return mHistory;
+  }
+
   public Datapoint addDatapoint(Datapoint d) {
     if (d.mValue.mX1 < mStart)
       mStart = d.mValue.mX1;
@@ -79,12 +89,6 @@ public class TimeSeriesCache {
     if (mCache.get(d.mValue.mX1) == null)
       return null;
     return mCache.put(d.mValue.mX1, d);
-  }
-  
-  public void deleteDatapoint(Long id) {
-    if (mCache.get(id) == null)
-      return;
-    mCache.remove(id);    
   }
 
   public ArrayList<Datapoint> getDataInRange(long msStart, long msEnd) {

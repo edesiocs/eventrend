@@ -29,69 +29,46 @@ import java.util.Comparator;
  * 
  */
 public final class Datapoint implements Comparator<Datapoint> {
-  public long mMillis = 0; // timestamp as long
-  public long mTimeSeriesId = 0; // associated category id
-  public long mDatapointId = 0; // associated entry id
-  public float mStdDev = 0.0f; // StdDev at this point in time
-  public int mNEntries = 0; // number of entries that compromises this datapoint
-  public Tuple mValue; // mValue.x = timestamp as float, mValue.y = value
-  public Tuple mValueScreen; // mValue mapped to canvas coordinates
-  public Tuple mTrend; // mTrend.x = timestamp as float, mTrend.x = trend value
-  public Tuple mTrendScreen; // mTrend mapped to canvas coordinates
-  public boolean mSynthetic = false;
-
+  public GraphTuple mValue;
+  public GraphTuple mTrend;
+  public float mStdDev;
+  public int mEntries;
+    
+  public long mTimeSeriesId;
+  public long mDatapointId;  
+  
   public Datapoint() {
-    mValue = new Tuple(0, 0);
-    mValueScreen = new Tuple(0, 0);
-    mTrend = new Tuple(0, 0);
-    mTrendScreen = new Tuple(0, 0);
   }
 
-  public Datapoint(long timestamp, float value, long tsId, long entryId,
-      int mEntries) {
-    float x = (float) timestamp;
-    float y = value;
-
-    mValue = new Tuple(x, y);
-    mValueScreen = new Tuple(0, 0);
-    mTrend = new Tuple(0, 0);
-    mTrendScreen = new Tuple(0, 0);
+  public Datapoint(long start, long stop, float value, float trend, float stddev, 
+      long tsId, long entryId, int entries) {
+    mValue = new GraphTuple(start, stop, value);
+    mTrend = new GraphTuple(start, stop, trend);
+    
     mTimeSeriesId = tsId;
     mDatapointId = entryId;
-    mNEntries = mEntries;
-    mMillis = timestamp;
-    mSynthetic = false;
+    mEntries = entries;
+    mStdDev = stddev;
   }
 
   public Datapoint(Datapoint d) {
+    mValue = new GraphTuple(d.mValue);
+    mTrend = new GraphTuple(d.mTrend);
+    
     mTimeSeriesId = d.mTimeSeriesId;
     mDatapointId = d.mDatapointId;
-    mNEntries = d.mNEntries;
-    mValue = new Tuple(d.mValue.x, d.mValue.y);
-    mValueScreen = new Tuple(d.mValueScreen.x, d.mValueScreen.y);
-    mTrend = new Tuple(d.mTrend.x, d.mTrend.y);
-    mTrendScreen = new Tuple(d.mTrendScreen.x, d.mTrendScreen.y);
-    mMillis = d.mMillis;
+    mEntries = d.mEntries;
     mStdDev = d.mStdDev;
-    mSynthetic = d.mSynthetic;
   }
 
   @Override
   public String toString() {
-    return String.format("(%d, %f)", mMillis, mValue.y);
-  }
-
-  public String toValueString() {
-    return String.format("(%f, %f)", mValue.x, mValue.y);
-  }
-
-  public String toCoordString() {
-    return String.format("(%f, %f)", mValueScreen.x, mValueScreen.y);
+    return String.format("(%d -> %d, %f)", mValue.mX1, mValue.mX2, mValue);
   }
 
   public String toLabelString() {
     Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(mMillis);
+    cal.setTimeInMillis(mValue.mX1);
     long year = cal.get(Calendar.YEAR);
     long month = cal.get(Calendar.MONTH) + 1;
     long day = cal.get(Calendar.DAY_OF_MONTH);
@@ -106,24 +83,25 @@ public final class Datapoint implements Comparator<Datapoint> {
     if (obj == null || !(obj instanceof Datapoint))
       return false;
     Datapoint other = (Datapoint) obj;
-    if (mMillis == other.mMillis && mTimeSeriesId == other.mTimeSeriesId
-        && mDatapointId == other.mDatapointId && mValue.equals(other.mValue)
-        && mTrend.equals(other.mTrend) && mSynthetic == other.mSynthetic) {
+    if (mValue.mX1 == other.mValue.mX1 && mValue.mX2 == other.mValue.mX2
+        && mTimeSeriesId == other.mTimeSeriesId
+        && mDatapointId == other.mDatapointId && mValue == other.mValue
+        && mTrend == other.mTrend) {
       return true;
     }
     return false;
   }
 
   public boolean timestampEqual(Datapoint other) {
-    if (this.mMillis == other.mMillis)
+    if (this.mValue.mX1 == other.mValue.mX1 && mValue.mX2 == other.mValue.mX2)
       return true;
     return false;
   }
 
   public int compare(Datapoint d1, Datapoint d2) {
-    if (d1.mMillis < d2.mMillis)
+    if (d1.mValue.mX1 < d2.mValue.mX1)
       return -1;
-    if (d1.mMillis > d2.mMillis)
+    if (d1.mValue.mX1 > d2.mValue.mX1)
       return 1;
     return 0;
   }

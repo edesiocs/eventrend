@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventrecorder.interpolators;
 
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventrend.R;
 import android.graphics.Path;
 
@@ -41,15 +41,15 @@ public class StepMidInterpolator implements TimeSeriesInterpolator {
     return NAME;
   }
 
-  public Tuple[] interpolate(Tuple first, Tuple second) {
+  public FloatTuple[] interpolate(FloatTuple first, FloatTuple second) {
     if (first.equals(second) == true)
-      return new Tuple[] { new Tuple(first) };
+      return new FloatTuple[] { new FloatTuple(first) };
     if (first.x == second.x)
       return null;
 
-    Tuple[] result = new Tuple[2];
-    Tuple r1 = new Tuple(first);
-    Tuple r2 = new Tuple(second);
+    FloatTuple[] result = new FloatTuple[2];
+    FloatTuple r1 = new FloatTuple(first);
+    FloatTuple r2 = new FloatTuple(second);
 
     r1.x = first.x + ((second.x - first.x) / 2.0f);
     r2.x = r1.x;
@@ -59,11 +59,11 @@ public class StepMidInterpolator implements TimeSeriesInterpolator {
     return result;
   }
 
-  public Float interpolateX(Tuple first, Tuple second, float atY) {
+  public Float interpolateX(FloatTuple first, FloatTuple second, float atY) {
     return null;
   }
 
-  public Float interpolateY(Tuple first, Tuple second, float atX) {
+  public Float interpolateY(FloatTuple first, FloatTuple second, float atX) {
     if (first.equals(second))
       return null;
     if (first.x == second.x)
@@ -77,13 +77,13 @@ public class StepMidInterpolator implements TimeSeriesInterpolator {
     return null;
   }
 
-  public void updatePath(Path path, Tuple first, Tuple second) {
+  public void updatePath(Path path, FloatTuple first, FloatTuple second) {
     if (first == null && second != null)
       path.moveTo(second.x, second.y);
     else if (first != null && second == null)
       path.moveTo(first.x, first.y);
     else {
-      Tuple[] tuples = interpolate(first, second);
+      FloatTuple[] tuples = interpolate(first, second);
       if (tuples != null) {
         for (int j = 0; j < tuples.length; j++) {
           path.lineTo(tuples[j].x, tuples[j].y);

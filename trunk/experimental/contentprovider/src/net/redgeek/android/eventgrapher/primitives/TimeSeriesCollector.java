@@ -16,6 +16,7 @@
 
 package net.redgeek.android.eventgrapher.primitives;
 
+import android.content.ContentProvider;
 import android.database.Cursor;
 
 import net.redgeek.android.eventgrapher.TimeSeriesPainter;
@@ -49,7 +50,7 @@ public class TimeSeriesCollector {
   private FormulaCache mFormulaCache;
   private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
-  private EvenTrendDbAdapter mDbh;
+  private ContentProvider mProvider;
   private DateUtil mAutoAggSpan;
   private Calendar mCal1;
   private Calendar mCal2;
@@ -61,21 +62,20 @@ public class TimeSeriesCollector {
 
   private TimeSeriesPainter mDefaultPainter;
 
-  public TimeSeriesCollector(EvenTrendDbAdapter dbh) {
-    initialize(dbh, null);
+  public TimeSeriesCollector(ContentProvider provider) {
+    initialize(provider, null);
   }
 
-  public TimeSeriesCollector(EvenTrendDbAdapter dbh, TimeSeriesPainter painter) {
-    initialize(dbh, painter);
+  public TimeSeriesCollector(ContentProvider provider, TimeSeriesPainter painter) {
+    initialize(provider, painter);
   }
 
-  public void initialize(EvenTrendDbAdapter dbh, TimeSeriesPainter painter) {
-    mDbh = dbh;
+  public void initialize(ContentProvider provider, TimeSeriesPainter painter) {
+    mProvider = provider;
     mSeries = new ArrayList<TimeSeries>();
 
     mAutoAggSpan = new DateUtil();
-    mDatapointCache = new DatapointCache(mDbh);
-    mFormulaCache = new FormulaCache();
+    mDatapointCache = new DatapointCache(mProvider);
     mAutoAggregation = false;
     mAutoAggregationOffset = 0;
     mCal1 = Calendar.getInstance();
@@ -91,89 +91,85 @@ public class TimeSeriesCollector {
     return mSeries.toString();
   }
 
-  public EvenTrendDbAdapter getDbh() {
-    return mDbh;
-  }
+//  public void updateTimeSeriesMetaLocking(boolean disableByDefault) {
+//    waitForLock();
+//    Cursor c = mDbh.fetchAllCategories();
+//    c.moveToFirst();
+//    for (int i = 0; i < c.getCount(); i++) {
+//      CategoryDbTable.Row row = new CategoryDbTable.Row(c);
+//      updateTimeSeriesMeta(row, disableByDefault);
+//      c.moveToNext();
+//    }
+//    c.close();
+//
+//    // cycle through again, we may have had a series that was dependent on
+//    // another series that was created later
+//    for (int i = 0; i < mSeries.size(); i++) {
+//      setDependents(mSeries.get(i));
+//      setDependees(mSeries.get(i));
+//    }
+//
+//    unlock();
+//  }
+//
+//  private void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
+//    TimeSeries ts = getSeriesByIdNonlocking(row.getId());
+//
+//    if (ts == null) {
+//      if (mDefaultPainter == null) {
+//        TimeSeriesPainter p = new TimeSeriesPainter.Default();
+//        ts = new TimeSeries(row, mHistory, mSmoothing, p);
+//      } else {
+//        ts = new TimeSeries(row, mHistory, mSmoothing, mDefaultPainter);
+//      }
+//      mSeries.add(ts);
+//      mDatapointCache.addCacheableCategory(row.getId(), mHistory);
+//    }
+//
+//    ts.setDbRow(row);
+//    setSeriesInterpolator(ts, row.getInterpolation());
+//
+//    if (row.getSynthetic() == true) {
+//      Formula formula = mFormulaCache.getFormula(Long.valueOf(row.getId()));
+//      if (formula == null)
+//        formula = new Formula();
+//      formula.setFormula(row.getFormula());
+//      mFormulaCache.setFormula(row.getId(), formula);
+//    }
+//
+//    if (disable)
+//      ts.setEnabled(false);
+//
+//    setDependents(ts);
+//    setDependees(ts);
+//  }
+//
+//  public void updateTimeSeriesData(boolean flushCache) {
+//    updateTimeSeriesData(mQueryStart, mQueryEnd, flushCache);
+//  }
 
-  public void updateTimeSeriesMetaLocking(boolean disableByDefault) {
-    waitForLock();
-    Cursor c = mDbh.fetchAllCategories();
-    c.moveToFirst();
-    for (int i = 0; i < c.getCount(); i++) {
-      CategoryDbTable.Row row = new CategoryDbTable.Row(c);
-      updateTimeSeriesMeta(row, disableByDefault);
-      c.moveToNext();
-    }
-    c.close();
-
-    // cycle through again, we may have had a series that was dependent on
-    // another series that was created later
-    for (int i = 0; i < mSeries.size(); i++) {
-      setDependents(mSeries.get(i));
-      setDependees(mSeries.get(i));
-    }
-
-    unlock();
-  }
-
-  private void updateTimeSeriesMeta(CategoryDbTable.Row row, boolean disable) {
-    TimeSeries ts = getSeriesByIdNonlocking(row.getId());
-
-    if (ts == null) {
-      if (mDefaultPainter == null) {
-        TimeSeriesPainter p = new TimeSeriesPainter.Default();
-        ts = new TimeSeries(row, mHistory, mSmoothing, p);
-      } else {
-        ts = new TimeSeries(row, mHistory, mSmoothing, mDefaultPainter);
-      }
-      mSeries.add(ts);
-      mDatapointCache.addCacheableCategory(row.getId(), mHistory);
-    }
-
-    ts.setDbRow(row);
-    setSeriesInterpolator(ts, row.getInterpolation());
-
-    if (row.getSynthetic() == true) {
-      Formula formula = mFormulaCache.getFormula(Long.valueOf(row.getId()));
-      if (formula == null)
-        formula = new Formula();
-      formula.setFormula(row.getFormula());
-      mFormulaCache.setFormula(row.getId(), formula);
-    }
-
-    if (disable)
-      ts.setEnabled(false);
-
-    setDependents(ts);
-    setDependees(ts);
-  }
-
-  public void updateTimeSeriesData(boolean flushCache) {
-    updateTimeSeriesData(mQueryStart, mQueryEnd, flushCache);
-  }
-
-  public void updateTimeSeriesData(long start, long end, boolean flushCache) {
+  public void updateTimeSeriesData(long start, long end, String aggregation, boolean flushCache) {
     waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
       if (ts != null && ts.isEnabled() == true) {
-        long catId = ts.getDbRow().getId();
-        updateTimeSeriesData(catId, start, end, flushCache);
+        long catId = ts.mRow.mId;
+        updateTimeSeriesData(catId, start, end, aggregation, flushCache);
       }
     }
     unlock();
   }
 
-  public void updateTimeSeriesData(long catId, boolean flushCache) {
+  public void updateTimeSeriesData(long catId, String aggregation, boolean flushCache) {
     waitForLock();
-    updateTimeSeriesData(catId, mQueryStart, mQueryEnd, flushCache);
+    updateTimeSeriesData(catId, mQueryStart, mQueryEnd, aggregation, flushCache);
     unlock();
   }
 
   private void updateTimeSeriesData(long catId, long start, long end,
-      boolean flushCache) {
+      String aggregation, boolean flushCache) {
     if (flushCache == true)
-      mDatapointCache.refresh(catId);
+      mDatapointCache.refresh(catId, aggregation);
 
     gatherSeries(start, end);
   }
