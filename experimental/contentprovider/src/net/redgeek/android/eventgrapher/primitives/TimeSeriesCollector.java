@@ -17,6 +17,7 @@
 package net.redgeek.android.eventgrapher.primitives;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
@@ -40,10 +41,10 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TimeSeriesCollector {
   private ArrayList<TimeSeries> mSeries;
 
-  private long mAggregationMs;
+  private int mAggregationMs;
   private int mHistory = 20;
-  private float mSmoothing = 0.1f;
-  private float mSensitivity = 1.0f;
+  private double mSmoothing = 0.1f;
+  private double mSensitivity = 1.0f;
   private Lock mLock;
   private boolean mAutoAggregation;
   private int mAutoAggregationOffset;
@@ -52,32 +53,32 @@ public class TimeSeriesCollector {
   private FormulaCache mFormulaCache;
   private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
-  private ContentProvider mProvider;
+  private ContentResolver mResolver;
   private DateUtil mAutoAggSpan;
   private Calendar mCal1;
   private Calendar mCal2;
 
-  private long mCollectionStart;
-  private long mCollectionEnd;
-  private long mQueryStart;
-  private long mQueryEnd;
+  private int mCollectionStart;
+  private int mCollectionEnd;
+  private int mQueryStart;
+  private int mQueryEnd;
 
   private TimeSeriesPainter mDefaultPainter;
 
-  public TimeSeriesCollector(ContentProvider provider) {
-    initialize(provider, null);
+  public TimeSeriesCollector(ContentResolver resolver) {
+    initialize(resolver, null);
   }
 
-  public TimeSeriesCollector(ContentProvider provider, TimeSeriesPainter painter) {
-    initialize(provider, painter);
+  public TimeSeriesCollector(ContentResolver resolver, TimeSeriesPainter painter) {
+    initialize(resolver, painter);
   }
 
-  public void initialize(ContentProvider provider, TimeSeriesPainter painter) {
-    mProvider = provider;
+  public void initialize(ContentResolver resolver, TimeSeriesPainter painter) {
+    mResolver = resolver;
     mSeries = new ArrayList<TimeSeries>();
 
     mAutoAggSpan = new DateUtil();
-    mDatapointCache = new DatapointCache(mProvider);
+    mDatapointCache = new DatapointCache(mResolver);
     mAutoAggregation = false;
     mAutoAggregationOffset = 0;
     mCal1 = Calendar.getInstance();
@@ -97,7 +98,7 @@ public class TimeSeriesCollector {
     waitForLock();
     
     Uri uri = TimeSeriesData.TimeSeries.CONTENT_URI;
-    Cursor c = mProvider.query(uri, null, null, null, null);
+    Cursor c = mResolver.query(uri, null, null, null, null);
     int count = c.getCount();
     if (count < 1) {
       c.close();
@@ -141,7 +142,7 @@ public class TimeSeriesCollector {
     updateTimeSeriesData(mQueryStart, mQueryEnd, aggregation, flushCache);
   }
 
-  public void updateTimeSeriesData(long start, long end, String aggregation, boolean flushCache) {
+  public void updateTimeSeriesData(int start, int end, String aggregation, boolean flushCache) {
     waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
       TimeSeries ts = mSeries.get(i);
@@ -159,7 +160,7 @@ public class TimeSeriesCollector {
     unlock();
   }
 
-  private void updateTimeSeriesData(long catId, long start, long end,
+  private void updateTimeSeriesData(long catId, int start, int end,
       String aggregation, boolean flushCache) {
     if (flushCache == true)
       mDatapointCache.refresh(catId, aggregation);
@@ -167,7 +168,7 @@ public class TimeSeriesCollector {
     gatherSeries(start, end, aggregation);
   }
 
-  public void setSmoothing(float smoothing) {
+  public void setSmoothing(double smoothing) {
     mSmoothing = smoothing;
     waitForLock();
     for (int i = 0; i < mSeries.size(); i++) {
@@ -222,8 +223,8 @@ public class TimeSeriesCollector {
     return mAutoAggregation;
   }
 
-  public void setAggregationMs(long millis) {
-    mAggregationMs = millis;
+  public void setAggregationMs(int seconds) {
+    mAggregationMs = seconds;
   }
 
   public void setSeriesInterpolator(TimeSeries ts, String type) {
@@ -434,7 +435,7 @@ public class TimeSeriesCollector {
       builder.appendPath(aggregation);
     
     Uri uri = builder.build();
-    Cursor c = mProvider.query(uri, null, null, null, null);
+    Cursor c = mResolver.query(uri, null, null, null, null);
     int count = c.getCount();
     if (count < 1) {
       c.close();
@@ -443,7 +444,7 @@ public class TimeSeriesCollector {
     }
     c.moveToFirst();
     double lastValue = TimeSeriesData.Datapoint.getValue(c);
-    long lastTsStart = TimeSeriesData.Datapoint.getTsStart(c);
+    int lastTsStart = TimeSeriesData.Datapoint.getTsStart(c);
     c.close();
 
     ArrayList<Datapoint> l = mDatapointCache.getLast(catId, history);
@@ -459,18 +460,18 @@ public class TimeSeriesCollector {
     unlock();
   }
 
-  public synchronized void gatherSeriesLocking(long milliStart, long milliEnd,
+  public synchronized void gatherSeriesLocking(int milliStart, int milliEnd,
       String aggregation) {
     waitForLock();
     gatherSeries(milliStart, milliEnd, aggregation);
     unlock();
   }
   
-  public synchronized void gatherSeries(long milliStart, long milliEnd, String
+  public synchronized void gatherSeries(int milliStart, int milliEnd, String
       aggregation) {
     ArrayList<Datapoint> pre, range, post;
     boolean has_data;
-    long oldAggregationMs = mAggregationMs;
+    int oldAggregationMs = mAggregationMs;
 
     mQueryStart = milliStart;
     mQueryEnd = milliEnd;
@@ -515,11 +516,11 @@ public class TimeSeriesCollector {
     return list.get(0);
   }
 
-  private void setCollectionTimes(long milliStart, long milliEnd) {
+  private void setCollectionTimes(int milliStart, int milliEnd) {
     if (mAutoAggregation == true) {
       mAutoAggSpan.setSpanOffset(mAutoAggregationOffset);
       mAutoAggSpan.setSpan(milliStart, milliEnd);
-      mAggregationMs = DateUtil.mapPeriodToLong(mAutoAggSpan.getSpan());
+      mAggregationMs = DateUtil.mapPeriodToInt(mAutoAggSpan.getSpan());
     }
 
     // this adjustment is to make sure that the edges of the visible range
@@ -547,7 +548,7 @@ public class TimeSeriesCollector {
 
       mCal1.setTimeInMillis(milliStart);
       DateUtil.setToPeriodStart(mCal1, p);
-      milliStart = mCal1.getTimeInMillis();
+      milliStart = (int) (mCal1.getTimeInMillis() / DateUtil.SECOND_MS);
 
       mCal2.setTimeInMillis(milliEnd);
       DateUtil.setToPeriodStart(mCal2, p);
@@ -557,7 +558,7 @@ public class TimeSeriesCollector {
         step = 3;
       mCal2.add(DateUtil.mapLongToCal(mAggregationMs), step);
 
-      milliEnd = mCal2.getTimeInMillis();
+      milliEnd = (int) (mCal2.getTimeInMillis() / DateUtil.SECOND_MS);
     }
 
     mCollectionStart = milliStart;

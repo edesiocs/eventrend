@@ -79,17 +79,17 @@ public final class TimeSeries {
   // Interpolator
   private TimeSeriesInterpolator mInterpolator;
 
-  public TimeSeries(CategoryRow row, int history, float smoothing) {
+  public TimeSeries(CategoryRow row, int history, double smoothing) {
     initialize(row, history, smoothing, null);
   }
 
-  public TimeSeries(CategoryRow row, int history, float smoothing,
+  public TimeSeries(CategoryRow row, int history, double smoothing,
       TimeSeriesPainter painter) {
     initialize(row, history, smoothing, painter);
   }
 
   private void initialize(CategoryRow row, int history,
-      float smoothing, TimeSeriesPainter painter) {
+      double smoothing, TimeSeriesPainter painter) {
     mRow = row;
 
     mPainter = painter;
@@ -188,7 +188,7 @@ public final class TimeSeries {
     return mColorStr;
   }
 
-  public void recalcStatsAndBounds(float smoothing, int history) {
+  public void recalcStatsAndBounds(double smoothing, int history) {
     mTimestampStats = new Number.RunningStats();
     calcStatsAndBounds();
   }

@@ -16,7 +16,7 @@
 
 package net.redgeek.android.eventgrapher.primitives;
 
-import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
@@ -34,10 +34,10 @@ import java.util.Iterator;
 
 public class DatapointCache {
   private HashMap<Long, CategoryDatapointCache> mCache;
-  private ContentProvider mProvider;
+  private ContentResolver mResolver;
 
-  public DatapointCache(ContentProvider provider) {
-    mProvider = provider;
+  public DatapointCache(ContentResolver resolver) {
+    mResolver = resolver;
     mCache = new HashMap<Long, CategoryDatapointCache>();
   }
 
@@ -95,8 +95,8 @@ public class DatapointCache {
     if (catCache == null || catCache.isValid() == false)
       return;
 
-    long start = catCache.getStart();
-    long end = catCache.getEnd();
+    int start = catCache.getStart();
+    int end = catCache.getEnd();
 
     catCache.clear();
     populateRangeFromDb(catCache, catId, start, end, aggregation);
@@ -110,10 +110,10 @@ public class DatapointCache {
       return;
 
     boolean initialized = catCache.isValid();
-    long oldStart = catCache.getStart();
-    long oldEnd = catCache.getEnd();
+    int oldStart = catCache.getStart();
+    int oldEnd = catCache.getEnd();
     boolean overlap = false;
-    long lastEntryTS = Long.MAX_VALUE;
+    int lastEntryTS = Integer.MAX_VALUE;
 
     Builder builder = ContentUris.withAppendedId(
         TimeSeriesData.TimeSeries.CONTENT_URI, catId).buildUpon()
@@ -122,7 +122,7 @@ public class DatapointCache {
       builder.appendPath(aggregation);
     
     Uri uri = builder.build();
-    Cursor c = mProvider.query(uri, null, null, null, null);
+    Cursor c = mResolver.query(uri, null, null, null, null);
     int count = c.getCount();
     if (count < 1) {
       c.close();
@@ -167,8 +167,8 @@ public class DatapointCache {
   }
 
   // inclusive
-  public synchronized void populateRange(long catId, long milliStart,
-      long milliEnd, long aggregationMs, String aggregation) {
+  public synchronized void populateRange(long catId, int milliStart,
+      int milliEnd, int aggregationMs, String aggregation) {
     CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
     if (catCache == null)
       return;
@@ -210,24 +210,24 @@ public class DatapointCache {
       DateUtil.setToPeriodStart(c1, p);
       c1.add(DateUtil.mapLongToCal(aggregationMs),
           -(catCache.getHistory() * step));
-      milliStart = c1.getTimeInMillis();
+      milliStart = (int) (c1.getTimeInMillis() / DateUtil.SECOND_MS);
 
       c2.setTimeInMillis(milliEnd);
       DateUtil.setToPeriodStart(c2, p);
       c2.add(DateUtil.mapLongToCal(aggregationMs), step);
-      milliEnd = c2.getTimeInMillis();
+      milliEnd = (int) (c2.getTimeInMillis() / DateUtil.SECOND_MS);
     }
 
     populateRangeFromDb(catCache, catId, milliStart, milliEnd, aggregation);
   }
 
   private synchronized void populateRangeFromDb(
-      CategoryDatapointCache catCache, long catId, long milliStart, 
-      long milliEnd, String aggregation) {
-    long query1Start = milliStart;
-    long query1End = milliEnd;
-    long query2Start = -1;
-    long query2End = -1;
+      CategoryDatapointCache catCache, long catId, int milliStart, 
+      int milliEnd, String aggregation) {
+    int query1Start = milliStart;
+    int query1End = milliEnd;
+    int query2Start = -1;
+    int query2End = -1;
 
     if (milliStart > milliEnd)
       return;
@@ -270,7 +270,7 @@ public class DatapointCache {
   }
 
   private void addDatapoints(CategoryDatapointCache catCache, long catId,
-      long start, long end, String aggregation) {
+      int start, int end, String aggregation) {
     Builder builder = ContentUris.withAppendedId(
         TimeSeriesData.TimeSeries.CONTENT_URI, catId).buildUpon()
         .appendPath("range").appendPath(""+start).appendPath(""+end);
@@ -278,7 +278,7 @@ public class DatapointCache {
       builder.appendPath(aggregation);
     
     Uri uri = builder.build();
-    Cursor c = mProvider.query(uri, null, null, null, null);
+    Cursor c = mResolver.query(uri, null, null, null, null);
     int count = c.getCount();
     if (count < 1) {
       c.close();
@@ -308,8 +308,8 @@ public class DatapointCache {
     catCache.updateEnd(end);
   }
 
-  public ArrayList<Datapoint> getDataInRange(long catId, long msStart,
-      long msEnd) {
+  public ArrayList<Datapoint> getDataInRange(long catId, int msStart,
+      int msEnd) {
     CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
     if (catCache == null)
       return null;
@@ -317,7 +317,7 @@ public class DatapointCache {
     return catCache.getDataInRange(msStart, msEnd);
   }
 
-  public ArrayList<Datapoint> getDataBefore(long catId, int number, long ms) {
+  public ArrayList<Datapoint> getDataBefore(long catId, int number, int ms) {
     CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
     if (catCache == null)
       return null;
@@ -325,7 +325,7 @@ public class DatapointCache {
     return catCache.getDataBefore(number, ms);
   }
 
-  public ArrayList<Datapoint> getDataAfter(long catId, int number, long ms) {
+  public ArrayList<Datapoint> getDataAfter(long catId, int number, int ms) {
     CategoryDatapointCache catCache = mCache.get(Long.valueOf(catId));
     if (catCache == null)
       return null;

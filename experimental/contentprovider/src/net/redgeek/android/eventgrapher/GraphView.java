@@ -137,16 +137,16 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     mZoomInListener = new View.OnClickListener() {
       public void onClick(View v) {
         scheduleHideZoomControls();
-        long start = mGraph.getGraphStart();
-        long end = mGraph.getGraphEnd();
+        int start = mGraph.getGraphStart();
+        int end = mGraph.getGraphEnd();
 
-        long delta = (end - start) / 4;
+        int delta = (end - start) / 4;
         start += delta;
         end -= delta;
 
         if (start + DateUtil.MINUTE_MS * 10 >= end) {
           end += ((DateUtil.MINUTE_MS * 10) / 2);
-          start = end - ((DateUtil.MINUTE_MS * 10) / 2);
+          start = (int) (end - ((DateUtil.MINUTE_MS * 10) / 2));
         }
 
         mGraph.setGraphRange(start, end);
@@ -158,10 +158,10 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
       public void onClick(View v) {
         scheduleHideZoomControls();
 
-        long start = mGraph.getGraphStart();
-        long end = mGraph.getGraphEnd();
+        int start = mGraph.getGraphStart();
+        int end = mGraph.getGraphEnd();
 
-        long delta = (end - start) / 2;
+        int delta = (end - start) / 2;
         start -= delta;
         end += delta;
         if (start < 0)
@@ -214,8 +214,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     }
     mLastEvent = null;
 
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
 
     movement.x *= ((end - start) / getWidth());
     movement.x *= -1;
@@ -255,10 +255,11 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void executeNonGuiTask() throws Exception {
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
+    String aggregation = mGraph.getGraphAggregation();
 
-    mCollector.setSpan(start, end);
+    mCollector.setSpan(start, end, aggregation);
     mCollector.doCollection();
   }
 
@@ -272,8 +273,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void updateData() {
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
 
     mGraph.setGraphRange(start, end);
 
@@ -288,8 +289,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   private void updateStatus() {
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
     String str = new String();
 
     if (mTSC.getAutoAggregation() == true) {
@@ -299,7 +300,7 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
 
     if (mGraph.mSelectedDatapoint != null) {
       str += mGraph.mSelectedDatapoint.toLabelString() + ": "
-          + mGraph.mSelectedDatapoint.mY.y;
+          + mGraph.mSelectedDatapoint.mValue;
       mStatus.setText(str);
       mStatus.setTextColor(mGraph.mSelectedColor);
       return;
@@ -313,14 +314,14 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void snapToSpan() {
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
 
-    long delta = end - start;
+    int delta = end - start;
     Calendar cal = Calendar.getInstance();
     cal.setTimeInMillis(start);
     DateUtil.setToPeriodStart(cal, mGraph.getSpan());
-    start = cal.getTimeInMillis();
+    start = (int) (cal.getTimeInMillis() / DateUtil.SECOND_MS);
     end = start + delta;
 
     mGraph.setGraphRange(start, end);
@@ -331,11 +332,11 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void resetZoom() {
-    long start = mGraph.getGraphStart();
-    long end = mGraph.getGraphEnd();
+    int start = mGraph.getGraphStart();
+    int end = mGraph.getGraphEnd();
 
-    end = mCal.getTimeInMillis();
-    start = end - DateUtil.DAY_MS * 7;
+    end = (int) (mCal.getTimeInMillis() / DateUtil.SECOND_MS);
+    start = (int) (end - DateUtil.DAY_MS * 7);
 
     mGraph.setGraphRange(start, end);
   }

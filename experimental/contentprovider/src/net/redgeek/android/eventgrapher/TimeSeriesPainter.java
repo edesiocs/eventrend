@@ -136,21 +136,21 @@ public interface TimeSeriesPainter {
       for (int i = offset; i < datapointsSize && i <= end; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
-          second = thisPoint.mValueScreen;
+          second = thisPoint.mScreenValue1;
         if (prevPoint != null)
-          first = prevPoint.mValueScreen;
+          first = prevPoint.mScreenValue1;
 
         ts.getInterpolator().updatePath(mPath, first, second);
 
-        mPoints.moveTo(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y);
-        mPoints.addCircle(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y,
+        mPoints.moveTo(thisPoint.mScreenValue1.x, thisPoint.mScreenValue1.y);
+        mPoints.addCircle(thisPoint.mScreenValue1.x, thisPoint.mScreenValue1.y,
             mPointRadius, Path.Direction.CW);
 
         prevPoint = thisPoint;
       }
 
       if (thisPoint != null) {
-        mPath.setLastPoint(thisPoint.mValueScreen.x, thisPoint.mValueScreen.y);
+        mPath.setLastPoint(thisPoint.mScreenValue1.x, thisPoint.mScreenValue1.y);
         canvas.drawPath(mPath, mPathPaint);
         canvas.drawPath(mPoints, mPointsPaint);
       }
@@ -182,9 +182,9 @@ public interface TimeSeriesPainter {
       for (int i = offset; i < datapointsSize && i <= end; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
-          second = thisPoint.mTrendScreen;
+          second = thisPoint.mScreenTrend1;
         if (prevPoint != null)
-          first = prevPoint.mTrendScreen;
+          first = prevPoint.mScreenTrend1;
 
         ts.getInterpolator().updatePath(mTrend, first, second);
 
