@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  package="net.redgeek.android.eventrend"
+  android:versionName="1.0.10" 
+  android:versionCode="4">
+  <uses-sdk android:minSdkVersion="2"></uses-sdk>
+  <application 
+  	android:label="@string/app_name" 
+  	android:icon="@drawable/icon">
+    <activity 
+      android:label="@string/app_name" 
+      android:name="net.redgeek.android.eventrend.input.InputActivity"
+      android:screenOrientation="sensor">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.PICK" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+      </intent-filter>
+		</activity>
+
+    <activity 
+      android:label="Category Editor (Expert)" 
+      android:alwaysRetainTaskState="true"
+      android:name="net.redgeek.android.eventrend.category.CategoryEditActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.EDIT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+    </activity>
+
+    <activity 
+      android:label="Category Editor (Basic Wizard)" 
+      android:alwaysRetainTaskState="true"
+      android:name="net.redgeek.android.eventrend.category.CategoryWizardEditActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.EDIT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+    </activity>
+
+		<activity 
+      android:label="EvenTrend Datapoint Lister" 
+		  android:name="net.redgeek.android.eventrend.datum.EntryListActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.PICK" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+      </intent-filter>
+		</activity>
+
+		<activity
+      android:label="EvenTrend Datapoint Editor" 
+		  android:name="net.redgeek.android.eventrend.datum.EntryEditActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.EDIT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.datapoint" />
+      </intent-filter>
+		</activity>
+		
+		<activity 
+      android:label="EvenTrend Grapher" 
+		  android:name="net.redgeek.android.eventgrapher.GraphActivity" 
+		  android:screenOrientation="sensor">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.PICK" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+		</activity>
+
+    <activity 
+     android:label="EvenTrend Calendar View" 
+     android:name="net.redgeek.android.eventcalendar.CalendarActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <action android:name="android.intent.action.PICK" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+    </activity>
+
+<!--
+		<activity 
+      android:label="EvenTrend Importer" 
+		  android:name="net.redgeek.android.eventrend.importing.ImportActivity">
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.INSERT" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+      </intent-filter>
+		</activity>
+-->
+
+    <activity 
+      android:label="EvenTrend Formula Editor" 
+      android:name="net.redgeek.android.eventrend.category.FormulaEditorActivity">
+    </activity>
+      
+    <service 
+      android:name="net.redgeek.android.eventrecorder.EventRecorder" 
+      android:enabled="true"
+      android:exported="true">
+      <intent-filter>
+        <action android:name="net.redgeek.android.eventrecorder.IEventRecorderService" />
+      </intent-filter>
+    </service>
+    
+    <provider
+      android:name="net.redgeek.android.eventrecorder.TimeSeriesProvider" 
+      android:enabled="true" 
+      android:exported="true" 
+      android:authorities="net.redgeek.android.eventrecorder" 
+      android:multiprocess="true" android:syncable="true">
+    </provider>
+
+    <activity 
+      android:name="net.redgeek.android.eventrecorder.SampleClient">
+    </activity>
+  </application>
+</manifest> 

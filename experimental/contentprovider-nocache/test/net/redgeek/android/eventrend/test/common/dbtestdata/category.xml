@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<database>
+<table name="categories">
+  <row>
+    <column name="_id">1</column>
+    <column name="group_name">GroupName</column>
+    <column name="category_name">CategoryName</column>
+    <column name="default_value">1.0</column>
+    <column name="last_value">2.0</column>
+    <column name="last_trend">3.0</column>
+    <column name="increment">4.0</column>
+    <column name="goal">5.0</column>
+    <column name="color">#4499cc</column>
+    <column name="type">Average</column>
+    <column name="period_in_ms">1000</column>
+    <column name="rank">2</column>
+    <column name="period_entries">3</column>
+    <column name="trend_state">trend_flat</column>
+    <column name="interpolation">Linear</column>
+    <column name="zerofill">1</column>
+    <column name="synthetic">1</column>
+    <column name="formula">(series "one" + series "two")</column>
+  </row>
+</table>
+</database>
+  
