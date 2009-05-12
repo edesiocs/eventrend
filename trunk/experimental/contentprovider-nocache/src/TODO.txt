@@ -1,0 +1,18 @@
+
+Input Activity:
+- Make service connection dialog appear at start
+  - Make sure to not attempt to use connection until established
+- Virtual Keyboard:
+  - make it stick to numeric when appropriate
+  - auto-scroll to put selected field in view
+CategoryEdit/Wizard:
+- share common components
+Import:
+- implement v2 importing
+- implement v1 importing
+- implement spreadsheet importing
+
+This file intended for temporary notes only.  See
+
+http://code.google.com/p/eventrend/issues/list
+

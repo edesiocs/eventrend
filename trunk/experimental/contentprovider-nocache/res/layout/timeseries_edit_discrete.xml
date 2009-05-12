@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="fill_parent" android:orientation="vertical"
+  android:scrollbars="vertical" android:layout_height="fill_parent"
+  android:layout_gravity="center_horizontal"
+  android:id="@+id/timeseries_edit_page3a"
+  >
+  <ScrollView android:id="@+id/ScrollView01" android:layout_height="fill_parent"
+    android:layout_width="fill_parent" android:layout_gravity="center_horizontal">
+    <LinearLayout android:id="@+id/LinearLayout01"
+      android:layout_height="wrap_content" android:layout_width="fill_parent"
+      android:orientation="vertical">
+      <TextView android:id="@+id/TextView03" android:layout_height="wrap_content"
+        android:textStyle="bold" android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_width="fill_parent" android:gravity="center_vertical|center_horizontal"
+        android:paddingTop="3px" android:paddingBottom="3px" android:text="Category Editor: Discrete Settings"></TextView>
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:clickable="false"
+        android:layout_gravity="top|left" android:id="@+id/TextView01"
+        android:text="When recording data for this type of category, there will be a text entry box containing the value to be saved.  Please set a default value for this.">
+      </TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_default_value_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Default Value"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_default_value_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_default_value"
+          android:layout_gravity="right|center_vertical" android:text="0.0" android:numeric="signed|decimal" android:gravity="right|center_vertical" android:minEms="4">
+        </EditText>
+      </LinearLayout>
+
+      <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content" android:clickable="false"
+        android:layout_gravity="top|left" android:id="@+id/TextView01"
+        android:text="In addition to the text entry box, there are also '+' and '-' buttons, which serve to increment or decrement the value in the text entry box.  This is intended to save time by making it unnecessary to slide open the keypad in order to change the value to record.  Please set the amount by which these buttons will change the value in the text entry box.">
+      </TextView>
+      <LinearLayout android:layout_height="wrap_content"
+        android:layout_width="fill_parent" android:orientation="horizontal"
+        android:id="@+id/category_edit_increment_row" android:paddingBottom="3px"
+        android:paddingTop="5px" android:gravity="center_vertical|center_horizontal"
+        android:paddingRight="5px" android:paddingLeft="3px"
+        android:layout_gravity="center_horizontal|center_vertical">
+        <TextView android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Increment"
+          android:layout_gravity="left|center_vertical" android:clickable="true"
+          android:id="@+id/category_edit_increment_view" android:textColor="#3366ff"
+          android:paddingRight="3px" android:paddingLeft="3px">
+        </TextView>
+        <EditText android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:id="@+id/category_edit_increment"
+          android:layout_gravity="right|center_vertical" android:text="1.0" android:numeric="signed|decimal" android:gravity="right|center_vertical" android:minEms="4">
+        </EditText>
+      </LinearLayout>
+
+      <LinearLayout android:layout_height="wrap_content"
+        android:gravity="center_vertical|center_horizontal" android:orientation="horizontal"
+        android:paddingBottom="3px" android:paddingLeft="3px"
+        android:paddingRight="5px" android:paddingTop="5px"
+        android:layout_width="fill_parent" android:layout_gravity="center_horizontal|center_vertical"
+        android:id="@+id/category_edit_type_row">
+
+
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Cancel"
+          android:id="@+id/category_edit_cancel" android:layout_gravity="right|center_vertical">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_back" android:text="&lt; Back">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:text="Next &gt;"
+          android:id="@+id/category_edit_next" android:layout_gravity="right|center_vertical">
+        </Button>
+
+      </LinearLayout>
+
+    </LinearLayout>
+
+  </ScrollView>
+
+  <ListView android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:id="@+id/android:list" android:choiceMode="singleChoice"
+    android:longClickable="true">
+  </ListView>
+
+</LinearLayout>
