@@ -80,8 +80,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class InputActivity extends EvenTrendActivity {
   // Menu-button IDs
   private static final int MENU_ADD_ID = Menu.FIRST;
-  private static final int MENU_GRAPH_ID = Menu.FIRST + 1;
-  private static final int MENU_CALENDAR_ID = Menu.FIRST + 2;
+  private static final int MENU_VISUALIZE_ID = Menu.FIRST + 1;
   private static final int MENU_EDIT_ID = Menu.FIRST + 3;
   private static final int MENU_PREFS_ID = Menu.FIRST + 4;
   private static final int MENU_HELP_ID = Menu.FIRST + 5;
@@ -445,10 +444,8 @@ public class InputActivity extends EvenTrendActivity {
     boolean result = super.onCreateOptionsMenu(menu);
     menu.add(0, MENU_ADD_ID, 0, R.string.menu_category_add).setIcon(
         android.R.drawable.ic_menu_add);
-    menu.add(0, MENU_GRAPH_ID, 0, R.string.menu_graph)
+    menu.add(0, MENU_VISUALIZE_ID, 0, R.string.menu_visualize)
         .setIcon(R.drawable.graph);
-    menu.add(0, MENU_CALENDAR_ID, 0, R.string.menu_calendar).setIcon(
-        android.R.drawable.ic_menu_today);
     menu.add(0, MENU_EDIT_ID, 0, R.string.menu_entry_edit).setIcon(
         android.R.drawable.ic_menu_edit);
     menu.add(0, MENU_PREFS_ID, 0, R.string.menu_app_prefs).setIcon(
@@ -476,12 +473,9 @@ public class InputActivity extends EvenTrendActivity {
 //      case MENU_EDIT_ID:
 //        editEntries();
 //        return true;
-      case MENU_GRAPH_ID:
-        graphEntries();
+      case MENU_VISUALIZE_ID:
+        visualizeEntries();
         return true;
-//      case MENU_CALENDAR_ID:
-//        calendarView();
-//        return true;
 //      case MENU_PREFS_ID:
 //        editPrefs();
 //        return true;
@@ -682,9 +676,9 @@ public class InputActivity extends EvenTrendActivity {
 //    startActivityForResult(i, PREFS_EDIT);
 //  }
 
-  private void graphEntries() {
+  private void visualizeEntries() {
     Uri uri = TimeSeries.CONTENT_URI;
-    Intent i = new Intent(Intent.ACTION_EDIT, uri);
+    Intent i = new Intent(Intent.ACTION_VIEW, uri);
     
     ArrayList<String> catIds = new ArrayList<String>();
     
@@ -695,23 +689,9 @@ public class InputActivity extends EvenTrendActivity {
       catIds.add(catId);
     }
     i.putStringArrayListExtra(GraphActivity.DEFAULT_VIEW_IDS, catIds);
-    startActivityForResult(i, ARC_GRAPH_VIEW);
+    startActivityForResult(i, ARC_VISUALIZE_VIEW);
   }
   
-//  private void calendarView() {
-//    Intent i = new Intent(this, CalendarActivity.class);
-//    ArrayList<Integer> catIds = new ArrayList<Integer>();
-//
-//    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
-//    for (int j = 0; j < series.size(); j++) {
-//      TimeSeries ts = series.get(j);
-//      catIds.add(new Integer((int) ts.getDbRow().getId()));
-//    }
-//
-//    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, catIds);
-//    startActivityForResult(i, CALENDAR_VIEW);
-//  }
-
   // *** display update routines ***/
 
   public void setTimestampNow() {

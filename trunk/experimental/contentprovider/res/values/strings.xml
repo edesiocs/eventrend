@@ -38,7 +38,7 @@
 <string name="graph_correlate">Correlate</string>
 <string name="graph_snap_to">Snap to Period</string>
 <string name="graph_prefs">Graph Settings</string>
-<string name="menu_graph">Graph</string>
+<string name="menu_visualize">Visualize</string>
 <string name="graph_view_agg_prompt">Aggregate By</string>
 <string name="import_dir">/sdcard/eventrend</string>
 </resources>

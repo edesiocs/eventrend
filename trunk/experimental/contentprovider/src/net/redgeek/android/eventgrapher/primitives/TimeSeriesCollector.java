@@ -41,6 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TimeSeriesCollector {
   private ArrayList<TimeSeries> mSeries;
 
+  private String mAggregation;
   private int mAggregationMs;
   private int mHistory = 20;
   private double mSmoothing = 0.1f;
@@ -223,8 +224,9 @@ public class TimeSeriesCollector {
     return mAutoAggregation;
   }
 
-  public void setAggregationMs(int seconds) {
+  public void setAggregationMs(int seconds, String suffix) {
     mAggregationMs = seconds;
+    mAggregation = suffix;
   }
 
   public void setSeriesInterpolator(TimeSeries ts, String type) {
@@ -485,7 +487,7 @@ public class TimeSeriesCollector {
         continue;
 
       mDatapointCache.populateRange(ts.mRow.mId, mCollectionStart,
-          mCollectionEnd, mAggregationMs, aggregation);
+          mCollectionEnd, mAggregationMs, mAggregation);
 
       pre = mDatapointCache.getDataBefore(ts.mRow.mId, mHistory,
           mCollectionStart);

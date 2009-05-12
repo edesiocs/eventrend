@@ -58,8 +58,7 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final int ARC_CATEGORY_EDIT = 3;
   public static final int ARC_ENTRY_LIST = 10;
   public static final int ARC_ENTRY_EDIT = 11;
-  public static final int ARC_GRAPH_VIEW = 20;
-  public static final int ARC_CALENDAR_VIEW = 30;
+  public static final int ARC_VISUALIZE_VIEW = 20;
   public static final int ARC_IMPORT_REPLACE = 40;
   public static final int ARC_IMORT_MERGE = 41;
   public static final int ARC_PREFS_EDIT = 50;
