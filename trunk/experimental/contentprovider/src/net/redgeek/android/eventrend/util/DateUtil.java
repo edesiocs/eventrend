@@ -613,20 +613,20 @@ public final class DateUtil {
    *          The DateUtil.*_MS field to map from.
    * @return The Period enum representing the associated DateUtil.Period.
    */
-  public static Period mapLongToPeriod(long millis) {
-    if (millis == YEAR_MS)
+  public static Period mapLongToPeriod(long seconds) {
+    if (seconds == YEAR_MS / SECOND_MS)
       return Period.YEAR;
-    else if (millis == QUARTER_MS)
+    else if (seconds == QUARTER_MS / SECOND_MS)
       return Period.QUARTER;
-    else if (millis == MONTH_MS)
+    else if (seconds == MONTH_MS / SECOND_MS)
       return Period.MONTH;
-    else if (millis == WEEK_MS)
+    else if (seconds == WEEK_MS / SECOND_MS)
       return Period.WEEK;
-    else if (millis == DAY_MS)
+    else if (seconds == DAY_MS / SECOND_MS)
       return Period.DAY;
-    else if (millis == AMPM_MS)
+    else if (seconds == AMPM_MS / SECOND_MS)
       return Period.AMPM;
-    else if (millis == HOUR_MS)
+    else if (seconds == HOUR_MS / SECOND_MS)
       return Period.HOUR;
     return Period.MINUTE;
   }
@@ -709,6 +709,24 @@ public final class DateUtil {
     if (p == Period.HOUR)
       return HOUR_MS;
     return MINUTE_MS;
+  }
+
+  public static int mapPeriodToInt(Period p) {
+    if (p == Period.YEAR)
+      return (int) (YEAR_MS / SECOND_MS);
+    if (p == Period.QUARTER)
+      return (int) (QUARTER_MS / SECOND_MS);
+    if (p == Period.MONTH)
+      return (int) (MONTH_MS / SECOND_MS);
+    if (p == Period.WEEK)
+      return (int) (WEEK_MS / SECOND_MS);
+    if (p == Period.DAY)
+      return (int) (DAY_MS / SECOND_MS);
+    if (p == Period.AMPM)
+      return (int) (AMPM_MS / SECOND_MS);
+    if (p == Period.HOUR)
+      return (int) (HOUR_MS / SECOND_MS);
+    return (int) (MINUTE_MS / SECOND_MS);
   }
 
   /**

@@ -38,8 +38,10 @@ import android.widget.ToggleButton;
 import android.widget.ZoomControls;
 
 import net.redgeek.android.eventcalendar.CalendarActivity;
+import net.redgeek.android.eventgrapher.plugins.LinearMatrixCorrelator;
 import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
@@ -53,7 +55,10 @@ import java.util.Calendar;
 
 public class GraphActivity extends EvenTrendActivity {
   public static final String DEFAULT_VIEW_IDS = "graphViewIds";
-  
+  public static final String GRAPH_START_MS = "graphEndTs";
+  public static final String GRAPH_END_MS = "graphStartTs";
+  public static final String GRAPH_AGGREGATION = "graphAggregation";
+
   // Menu items
   private static final int MENU_GRAPH_FILTER_ID = Menu.FIRST;
   private static final int MENU_GRAPH_CORRELATE_ID = Menu.FIRST + 1;
@@ -93,15 +98,12 @@ public class GraphActivity extends EvenTrendActivity {
   // Private data
   private TimeSeriesCollector mTSC;
   private ArrayList<Integer> mSeriesEnabled;
-  private int mHistory;
-  private float mSmoothing;
-  private float mSensitivity;
-  private int mDecimals;
 
   // Saved across orientation changes
-  private long mStartMs;
-  private long mEndMs;
-  private long mAggregation = CategoryDbTable.KEY_PERIOD_MS_AUTO;
+  private int mStartMs;
+  private int mEndMs;
+  // TODO: change this to a constant
+  private int mAggregation = -1;
 
   // Tasks
   private CorrelateTask mCorrelator;
@@ -110,18 +112,10 @@ public class GraphActivity extends EvenTrendActivity {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
-    getPrefs();
     setupData(icicle);
     setupTasks();
     setupUI();
     populateFields();
-  }
-
-  private void getPrefs() {
-    mHistory = Preferences.getHistory(getCtx());
-    mSmoothing = Preferences.getSmoothingConstant(getCtx());
-    mDecimals = Preferences.getDecimalPlaces(getCtx());
-    mSensitivity = Preferences.getStdDevSensitivity(getCtx());
   }
 
   private void setupTasks() {
@@ -129,14 +123,10 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private void setupData(Bundle icicle) {
-    mTSC = new TimeSeriesCollector(getDbh());
-    mTSC.setHistory(mHistory);
-    mTSC.setSmoothing(mSmoothing);
-    mTSC.setSensitivity(mSensitivity);
-    mTSC.setInterpolators(((EvenTrendActivity) getCtx()).getInterpolators());
+    mTSC = new TimeSeriesCollector(getContentResolver());
     mTSC.updateTimeSeriesMetaLocking(true);
 
-    mSeriesEnabled = getIntent().getIntegerArrayListExtra(VIEW_DEFAULT_CATIDS);
+    mSeriesEnabled = getIntent().getIntegerArrayListExtra(DEFAULT_VIEW_IDS);
     if (mSeriesEnabled != null) {
       for (int i = 0; i < mSeriesEnabled.size(); i++) {
         Integer j = mSeriesEnabled.get(i);
@@ -145,17 +135,17 @@ public class GraphActivity extends EvenTrendActivity {
     }
 
     Calendar cal = Calendar.getInstance();
-    mStartMs = getIntent().getLongExtra(GRAPH_START_MS,
-        cal.getTimeInMillis() - DateUtil.DAY_MS * 7);
-    mEndMs = getIntent().getLongExtra(GRAPH_END_MS, cal.getTimeInMillis());
-    mAggregation = getIntent().getLongExtra(GRAPH_START_MS,
-        CategoryDbTable.KEY_PERIOD_MS_AUTO);
+    mStartMs = getIntent().getIntExtra(GRAPH_START_MS,
+        (int) ((cal.getTimeInMillis() - DateUtil.DAY_MS * 7) / DateUtil.SECOND_MS));
+    mEndMs = getIntent().getIntExtra(GRAPH_END_MS, (int) (cal.getTimeInMillis() / DateUtil.SECOND_MS));
+    // TODO: convert to constant
+    mAggregation = getIntent().getIntExtra(GRAPH_START_MS, -1);
 
     if (icicle != null) {
-      mStartMs = icicle.getLong(GRAPH_START_MS);
-      mEndMs = icicle.getLong(GRAPH_END_MS);
-      mAggregation = icicle.getLong(GRAPH_AGGREGATION);
-      mSeriesEnabled = icicle.getIntegerArrayList(VIEW_DEFAULT_CATIDS);
+      mStartMs = icicle.getInt(GRAPH_START_MS);
+      mEndMs = icicle.getInt(GRAPH_END_MS);
+      mAggregation = icicle.getInt(GRAPH_AGGREGATION);
+      mSeriesEnabled = icicle.getIntegerArrayList(DEFAULT_VIEW_IDS);
       if (mSeriesEnabled != null) {
         for (int i = 0; i < mSeriesEnabled.size(); i++) {
           Integer j = mSeriesEnabled.get(i);
@@ -181,17 +171,17 @@ public class GraphActivity extends EvenTrendActivity {
     mGraphControls.setGravity(Gravity.CENTER_HORIZONTAL
         | Gravity.CENTER_VERTICAL);
 
-    mAggregationSpinner = new DynamicSpinner(getCtx());
+    mAggregationSpinner = new DynamicSpinner(mCtx);
     mAggregationSpinner.setPrompt("Aggregate By");
     mAggregationSpinnerLayout = (LinearLayout) findViewById(R.id.graph_view_agg_menu);
     mAggregationSpinnerLayout.addView(mAggregationSpinner,
         new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
             LayoutParams.WRAP_CONTENT));
-    mAggregationSpinner.addSpinnerItem(AUTO_AGGREGATION, new Long(
-        CategoryDbTable.KEY_PERIOD_MS_AUTO));
-    for (int i = 0; i < CategoryDbTable.KEY_PERIODS.length; i++) {
-      mAggregationSpinner.addSpinnerItem(CategoryDbTable.KEY_PERIODS[i],
-          new Long(i));
+    // TODO: convert to constant
+    mAggregationSpinner.addSpinnerItem(AUTO_AGGREGATION, new Long(-1));
+    for (int i = 0; i < TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
+      mAggregationSpinner.addSpinnerItem(TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_NAMES[i],
+          new Long(TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
     }
     mAggregationSpinner.setOnItemSelectedListener(mAggregationSpinnerListener);
 
@@ -210,7 +200,7 @@ public class GraphActivity extends EvenTrendActivity {
     mShowMarkersToggle = (ToggleButton) findViewById(R.id.graph_view_markers);
     mShowMarkersToggle.setOnCheckedChangeListener(mShowMarkersToggleListener);
 
-    mProgress = new ProgressIndicator.Titlebar(getCtx());
+    mProgress = new ProgressIndicator.Titlebar(mCtx);
   }
 
   private void setupListeners() {
@@ -219,10 +209,10 @@ public class GraphActivity extends EvenTrendActivity {
           long id) {
         String period = ((TextView) v).getText().toString();
         if (period.equals(AUTO_AGGREGATION)) {
-          mAggregation = CategoryDbTable.KEY_PERIOD_MS_AUTO;
+          mAggregation = -1;  // TODO: convert to constant
           mTSC.setAutoAggregation(true);
         } else {
-          mAggregation = CategoryDbTable.mapPeriodToMs(period);
+          mAggregation = (int) mAggregationSpinner.getMappingFromPosition(position);
           mTSC.setAutoAggregation(false);
           mTSC.setAggregationMs(mAggregation);
         }
@@ -268,7 +258,7 @@ public class GraphActivity extends EvenTrendActivity {
 
   private void populateFields() {
     mGraphView.getGraph().setGraphRange(mStartMs, mEndMs);
-    if (mAggregation == CategoryDbTable.KEY_PERIOD_MS_AUTO) {
+    if (mAggregation == -1) {  // TODO: convert to constant
       mTSC.setAutoAggregation(true);
       mAggregationSpinner.setSelection(0);
     } else {
@@ -276,8 +266,9 @@ public class GraphActivity extends EvenTrendActivity {
       mTSC.setAggregationMs(mAggregation);
       // XXX ugly hack. We add one because we inserted "Auto" ahead of
       // everything else
-      mAggregationSpinner.setSelection(CategoryDbTable
-          .mapMsToIndex(mAggregation) + 1);
+      // TODO:  correct this:
+//      mAggregationSpinner.setSelection(CategoryDbTable
+//          .mapMsToIndex(mAggregation) + 1);
     }
   }
 
@@ -339,8 +330,9 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private void editPrefs() {
-    Intent i = new Intent(this, Preferences.class);
-    startActivityForResult(i, PREFS_EDIT);
+    // TODO: impelement
+//    Intent i = new Intent(this, Preferences.class);
+//    startActivityForResult(i, PREFS_EDIT);
   }
 
   private void graph() {
@@ -349,18 +341,19 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private void calendarView() {
-    mSeriesEnabled.clear();
-    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
-    for (int j = 0; j < series.size(); j++) {
-      TimeSeries ts = series.get(j);
-      if (ts != null)
-        mSeriesEnabled.add(new Integer((int) ts.getDbRow().getId()));
-    }
-    
-    Intent i = new Intent(this, CalendarActivity.class);
-    i.putIntegerArrayListExtra(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
-    i.putExtra(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
-    startActivityForResult(i, CALENDAR_VIEW);
+    // TODO: implement
+//    mSeriesEnabled.clear();
+//    ArrayList<TimeSeries> series = mTSC.getAllEnabledSeries();
+//    for (int j = 0; j < series.size(); j++) {
+//      TimeSeries ts = series.get(j);
+//      if (ts != null)
+//        mSeriesEnabled.add(new Integer((int) ts.mRow.mId));
+//    }
+//
+//    Intent i = new Intent(this, CalendarActivity.class);
+//    i.putIntegerArrayListExtra(DEFAULT_VIEW_IDS, mSeriesEnabled);
+//    i.putExtra(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
+//    startActivityForResult(i, CALENDAR_VIEW);
   }
 
   public TextView getGraphStatusTextView() {
@@ -383,16 +376,16 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private Dialog filterDialog(String title) {
-    Builder b = new AlertDialog.Builder(getCtx());
+    Builder b = new AlertDialog.Builder(mCtx);
     b.setTitle(title);
 
     mGFLA = new GraphFilterListAdapter(this, mTSC);
     for (int i = 0; i < mTSC.numSeries(); i++) {
       TimeSeries ts = mTSC.getSeries(i);
-      long id = ts.getDbRow().getId();
-      String name = ts.getDbRow().getCategoryName();
-      String color = ts.getDbRow().getColor();
-      int rank = ts.getDbRow().getRank();
+      long id = ts.mRow.mId;
+      String name = ts.mRow.mTimeSeriesName;
+      String color = ts.mRow.mColor;
+      int rank = ts.mRow.mRank;
       mGFLA.addItem(new GraphFilterRow(id, name, color, rank));
     }
 
@@ -403,7 +396,7 @@ public class GraphActivity extends EvenTrendActivity {
 
     b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int whichButton) {
-        ((GraphActivity) getCtx()).graph();
+        ((GraphActivity) mCtx).graph();
       }
     });
     Dialog d = b.create();
@@ -412,7 +405,7 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private Dialog correlateDialog(String title) {
-    Builder b = new AlertDialog.Builder(getCtx());
+    Builder b = new AlertDialog.Builder(mCtx);
     b.setTitle(title);
     b.setMessage(mCorrelator.mOutput);
     b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -436,10 +429,10 @@ public class GraphActivity extends EvenTrendActivity {
     for (int j = 0; j < series.size(); j++) {
       TimeSeries ts = series.get(j);
       if (ts != null)
-        mSeriesEnabled.add(new Integer((int) ts.getDbRow().getId()));
+        mSeriesEnabled.add(new Integer((int) ts.mRow.mId));
     }
 
-    outState.putIntegerArrayList(VIEW_DEFAULT_CATIDS, mSeriesEnabled);
+    outState.putIntegerArrayList(DEFAULT_VIEW_IDS, mSeriesEnabled);
     outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
     outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());
     outState.putLong(GRAPH_AGGREGATION, mAggregation);
@@ -448,14 +441,11 @@ public class GraphActivity extends EvenTrendActivity {
 
   @Override
   protected void onResume() {
-    getPrefs();
-    mTSC.setHistory(mHistory);
-    mGraphView.getGraph().setDecimals(mDecimals);
     mGraphView.setColorScheme();
     graph();
     super.onResume();
   }
-  
+
   @Override
   protected void onPause() {
     super.onPause();

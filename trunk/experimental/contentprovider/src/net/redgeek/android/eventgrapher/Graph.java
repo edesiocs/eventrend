@@ -27,14 +27,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Region;
-import android.view.animation.Transformation;
 
 import net.redgeek.android.eventgrapher.primitives.Datapoint;
+import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventgrapher.primitives.TimeSeries;
-import net.redgeek.android.eventgrapher.primitives.Tuple;
+import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventgrapher.primitives.Transformation;
+import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.datum.EntryEditActivity;
 import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.DateUtil.Period;
 
 import java.util.ArrayList;
@@ -63,15 +66,15 @@ public class Graph {
   private TimeSeriesCollector mTSC;
   private Transformation mTransform;
   private DateUtil mDates;
-  private int mDecimals;
 
-  private Tuple mGraphSize;
-  private Tuple mPlotSize;
-  private long mStartMS;
-  private long mEndMS;
-  private Tuple mPlotOffset;
-  private Tuple mBoundsMins;
-  private Tuple mBoundsMaxs;
+  private FloatTuple mGraphSize;
+  private FloatTuple mPlotSize;
+  private int mStartMS;
+  private int mEndMS;
+  private String mAggregation;
+  private FloatTuple mPlotOffset;
+  private FloatTuple mBoundsMins;
+  private FloatTuple mBoundsMaxs;
   private Period mSpan;
 
   private boolean mShowTrends = true;
@@ -88,23 +91,17 @@ public class Graph {
   }
 
   private void setupData(float viewWidth, float viewHeight) {
-    mGraphSize = new Tuple();
-    mPlotSize = new Tuple();
+    mGraphSize = new FloatTuple();
+    mPlotSize = new FloatTuple();
     mTransform = new Transformation();
 
     mDates = new DateUtil();
-    mPlotOffset = new Tuple(GraphView.LEFT_MARGIN, GraphView.TOP_MARGIN
+    mPlotOffset = new FloatTuple(GraphView.LEFT_MARGIN, GraphView.TOP_MARGIN
         + GraphView.PLOT_TOP_PAD);
-    mBoundsMins = new Tuple();
-    mBoundsMaxs = new Tuple();
+    mBoundsMins = new FloatTuple();
+    mBoundsMaxs = new FloatTuple();
 
     setGraphSize(viewWidth, viewHeight);
-
-    mDecimals = Preferences.getDecimalPlaces(mCtx);
-  }
-
-  public void setDecimals(int decimals) {
-    mDecimals = decimals;
   }
 
   private void setupUI() {
@@ -157,7 +154,7 @@ public class Graph {
   }
 
   public void setGraphSize(float width, float height) {
-    mGraphSize = new Tuple(width, height);
+    mGraphSize = new FloatTuple(width, height);
     mPlotSize.x = mGraphSize.x - getXMargins();
     mPlotSize.y = mGraphSize.y - getYMargins() - GraphView.PLOT_TOP_PAD
         - GraphView.PLOT_BOTTOM_PAD;
@@ -172,25 +169,29 @@ public class Graph {
     return mSpan;
   }
 
-  public long getGraphStart() {
+  public int getGraphStart() {
     return mStartMS;
   }
 
-  public long getGraphEnd() {
+  public int getGraphEnd() {
     return mEndMS;
   }
 
-  public void setGraphRange(long start, long end) {
+  public String getGraphAggregation() {
+    return mAggregation;
+  }
+
+  public void setGraphRange(int start, int end) {
     mStartMS = start;
     mEndMS = end;
     resetBounds(start, end);
   }
 
-  public Tuple getGraphSize() {
+  public FloatTuple getGraphSize() {
     return mGraphSize;
   }
 
-  public Tuple getPlotOffset() {
+  public FloatTuple getPlotOffset() {
     return mPlotOffset;
   }
 
@@ -210,9 +211,9 @@ public class Graph {
     return mTSC;
   }
 
-  public void resetBounds(long milliStart, long milliEnd) {
-    mStartMS = milliStart;
-    mEndMS = milliEnd;
+  public void resetBounds(int secStart, int secEnd) {
+    mStartMS = secStart;
+    mEndMS = secEnd;
 
     mBoundsMins.x = (float) mStartMS;
     mBoundsMaxs.x = (float) mEndMS;
@@ -230,11 +231,11 @@ public class Graph {
     }
 
     if (showGoals) {
-      float goal = ts.getDbRow().getGoal();
+      double goal = ts.mRow.mGoal;
       if (goal > mBoundsMaxs.y)
-        mBoundsMaxs.y = goal;
+        mBoundsMaxs.y = (float) goal;
       if (goal < mBoundsMins.y)
-        mBoundsMins.y = goal;
+        mBoundsMins.y = (float) goal;
     }
 
     if (mBoundsMins.x == mBoundsMaxs.x) {
@@ -401,9 +402,9 @@ public class Graph {
       y -= maxLabels * GraphView.TEXT_HEIGHT;
     }
 
-    ts.drawText(canvas, "" + Number.Round(mBoundsMaxs.y, mDecimals), x, y);
+    ts.drawText(canvas, "" + Number.Round(mBoundsMaxs.y, ts.mRow.mDecimals), x, y);
     y = mGraphSize.y - y - GraphView.TEXT_HEIGHT;
-    ts.drawText(canvas, "" + Number.Round(mBoundsMins.y, mDecimals), x, y);
+    ts.drawText(canvas, "" + Number.Round(mBoundsMins.y, ts.mRow.mDecimals), x, y);
 
     canvas.drawLine(GraphView.LEFT_MARGIN, GraphView.TOP_MARGIN
         + GraphView.PLOT_TOP_PAD,
@@ -424,16 +425,16 @@ public class Graph {
     if (d == null)
       return;
 
-    float y = d.mTrendScreen.y;
-    float label = Number.Round(d.mTrend.y, mDecimals);
+    float y = d.mScreenTrend1.y;
+    float label = Number.Round(d.mTrend, ts.mRow.mDecimals);
 
     ts.drawText(canvas, "" + label, 2, y + GraphView.TEXT_HEIGHT - 3);
-    ts.drawMarker(canvas, new Tuple(0, y), new Tuple(mGraphSize.x
+    ts.drawMarker(canvas, new FloatTuple(0, y), new FloatTuple(mGraphSize.x
         - GraphView.RIGHT_MARGIN, y));
   }
 
   public void drawGoal(Canvas canvas, TimeSeries ts, int i) {
-    float goal = ts.getDbRow().getGoal();
+    float goal = (float) ts.mRow.mGoal;
     float y = goal;
     y = mTransform.shiftYDimension(y);
     y = mTransform.scaleYDimension(y);
@@ -443,13 +444,13 @@ public class Graph {
     if (y < 0 || y > mGraphSize.y)
       return;
 
-    ts.drawText(canvas, "" + Number.Round(goal, mDecimals),
+    ts.drawText(canvas, "" + Number.Round(goal, ts.mRow.mDecimals),
         (i * GraphView.LEFT_MARGIN) + 2, y + GraphView.TEXT_HEIGHT - 3);
-    ts.drawGoal(canvas, new Tuple(0, y), new Tuple(mGraphSize.x
+    ts.drawGoal(canvas, new FloatTuple(0, y), new FloatTuple(mGraphSize.x
         - GraphView.RIGHT_MARGIN, y));
   }
 
-  public void lookupDatapoint(Tuple t) {
+  public void lookupDatapoint(FloatTuple t) {
     TimeSeries ts = null;
     Datapoint d = null;
 
@@ -478,38 +479,36 @@ public class Graph {
       case DIALOG_POINT_INFO:
         return pointInfoDialog(mSelectedDatapoint);
       case DIALOG_RANGE_INFO:
-        return rangeInfoDialog(mSelectedDatapoint.mCatId);
+        return rangeInfoDialog(mSelectedDatapoint.mTimeSeriesId);
       default:
     }
     return null;
   }
 
   private Dialog pointInfoDialog(Datapoint mSelected) {
+    boolean synthetic = false;
     Builder b = new AlertDialog.Builder(mCtx);
 
-    TimeSeries ts = mTSC.getSeriesByIdLocking(mSelected.mCatId);
-    int decimals = Preferences.getDecimalPlaces(mCtx);
+    TimeSeries ts = mTSC.getSeriesByIdLocking(mSelected.mTimeSeriesId);
 
-    EvenTrendDbAdapter dbh = ((GraphActivity) mCtx).getDbh();
-    CategoryDbTable.Row cat = dbh.fetchCategory(mSelected.mCatId);
-
-    Number.RunningStats stats = ts.getValueStats();
-
-    float value = mSelected.mValue.y;
-    float trend = Number.Round(mSelected.mTrend.y, decimals);
-    float pointDeviation = Number.Round((value - trend) / stats.mStdDev,
-        decimals);
+    float value = mSelected.mValue;
+    float trend = Number.Round(mSelected.mTrend, ts.mRow.mDecimals);
+    float pointDeviation = Number.Round((value - trend) / mSelected.mStdDev,
+        ts.mRow.mDecimals);
     String devStr = "" + pointDeviation;
     if (pointDeviation > 0)
       devStr = "+" + pointDeviation;
 
-    String info = "Category: " + cat.getCategoryName() + "\n" + "Timestamp: "
+    String info = "Category: " + ts.mRow.mTimeSeriesName + "\n" + "Timestamp: "
         + mSelected.toLabelString() + "\n" + "Value: " + value + " (" + devStr
         + " Std Dev)\n" + "Trend: " + trend + "\n";
 
-    if (mSelected.mSynthetic == false) {
-      info += "Aggregate of: " + mSelected.mNEntries + " entries\n";
-      info += "Type: " + cat.getType() + "\n";
+    if (ts.mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC) == true)
+      synthetic = true;
+
+    if (synthetic == true) {
+      info += "Aggregate of: " + mSelected.mEntries + " entries\n";
+      info += "Type: " + ts.mRow.mAggregation + "\n";
     } else {
       info += "Type: Calculated\n";
     }
@@ -517,20 +516,21 @@ public class Graph {
     b.setTitle("Entry Info");
     b.setMessage(info);
 
-    if (mSelected.mSynthetic == false) {
+    if (synthetic == false) {
       b.setNegativeButton("Edit", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int whichButton) {
-          mTSC.clearCache(); // TODO: just invalidate/update the one
-          // point
-          Intent i = new Intent(mCtx, EntryEditActivity.class);
-          i.putExtra(EntryDbTable.KEY_ROWID, mSelectedDatapoint.mEntryId);
-          ((GraphActivity) mCtx).startActivity(i);
+          mTSC.clearCache(); 
+          // TODO: just invalidate/update the one point
+          // TODO: entry editor intent
+//          Intent i = new Intent(mCtx, EntryEditActivity.class);
+//          i.putExtra(EntryDbTable.KEY_ROWID, mSelectedDatapoint.mEntryId);
+//          ((GraphActivity) mCtx).startActivity(i);
         }
       });
     }
     b.setNeutralButton("Range Info", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int whichButton) {
-        rangeInfoDialog(mSelectedDatapoint.mCatId).show();
+        rangeInfoDialog(mSelectedDatapoint.mTimeSeriesId).show();
       }
     });
     b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
@@ -544,15 +544,10 @@ public class Graph {
 
   private Dialog rangeInfoDialog(long catId) {
     Builder b = new AlertDialog.Builder(mCtx);
-    EvenTrendDbAdapter dbh = ((GraphActivity) mCtx).getDbh();
-    CategoryDbTable.Row cat = dbh.fetchCategory(catId);
     TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
 
-    int decimals = Preferences.getDecimalPlaces(mCtx);
-
-    String info = "Category: " + cat.getCategoryName() + "\n";
+    String info = "Category: " + ts.mRow.mTimeSeriesName + "\n";
     if (ts != null) {
-      Number.RunningStats valueStats = ts.getValueStats();
       Number.RunningStats timestampStats = ts.getTimestampStats();
 
       String tsAvgPeriod = DateUtil.toString(timestampStats.mMean);
@@ -563,17 +558,10 @@ public class Graph {
       Datapoint first = ts.getFirstVisible();
       Datapoint last = ts.getLastVisible();
 
-      info += "Values:\n" + "  " + DateUtil.toTimestamp(first.mMillis) + " -\n"
-          + "  " + DateUtil.toTimestamp(last.mMillis) + "\n"
+      info += "Values:\n" + "  " + DateUtil.toTimestamp(first.mTsStart) + " -\n"
+          + "  " + DateUtil.toTimestamp(last.mTsStart) + "\n"
           + "  Range:       " + ts.getVisibleValueMin() + " - "
-          + ts.getVisibleValueMax() + "\n" + "  Average:   "
-          + Number.Round(valueStats.mMean, decimals) + "\n" + "  Std Dev.:    "
-          + Number.Round(valueStats.mStdDev, decimals) + "\n"
-          + "  Variance:   " + Number.Round(valueStats.mVar, decimals) + "\n"
-          + "  Trend:       " + Number.Round(ts.getTrendStats().mMin, decimals)
-          + " - " + Number.Round(ts.getTrendStats().mMax, decimals) + "\n"
-          + "Date Goal is Reached:\n"
-
+          + ts.getVisibleValueMax() + "\n"
           + "Time Between Datapoints:\n" + "  Avgerage:  " + tsAvgPeriod + "\n"
           + "  Std Dev.:   " + tsSD + "\n" + "  Variance:   " + tsVar + "\n"
           + "Time Between Entries:\n" + "  Avg/Entry:   " + tsAvgEntry + "\n";

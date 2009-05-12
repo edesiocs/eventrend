@@ -29,8 +29,8 @@ import java.util.Comparator;
  * 
  */
 public final class Datapoint implements Comparator<Datapoint> {
-  public long  mTsStart;
-  public long  mTsEnd;
+  public int mTsStart;
+  public int mTsEnd;
   public float mValue;
   public float mTrend;
   public FloatTuple mScreenValue1;
@@ -46,7 +46,7 @@ public final class Datapoint implements Comparator<Datapoint> {
   public Datapoint() {
   }
 
-  public Datapoint(long start, long stop, float value, float trend, float stddev, 
+  public Datapoint(int start, int stop, float value, float trend, float stddev, 
       long tsId, long entryId, int entries) {
     mScreenValue1 = new FloatTuple(0.0f, 0.0f);
     mScreenValue2 = new FloatTuple(0.0f, 0.0f);
@@ -79,11 +79,11 @@ public final class Datapoint implements Comparator<Datapoint> {
   public String toLabelString() {
     Calendar cal = Calendar.getInstance();
     cal.setTimeInMillis(mTsStart);
-    long year = cal.get(Calendar.YEAR);
-    long month = cal.get(Calendar.MONTH) + 1;
-    long day = cal.get(Calendar.DAY_OF_MONTH);
-    long hour = cal.get(Calendar.HOUR_OF_DAY);
-    long minute = cal.get(Calendar.MINUTE);
+    int year = cal.get(Calendar.YEAR);
+    int month = cal.get(Calendar.MONTH) + 1;
+    int day = cal.get(Calendar.DAY_OF_MONTH);
+    int hour = cal.get(Calendar.HOUR_OF_DAY);
+    int minute = cal.get(Calendar.MINUTE);
     return String
         .format("%d/%02d/%02d %d:%02d", year, month, day, hour, minute);
   }
