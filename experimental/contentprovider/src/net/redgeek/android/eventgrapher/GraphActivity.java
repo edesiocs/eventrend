@@ -97,7 +97,7 @@ public class GraphActivity extends EvenTrendActivity {
 
   // Private data
   private TimeSeriesCollector mTSC;
-  private ArrayList<Integer> mSeriesEnabled;
+  private ArrayList<String> mSeriesEnabled;
 
   // Saved across orientation changes
   private int mStartMs;
@@ -126,10 +126,10 @@ public class GraphActivity extends EvenTrendActivity {
     mTSC = new TimeSeriesCollector(getContentResolver());
     mTSC.updateTimeSeriesMetaLocking(true);
 
-    mSeriesEnabled = getIntent().getIntegerArrayListExtra(DEFAULT_VIEW_IDS);
+    mSeriesEnabled = getIntent().getStringArrayListExtra(DEFAULT_VIEW_IDS);
     if (mSeriesEnabled != null) {
       for (int i = 0; i < mSeriesEnabled.size(); i++) {
-        Integer j = mSeriesEnabled.get(i);
+        Integer j = Integer.valueOf(mSeriesEnabled.get(i));
         mTSC.setSeriesEnabled(j.longValue(), true);
       }
     }
@@ -145,10 +145,10 @@ public class GraphActivity extends EvenTrendActivity {
       mStartMs = icicle.getInt(GRAPH_START_MS);
       mEndMs = icicle.getInt(GRAPH_END_MS);
       mAggregation = icicle.getInt(GRAPH_AGGREGATION);
-      mSeriesEnabled = icicle.getIntegerArrayList(DEFAULT_VIEW_IDS);
+      mSeriesEnabled = icicle.getStringArrayList(DEFAULT_VIEW_IDS);
       if (mSeriesEnabled != null) {
         for (int i = 0; i < mSeriesEnabled.size(); i++) {
-          Integer j = mSeriesEnabled.get(i);
+          Integer j = Integer.valueOf(mSeriesEnabled.get(i));
           mTSC.setSeriesEnabled(j.longValue(), true);
         }
       }
@@ -214,7 +214,7 @@ public class GraphActivity extends EvenTrendActivity {
         } else {
           mAggregation = (int) mAggregationSpinner.getMappingFromPosition(position);
           mTSC.setAutoAggregation(false);
-          mTSC.setAggregationMs(mAggregation);
+          mTSC.setAggregationMs(mAggregation, period);
         }
         graph();
         return;
@@ -263,7 +263,7 @@ public class GraphActivity extends EvenTrendActivity {
       mAggregationSpinner.setSelection(0);
     } else {
       mTSC.setAutoAggregation(false);
-      mTSC.setAggregationMs(mAggregation);
+      mTSC.setAggregationMs(mAggregation, "");
       // XXX ugly hack. We add one because we inserted "Auto" ahead of
       // everything else
       // TODO:  correct this:
@@ -429,10 +429,10 @@ public class GraphActivity extends EvenTrendActivity {
     for (int j = 0; j < series.size(); j++) {
       TimeSeries ts = series.get(j);
       if (ts != null)
-        mSeriesEnabled.add(new Integer((int) ts.mRow.mId));
+        mSeriesEnabled.add(new String(""+ts.mRow.mId));
     }
 
-    outState.putIntegerArrayList(DEFAULT_VIEW_IDS, mSeriesEnabled);
+    outState.putStringArrayList(DEFAULT_VIEW_IDS, mSeriesEnabled);
     outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
     outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());
     outState.putLong(GRAPH_AGGREGATION, mAggregation);

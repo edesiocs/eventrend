@@ -187,6 +187,10 @@ public class Graph {
     resetBounds(start, end);
   }
 
+  public void setGraphAggregation(String aggregation) {
+    mAggregation = aggregation;
+  }
+
   public FloatTuple getGraphSize() {
     return mGraphSize;
   }
