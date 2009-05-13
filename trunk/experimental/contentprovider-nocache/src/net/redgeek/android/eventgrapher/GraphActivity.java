@@ -37,15 +37,13 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 import android.widget.ZoomControls;
 
-import net.redgeek.android.eventcalendar.CalendarActivity;
 import net.redgeek.android.eventgrapher.plugins.LinearMatrixCorrelator;
 import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
@@ -55,8 +53,8 @@ import java.util.Calendar;
 
 public class GraphActivity extends EvenTrendActivity {
   public static final String DEFAULT_VIEW_IDS = "graphViewIds";
-  public static final String GRAPH_START_MS = "graphEndTs";
-  public static final String GRAPH_END_MS = "graphStartTs";
+  public static final String GRAPH_START_TS = "graphEndTs";
+  public static final String GRAPH_END_TS = "graphStartTs";
   public static final String GRAPH_AGGREGATION = "graphAggregation";
 
   // Menu items
@@ -100,8 +98,8 @@ public class GraphActivity extends EvenTrendActivity {
   private ArrayList<String> mSeriesEnabled;
 
   // Saved across orientation changes
-  private int mStartMs;
-  private int mEndMs;
+  private int mStartTs;
+  private int mEndTs;
   // TODO: change this to a constant
   private int mAggregation = -1;
 
@@ -124,7 +122,7 @@ public class GraphActivity extends EvenTrendActivity {
 
   private void setupData(Bundle icicle) {
     mTSC = new TimeSeriesCollector(getContentResolver());
-    mTSC.updateTimeSeriesMetaLocking(true);
+    mTSC.fetchTimeSeries();
 
     mSeriesEnabled = getIntent().getStringArrayListExtra(DEFAULT_VIEW_IDS);
     if (mSeriesEnabled != null) {
@@ -133,17 +131,17 @@ public class GraphActivity extends EvenTrendActivity {
         mTSC.setSeriesEnabled(j.longValue(), true);
       }
     }
-
+    
     Calendar cal = Calendar.getInstance();
-    mStartMs = getIntent().getIntExtra(GRAPH_START_MS,
-        (int) ((cal.getTimeInMillis() - DateUtil.DAY_MS * 7) / DateUtil.SECOND_MS));
-    mEndMs = getIntent().getIntExtra(GRAPH_END_MS, (int) (cal.getTimeInMillis() / DateUtil.SECOND_MS));
-    // TODO: convert to constant
-    mAggregation = getIntent().getIntExtra(GRAPH_START_MS, -1);
+    int defaultEndTs = (int) (cal.getTimeInMillis() / DateMap.SECOND_MS);
+    int defaultStartTs = (int) (defaultEndTs - ((DateMap.DAY_SECS) * 7));
+
+    mStartTs = getIntent().getIntExtra(GRAPH_START_TS, defaultStartTs);
+    mEndTs = getIntent().getIntExtra(GRAPH_END_TS, defaultEndTs);
 
     if (icicle != null) {
-      mStartMs = icicle.getInt(GRAPH_START_MS);
-      mEndMs = icicle.getInt(GRAPH_END_MS);
+      mStartTs = icicle.getInt(GRAPH_START_TS);
+      mEndTs = icicle.getInt(GRAPH_END_TS);
       mAggregation = icicle.getInt(GRAPH_AGGREGATION);
       mSeriesEnabled = icicle.getStringArrayList(DEFAULT_VIEW_IDS);
       if (mSeriesEnabled != null) {
@@ -177,8 +175,6 @@ public class GraphActivity extends EvenTrendActivity {
     mAggregationSpinnerLayout.addView(mAggregationSpinner,
         new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
             LayoutParams.WRAP_CONTENT));
-    // TODO: convert to constant
-    mAggregationSpinner.addSpinnerItem(AUTO_AGGREGATION, new Long(-1));
     for (int i = 0; i < TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
       mAggregationSpinner.addSpinnerItem(TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_NAMES[i],
           new Long(TimeSeriesData.TimeSeries.AGGREGATION_PERIOD_TIMES[i]));
@@ -207,15 +203,8 @@ public class GraphActivity extends EvenTrendActivity {
     mAggregationSpinnerListener = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
-        String period = ((TextView) v).getText().toString();
-        if (period.equals(AUTO_AGGREGATION)) {
-          mAggregation = -1;  // TODO: convert to constant
-          mTSC.setAutoAggregation(true);
-        } else {
-          mAggregation = (int) mAggregationSpinner.getMappingFromPosition(position);
-          mTSC.setAutoAggregation(false);
-          mTSC.setAggregationMs(mAggregation, period);
-        }
+        String period = ((TextView) v).getText().toString().toLowerCase();
+        mTSC.setAggregationPeriod(period);
         graph();
         return;
       }
@@ -257,19 +246,10 @@ public class GraphActivity extends EvenTrendActivity {
   }
 
   private void populateFields() {
-    mGraphView.getGraph().setGraphRange(mStartMs, mEndMs);
-    if (mAggregation == -1) {  // TODO: convert to constant
-      mTSC.setAutoAggregation(true);
-      mAggregationSpinner.setSelection(0);
-    } else {
-      mTSC.setAutoAggregation(false);
-      mTSC.setAggregationMs(mAggregation, "");
-      // XXX ugly hack. We add one because we inserted "Auto" ahead of
-      // everything else
-      // TODO:  correct this:
-//      mAggregationSpinner.setSelection(CategoryDbTable
-//          .mapMsToIndex(mAggregation) + 1);
-    }
+    mGraphView.getGraph().setGraphRange(mStartTs, mEndTs);
+//    mTSC.setAggregationPeriod();
+//  mAggregationSpinner.setSelection(CategoryDbTable
+//  .mapMsToIndex(mAggregation) + 1);
   }
 
   @Override
@@ -381,7 +361,7 @@ public class GraphActivity extends EvenTrendActivity {
 
     mGFLA = new GraphFilterListAdapter(this, mTSC);
     for (int i = 0; i < mTSC.numSeries(); i++) {
-      TimeSeries ts = mTSC.getSeries(i);
+      TimeSeries ts = mTSC.getSeriesByIndex(i);
       long id = ts.mRow.mId;
       String name = ts.mRow.mTimeSeriesName;
       String color = ts.mRow.mColor;
@@ -433,8 +413,8 @@ public class GraphActivity extends EvenTrendActivity {
     }
 
     outState.putStringArrayList(DEFAULT_VIEW_IDS, mSeriesEnabled);
-    outState.putLong(GRAPH_START_MS, mGraphView.getGraph().getGraphStart());
-    outState.putLong(GRAPH_END_MS, mGraphView.getGraph().getGraphEnd());
+    outState.putLong(GRAPH_START_TS, mGraphView.getGraph().getGraphStart());
+    outState.putLong(GRAPH_END_TS, mGraphView.getGraph().getGraphEnd());
     outState.putLong(GRAPH_AGGREGATION, mAggregation);
     super.onSaveInstanceState(outState);
   }

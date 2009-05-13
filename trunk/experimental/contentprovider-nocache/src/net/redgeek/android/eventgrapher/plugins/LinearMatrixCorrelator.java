@@ -40,25 +40,29 @@ public class LinearMatrixCorrelator implements TimeSeriesCorrelator {
     Number.LinearMatrixCorrelation lcm;
     List<Datapoint> datapoints;
 
-    lcm = new Number.LinearMatrixCorrelation(nSeries);
-    for (int i = 0; i < nSeries; i++) {
-      ts1 = timeseries.get(i);
-      datapoints = ts1.getVisible();
-
-      for (int j = 0; j < datapoints.size(); j++) {
-        d = datapoints.get(j);
-        values[i] = new Float(d.mValue);
-
-        for (int k = i + 1; k < nSeries; k++) {
-          ts2 = timeseries.get(k);
-          // TODO:  implement:
-          // values[k] = ts2.interpolateScreenCoord(d.mTsStart);
-        }
-
-        lcm.update(values);
-      }
-    }
-
-    return lcm.getCorrelations();
+    // TODO:  implement:
+//
+//    lcm = new Number.LinearMatrixCorrelation(nSeries);
+//    for (int i = 0; i < nSeries; i++) {
+//      ts1 = timeseries.get(i);
+//      datapoints = ts1.getVisible();
+//
+//      for (int j = 0; j < datapoints.size(); j++) {
+//        d = datapoints.get(j);
+//        values[i] = new Float(d.mValue);
+//
+//        for (int k = i + 1; k < nSeries; k++) {
+//          ts2 = timeseries.get(k);
+//          // TODO:  implement:
+//          // values[k] = ts2.interpolateScreenCoord(d.mTsStart);
+//        }
+//
+//        lcm.update(values);
+//      }
+//    }
+//
+//    return lcm.getCorrelations();
+    
+    return null;
   }
 }

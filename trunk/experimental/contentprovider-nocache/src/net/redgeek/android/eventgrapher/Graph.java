@@ -21,24 +21,25 @@ import android.app.Dialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Region;
+import android.text.TextUtils;
 
 import net.redgeek.android.eventgrapher.primitives.Datapoint;
 import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
 import net.redgeek.android.eventgrapher.primitives.Transformation;
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.DateMapCache.DateItem;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrend.Preferences;
-import net.redgeek.android.eventrend.datum.EntryEditActivity;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.Number;
-import net.redgeek.android.eventrend.util.DateUtil.Period;
 
 import java.util.ArrayList;
 
@@ -65,27 +66,27 @@ public class Graph {
   private Context mCtx;
   private TimeSeriesCollector mTSC;
   private Transformation mTransform;
-  private DateUtil mDates;
+  private DateMapCache mDateMap;
 
   private FloatTuple mGraphSize;
   private FloatTuple mPlotSize;
-  private int mStartMS;
-  private int mEndMS;
-  private String mAggregation;
+  private int mStartTs;
+  private int mEndTs;
   private FloatTuple mPlotOffset;
   private FloatTuple mBoundsMins;
   private FloatTuple mBoundsMaxs;
-  private Period mSpan;
+  private int mSpan;
 
   private boolean mShowTrends = true;
   private boolean mShowGoals = true;
   private boolean mShowMarkers = false;
 
-  public Graph(Context context, TimeSeriesCollector tsc, float viewWidth,
-      float viewHeight) {
-    mTSC = tsc;
+  public Graph(Context context, TimeSeriesCollector tsc, DateMapCache datecache,
+      float viewWidth, float viewHeight) {
     mCtx = context;
-
+    mTSC = tsc;
+    mDateMap = datecache;
+    
     setupData(viewWidth, viewHeight);
     setupUI();
   }
@@ -95,7 +96,6 @@ public class Graph {
     mPlotSize = new FloatTuple();
     mTransform = new Transformation();
 
-    mDates = new DateUtil();
     mPlotOffset = new FloatTuple(GraphView.LEFT_MARGIN, GraphView.TOP_MARGIN
         + GraphView.PLOT_TOP_PAD);
     mBoundsMins = new FloatTuple();
@@ -165,30 +165,22 @@ public class Graph {
     mTransform.setPlotSize(mPlotSize);
   }
 
-  public Period getSpan() {
+  public int getSpan() {
     return mSpan;
   }
 
   public int getGraphStart() {
-    return mStartMS;
+    return mStartTs;
   }
 
   public int getGraphEnd() {
-    return mEndMS;
-  }
-
-  public String getGraphAggregation() {
-    return mAggregation;
+    return mEndTs;
   }
 
   public void setGraphRange(int start, int end) {
-    mStartMS = start;
-    mEndMS = end;
+    mStartTs = start;
+    mEndTs = end;
     resetBounds(start, end);
-  }
-
-  public void setGraphAggregation(String aggregation) {
-    mAggregation = aggregation;
   }
 
   public FloatTuple getGraphSize() {
@@ -216,18 +208,18 @@ public class Graph {
   }
 
   public void resetBounds(int secStart, int secEnd) {
-    mStartMS = secStart;
-    mEndMS = secEnd;
+    mStartTs = secStart;
+    mEndTs = secEnd;
 
-    mBoundsMins.x = (float) mStartMS;
-    mBoundsMaxs.x = (float) mEndMS;
+    mBoundsMins.x = mStartTs;
+    mBoundsMaxs.x = mEndTs;
     mBoundsMins.y = 0;
     mBoundsMaxs.y = mPlotSize.y;
   }
 
   public void setupRange(TimeSeries ts, boolean showGoals) {
-    mBoundsMins.y = ts.getVisibleValueMin();
-    mBoundsMaxs.y = ts.getVisibleValueMax();
+    mBoundsMins.y = (float) ts.getVisibleValueMin();
+    mBoundsMaxs.y = (float) ts.getVisibleValueMax();
 
     if (mBoundsMins.y >= mBoundsMaxs.y) {
       mBoundsMins.y = 0;
@@ -261,9 +253,6 @@ public class Graph {
 
     if (mGraphSize.x <= 0 || mGraphSize.y <= 0 || mPlotSize.x <= 0
         || mPlotSize.y <= 0)
-      return;
-
-    if (mTSC.lock() == false)
       return;
 
     TimeSeries ts = null;
@@ -307,8 +296,6 @@ public class Graph {
       offset++;
     }
 
-    mTSC.unlock();
-
     return;
   }
 
@@ -330,36 +317,46 @@ public class Graph {
   }
 
   private void drawXLabels(Canvas canvas) {
+    String[] label = new String[3];
+    DateItem prevDate, thisDate;
     float tick = 0.0f;
     float tickStep = 0.0f;
     float tickExtra = 0.0f;
     int tickMultiplier = 1;
-    long msToNextPeriod = 0;
+    int lastTimestamp, thisTimestamp;
+    int secsToNextPeriod = 0;
+    int period;
     Paint p;
+    
+    prevDate = new DateItem();
+    thisDate = new DateItem();
 
     mTransform.setVirtualSize(mBoundsMins, mBoundsMaxs);
 
-    mDates.setSpan(mStartMS, mEndMS);
-    mDates.setBaseTime(mStartMS);
-    mSpan = mDates.getSpan();
-    msToNextPeriod = mDates.msToNextPeriod(mSpan);
-
-    tick = (float) (mStartMS + msToNextPeriod);
-    mDates.advanceInMs(msToNextPeriod);
-    tickStep = mDates.msInPeriod(mSpan);
-
+    period = mDateMap.calculateDisplayPeriod(mStartTs, mEndTs);
+    secsToNextPeriod = mDateMap.secondsToNextPeriod(mStartTs, period);
+    lastTimestamp = 0;
+    thisTimestamp = mStartTs + secsToNextPeriod;
+      
+    tick = thisTimestamp;
+    tickStep = period;
+    
     tick = mTransform.shiftXDimension(tick);
     tick = mTransform.scaleXDimension(tick);
     tickStep = mTransform.scaleXDimension(tickStep);
     if (tickStep < GraphView.TICK_MIN_DISTANCE)
       tickMultiplier = (int) (GraphView.TICK_MIN_DISTANCE / tickStep) + 1;
 
+    if (mDateMap.getDateItem(thisTimestamp, thisDate) == false)
+      return;
+
     for (int i = 0; tick <= mPlotSize.x; i++) {
-      String[] label = mDates.getLabel(mSpan);
+      prevDate.set(thisDate);
+      getDisplayLabels(thisTimestamp, period, prevDate, thisDate, label);
 
       tickExtra = 0.0f;
       p = mLabelPrimaryPaint;
-      if (mDates.isUnitChanged() == true) {
+      if (TextUtils.isEmpty(label[2]) == false) {
         tickExtra = GraphView.TICK_LENGTH;
         p = mLabelHighlightPaint;
 
@@ -379,16 +376,95 @@ public class Graph {
         canvas.drawText(label[0], tick + GraphView.LEFT_MARGIN + 2,
             mGraphSize.y - GraphView.BOTTOM_MARGIN + GraphView.TEXT_HEIGHT, p);
 
-        if (label[1].equals("") == false) {
+        if (TextUtils.isEmpty(label[1]) == false) {
           canvas.drawText(label[1], tick + GraphView.LEFT_MARGIN + 2,
               mGraphSize.y - GraphView.BOTTOM_MARGIN
                   + (GraphView.TEXT_HEIGHT * 2), p);
         }
       }
 
-      mDates.advance(mSpan, 1);
+      lastTimestamp = thisTimestamp;
+      thisTimestamp += period;
       tick += tickStep;
     }
+    
+    return;
+  }
+
+  public void getDisplayLabels(int seconds, int period,
+      DateItem prevDate, DateItem thisDate, String[] strings) {
+    if (strings == null || strings.length != 3)
+      return;
+    
+    if (mDateMap.getDateItem(seconds, thisDate) == false)
+      return;
+
+    strings[0] = "";
+    strings[1] = "";
+    strings[2] = "";
+    switch (period) {
+      case DateMap.YEAR_SECS:
+        strings[0] = "" + thisDate.mYear;
+        strings[1] = "";
+        break;
+      case DateMap.QUARTER_SECS:
+        if (thisDate.mMonth >= 9)
+          strings[0] = DateMap.QUARTERS[3];
+        else if (thisDate.mMonth >= 6)
+          strings[0] = DateMap.QUARTERS[2];
+        else if (thisDate.mMonth >= 3)
+          strings[0] = DateMap.QUARTERS[1];
+        else
+          strings[0] = DateMap.QUARTERS[0];
+        strings[1] = "";
+        if (thisDate.mYear != prevDate.mYear) {
+          strings[1] = "" + thisDate.mYear;
+          strings[2] = "1";
+        }
+        break;
+      case DateMap.MONTH_SECS:
+        strings[0] = DateMap.MONTHS[thisDate.mMonth];
+        if (thisDate.mYear != prevDate.mYear) {
+          strings[1] = "" + thisDate.mYear;
+          strings[2] = "1";
+        } else {
+          strings[1] = "";
+        }
+        break;
+      case DateMap.WEEK_SECS:
+      case DateMap.DAY_SECS:
+        strings[0] = "" + thisDate.mDay;
+        if (thisDate.mMonth != prevDate.mMonth) {
+          strings[1] = DateMap.MONTHS[thisDate.mMonth];
+          strings[2] = "1";
+        } else {
+          strings[1] = DateMap.DAYS[thisDate.mDOW - 1];
+          if (thisDate.mDOW == 1)
+            strings[2] = "1";
+        }
+        break;
+      default:
+        strings[0] = (thisDate.mMinute < 10 ? "0" + thisDate.mMinute : "" + thisDate.mMinute);
+        strings[1] = "";
+
+        if (thisDate.mHour != prevDate.mHour) {
+          if (thisDate.mHour == 0) {
+            strings[0] = (thisDate.mMonth + 1) + "/" + thisDate.mDay;
+            strings[1] = DateMap.DAYS[thisDate.mDOW - 1];
+          } else if (thisDate.mHour == 12) {
+            strings[0] = "12";
+            strings[1] = "noon";
+          } else if (thisDate.mHour > 11) {
+            strings[0] = (thisDate.mHour - 12) + "p";
+          } else {
+            strings[0] = thisDate.mHour + "a";
+          }
+          strings[2] = "1";
+        }
+        break;
+    }
+
+    return;
   }
 
   private void drawYLabels(Canvas canvas, TimeSeries ts, int seriesIndex) {
@@ -421,20 +497,12 @@ public class Graph {
   }
 
   private void drawTrendMarker(Canvas canvas, TimeSeries ts) {
-    Datapoint d = ts.getLastVisible();
-    if (d == null)
-      d = ts.getFirstPostVisible();
-    if (d == null)
-      d = ts.getLastPreVisible();
-    if (d == null)
-      return;
-
-    float y = d.mScreenTrend1.y;
-    float label = Number.Round(d.mTrend, ts.mRow.mDecimals);
-
-    ts.drawText(canvas, "" + label, 2, y + GraphView.TEXT_HEIGHT - 3);
-    ts.drawMarker(canvas, new FloatTuple(0, y), new FloatTuple(mGraphSize.x
-        - GraphView.RIGHT_MARGIN, y));
+//    float y = d.mScreenTrend1.y;
+//    float label = Number.Round(d.mTrend, ts.mRow.mDecimals);
+//
+//    ts.drawText(canvas, "" + label, 2, y + GraphView.TEXT_HEIGHT - 3);
+//    ts.drawMarker(canvas, new FloatTuple(0, y), new FloatTuple(mGraphSize.x
+//        - GraphView.RIGHT_MARGIN, y));
   }
 
   public void drawGoal(Canvas canvas, TimeSeries ts, int i) {
@@ -458,22 +526,22 @@ public class Graph {
     TimeSeries ts = null;
     Datapoint d = null;
 
-    for (int i = 0; i < mTSC.numSeries(); i++) {
-      ts = (TimeSeries) mTSC.getSeries(i);
-      d = ts.lookupVisibleDatapoint(t);
-      if (d != null)
-        break;
-    }
-
-    mSelectedDatapoint = d;
-    if (mSelectedDatapoint != null) {
-      try {
-        mSelectedColor = Color.parseColor(ts.getColor());
-      } catch (IllegalArgumentException e) {
-        mSelectedColor = Color.BLACK;
-      }
-      pointInfoDialog(mSelectedDatapoint).show();
-    }
+//    for (int i = 0; i < mTSC.numSeries(); i++) {
+//      ts = (TimeSeries) mTSC.getSeries(i);
+//      d = ts.lookupVisibleDatapoint(t);
+//      if (d != null)
+//        break;
+//    }
+//
+//    mSelectedDatapoint = d;
+//    if (mSelectedDatapoint != null) {
+//      try {
+//        mSelectedColor = Color.parseColor(ts.getColor());
+//      } catch (IllegalArgumentException e) {
+//        mSelectedColor = Color.BLACK;
+//      }
+//      pointInfoDialog(mSelectedDatapoint).show();
+//    }
 
     return;
   }
@@ -493,7 +561,7 @@ public class Graph {
     boolean synthetic = false;
     Builder b = new AlertDialog.Builder(mCtx);
 
-    TimeSeries ts = mTSC.getSeriesByIdLocking(mSelected.mTimeSeriesId);
+    TimeSeries ts = mTSC.getSeriesById(mSelected.mTimeSeriesId);
 
     float value = mSelected.mValue;
     float trend = Number.Round(mSelected.mTrend, ts.mRow.mDecimals);
@@ -523,7 +591,6 @@ public class Graph {
     if (synthetic == false) {
       b.setNegativeButton("Edit", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int whichButton) {
-          mTSC.clearCache(); 
           // TODO: just invalidate/update the one point
           // TODO: entry editor intent
 //          Intent i = new Intent(mCtx, EntryEditActivity.class);
@@ -548,7 +615,7 @@ public class Graph {
 
   private Dialog rangeInfoDialog(long catId) {
     Builder b = new AlertDialog.Builder(mCtx);
-    TimeSeries ts = mTSC.getSeriesByIdLocking(catId);
+    TimeSeries ts = mTSC.getSeriesById(catId);
 
     String info = "Category: " + ts.mRow.mTimeSeriesName + "\n";
     if (ts != null) {
@@ -556,19 +623,18 @@ public class Graph {
 
       String tsAvgPeriod = DateUtil.toString(timestampStats.mMean);
       String tsAvgEntry = DateUtil.toString(timestampStats.mEntryMean);
-      String tsVar = DateUtil.toStringSquared(timestampStats.mVar);
       String tsSD = DateUtil.toString(timestampStats.mStdDev);
 
-      Datapoint first = ts.getFirstVisible();
-      Datapoint last = ts.getLastVisible();
-
-      info += "Values:\n" + "  " + DateUtil.toTimestamp(first.mTsStart) + " -\n"
-          + "  " + DateUtil.toTimestamp(last.mTsStart) + "\n"
-          + "  Range:       " + ts.getVisibleValueMin() + " - "
-          + ts.getVisibleValueMax() + "\n"
-          + "Time Between Datapoints:\n" + "  Avgerage:  " + tsAvgPeriod + "\n"
-          + "  Std Dev.:   " + tsSD + "\n" + "  Variance:   " + tsVar + "\n"
-          + "Time Between Entries:\n" + "  Avg/Entry:   " + tsAvgEntry + "\n";
+//      Datapoint first = ts.getFirstVisible();
+//      Datapoint last = ts.getLastVisible();
+//
+//      info += "Values:\n" + "  " + DateUtil.toTimestamp(first.mTsStart) + " -\n"
+//          + "  " + DateUtil.toTimestamp(last.mTsStart) + "\n"
+//          + "  Range:       " + ts.getVisibleValueMin() + " - "
+//          + ts.getVisibleValueMax() + "\n"
+//          + "Time Between Datapoints:\n" + "  Avgerage:  " + tsAvgPeriod + "\n"
+//          + "  Std Dev.:   " + tsSD + "\n" + "  Variance:   " + tsVar + "\n"
+//          + "Time Between Entries:\n" + "  Avg/Entry:   " + tsAvgEntry + "\n";
     }
 
     b.setTitle("Visible Range Info");

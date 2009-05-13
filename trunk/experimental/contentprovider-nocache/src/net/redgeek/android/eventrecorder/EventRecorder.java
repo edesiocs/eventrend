@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.os.IBinder;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
 import net.redgeek.android.eventrecorder.interpolators.LinearInterpolator;
@@ -72,7 +73,7 @@ public class EventRecorder extends Service {
             || action.equals(Intent.ACTION_TIME_TICK)
             || action.equals(Intent.ACTION_TIME_CHANGED)) {
           boolean hourChanged = true;
-          mCal.setTimeInMillis(System.currentTimeMillis() / DateMapCache.SECOND_MS);
+          mCal.setTimeInMillis(System.currentTimeMillis() / DateMap.SECOND_MS);
 
           // if it's just a time tick (minute), don't try to update unless the
           // hour has changed
@@ -98,7 +99,7 @@ public class EventRecorder extends Service {
     filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
     this.registerReceiver(mIntentReceiver, filter, null, mHandler);
 
-    mCal.setTimeInMillis(System.currentTimeMillis() / DateMapCache.SECOND_MS);    
+    mCal.setTimeInMillis(System.currentTimeMillis() / DateMap.SECOND_MS);    
     mDateMap = new DateMapCache();
 
     mLastHr = mCal.get(Calendar.HOUR_OF_DAY);
@@ -175,7 +176,7 @@ public class EventRecorder extends Service {
         return -2;
       }
 
-      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
+      long now = System.currentTimeMillis() / DateMap.SECOND_MS;
       values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
       values.put(Datapoint.TS_START, now);
       values.put(Datapoint.TS_END, 0);
@@ -264,7 +265,7 @@ public class EventRecorder extends Service {
       long tsStart = Datapoint.getTsStart(c);
       c.close();
 
-      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
+      long now = System.currentTimeMillis() / DateMap.SECOND_MS;
       values.put(Datapoint.TS_END, now);
       values.put(Datapoint.VALUE, now - tsStart);
       values.put(Datapoint.ENTRIES, 1);
@@ -345,7 +346,7 @@ public class EventRecorder extends Service {
     // Returns the _id of the datapoint, < 0 for error.
     // See TimeSeriesProvider
     public long recordEventNow(long timeSeriesId, double value) {
-      long now = System.currentTimeMillis() / DateMapCache.SECOND_MS;
+      long now = System.currentTimeMillis() / DateMap.SECOND_MS;
       return recordEvent(timeSeriesId, now, value);
     }
   };
@@ -412,7 +413,7 @@ public class EventRecorder extends Service {
       return;
     }
 
-    int now = (int) (System.currentTimeMillis() / DateMapCache.SECOND_MS);
+    int now = (int) (System.currentTimeMillis() / DateMap.SECOND_MS);
     
     int count = tsCur.getCount();
     tsCur.moveToFirst();

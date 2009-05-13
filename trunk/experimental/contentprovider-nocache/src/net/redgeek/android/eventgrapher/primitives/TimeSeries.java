@@ -35,34 +35,14 @@ import java.util.List;
  * 
  */
 public final class TimeSeries {
-  // All of the following are ordered via x-values (time), and are references
-  // to
-  // datapoints in the DataCache. These are just the datapoints necessary
-  // for graphing the time series on screen, not an exhaustive list. Multiple
-  // datapoints are required for VisiblePre (if available), as they are needed
-  // to calculate the trend line accurately and continue the graph line to the
-  // left edge of the screen, and at least one datapoint is needed
-  // in VisiblePost (if available) in order to connect the last on-screen
-  // point
-  // to something offscreen, in order to continue drawing the line to the edge
-  // of
-  // the graph.
-  private ArrayList<Datapoint> mDatapoints; // a concatenation of the
-  // following:
-  private int mVisiblePreFirstIdx;
-  private int mVisiblePreLastIdx;
-  private int mVisibleFirstIdx;
-  private int mVisibleLastIdx;
-  private int mVisiblePostFirstIdx;
-  private int mVisiblePostLastIdx;
+  private ArrayList<Datapoint> mDatapoints;
 
-  // Various stats used for bounding
-  private float mVisibleMinY;
-  private float mVisibleMaxY;
-  private long mVisibleMinX;
-  private long mVisibleMaxX;
+  private double mVisibleMinY;
+  private double mVisibleMaxY;
+  private int   mVisibleMinX;
+  private int   mVisibleMaxX;
 
-  private long mTimestampLast;
+  private int mTimestampLast;
   private int mNumEntries = 0;
 
   private boolean mEnabled;
@@ -70,7 +50,6 @@ public final class TimeSeries {
 
   // Drawing-related
   private float mTouchRadius = GraphView.POINT_TOUCH_RADIUS;
-  private String mColorStr;
   private TimeSeriesPainter mPainter;
 
   // Various stats
@@ -79,29 +58,17 @@ public final class TimeSeries {
   // Interpolator
   private TimeSeriesInterpolator mInterpolator;
 
-  public TimeSeries(CategoryRow row, int history, double smoothing) {
-    initialize(row, history, smoothing, null);
+  public TimeSeries(CategoryRow row) {
+    initialize(row);
   }
 
-  public TimeSeries(CategoryRow row, int history, double smoothing,
-      TimeSeriesPainter painter) {
-    initialize(row, history, smoothing, painter);
-  }
-
-  private void initialize(CategoryRow row, int history,
-      double smoothing, TimeSeriesPainter painter) {
+  private void initialize(CategoryRow row) {
     mRow = row;
 
-    mPainter = painter;
-    if (painter == null)
-      mPainter = new TimeSeriesPainter.Default();
-
-    mDatapoints = new ArrayList<Datapoint>();
+    mPainter = new TimeSeriesPainter.Default();
     mEnabled = false;
     setColor(row.mColor);
-    // set thusly so we can apply min()/max() operators indiscriminately
     resetMinMax();
-    resetIndices();
 
     mTimestampStats = new Number.RunningStats();
   }
@@ -112,7 +79,6 @@ public final class TimeSeries {
   }
 
   public void clearSeries() {
-    resetIndices();
     mDatapoints.clear();
   }
 
@@ -128,6 +94,14 @@ public final class TimeSeries {
     return mInterpolator;
   }
 
+  public void setTimeSeriesPainter(TimeSeriesPainter p) {
+    mPainter = p;
+  }
+
+  public TimeSeriesPainter getTimeSeriesPainter() {
+    return mPainter;
+  }
+
   public void setEnabled(boolean b) {
     mEnabled = b;
   }
@@ -140,52 +114,24 @@ public final class TimeSeries {
     return mNumEntries;
   }
 
-  public float getVisibleValueMin() {
+  public double getVisibleValueMin() {
     return mVisibleMinY;
   }
 
-  public float getVisibleValueMax() {
+  public double getVisibleValueMax() {
     return mVisibleMaxY;
   }
 
-  public long getVisibleTimestampMin() {
+  public int getVisibleTimestampMin() {
     return mVisibleMinX;
   }
 
-  public long getVisibleTimestampMax() {
+  public int getVisibleTimestampMax() {
     return mVisibleMaxX;
   }
 
   public Number.RunningStats getTimestampStats() {
     return mTimestampStats;
-  }
-
-  public int getVisiblePreFirstIdx() {
-    return mVisiblePreFirstIdx;
-  }
-
-  public int getVisiblePreLastIdx() {
-    return mVisiblePreLastIdx;
-  }
-
-  public int getVisibleFirstIdx() {
-    return mVisibleFirstIdx;
-  }
-
-  public int getVisibleLastIdx() {
-    return mVisibleLastIdx;
-  }
-
-  public int getVisiblePostFirstIdx() {
-    return mVisiblePostFirstIdx;
-  }
-
-  public int getVisiblePostLastIdx() {
-    return mVisiblePostLastIdx;
-  }
-
-  public String getColor() {
-    return mColorStr;
   }
 
   public void recalcStatsAndBounds(double smoothing, int history) {
@@ -203,111 +149,64 @@ public final class TimeSeries {
 
     for (int i = 0; i < mDatapoints.size(); i++) {
       Datapoint d = mDatapoints.get(i);
-      if (i >= mVisibleFirstIdx && i <= mVisibleLastIdx) {
-        mVisibleMinY = Math.min(mVisibleMinY, d.mValue);
-        mVisibleMaxY = Math.max(mVisibleMaxY, d.mValue);
-        mVisibleMinX = Math.min(mVisibleMinX, d.mTsStart);
-        mVisibleMaxX = Math.max(mVisibleMaxX, d.mTsStart);
+      mVisibleMinY = Math.min(mVisibleMinY, d.mValue);
+      mVisibleMaxY = Math.max(mVisibleMaxY, d.mValue);
+      mVisibleMinX = Math.min(mVisibleMinX, d.mTsStart);
+      mVisibleMaxX = Math.max(mVisibleMaxX, d.mTsStart);
 
-        // we run stats on the y-values themselves,
-        // but use the delta of the timestamps for x-stats:
-        if (i > 0) {
-          long delta = (d.mTsStart - mTimestampLast);
-          mTimestampStats.update(delta, d.mEntries + firstNEntries);
-        }
-        mTimestampLast = (d.mTsStart);
-        firstNEntries = 0;
-        if (i == 0)
-          firstNEntries = d.mEntries;
-
-        // d.mTrend will be used for plotting the trend line,
-        // so we don't want to change the x value, since that
-        // should still be an absolute time
-        d.mScreenTrend1.set(d.mScreenValue1);
-        d.mScreenTrend2.set(d.mScreenValue2);
-
-        mNumEntries += d.mEntries;
-      } else {
-        d.mScreenTrend1.set(d.mScreenValue1);
-        d.mScreenTrend2.set(d.mScreenValue2);
+      // we run stats on the y-values themselves,
+      // but use the delta of the timestamps for x-stats:
+      if (i > 0) {
+        long delta = (d.mTsStart - mTimestampLast);
+        mTimestampStats.update(delta, d.mEntries + firstNEntries);
       }
+      mTimestampLast = (d.mTsStart);
+      firstNEntries = 0;
+      if (i == 0)
+        firstNEntries = d.mEntries;
+
+      // d.mTrend will be used for plotting the trend line,
+      // so we don't want to change the x value, since that
+      // should still be an absolute time
+      d.mScreenTrend1.set(d.mScreenValue1);
+      d.mScreenTrend2.set(d.mScreenValue2);
+
+      mNumEntries += d.mEntries;
     }
-    interpolateBoundsToOffscreen();
   }
 
-  public void setDatapoints(ArrayList<Datapoint> pre,
-      ArrayList<Datapoint> range, ArrayList<Datapoint> post, boolean recalc) {
-
+  public void setDatapoints(ArrayList<Datapoint> datapoints) {
     clearSeries();
-    if (pre != null && pre.size() > 0) {
-      mVisiblePreFirstIdx = 0;
-      mVisiblePreLastIdx = pre.size() - 1;
-      mDatapoints.addAll(pre);
-    }
-    if (range != null && range.size() > 0) {
-      mVisibleFirstIdx = mDatapoints.size();
-      mVisibleLastIdx = mVisibleFirstIdx + range.size() - 1;
-      mDatapoints.addAll(range);
-    }
-    if (post != null && post.size() > 0) {
-      mVisiblePostFirstIdx = mDatapoints.size();
-      mVisiblePostLastIdx = mVisiblePostFirstIdx + post.size() - 1;
-      mDatapoints.addAll(post);
-    }
-    if (recalc == true)
-      calcStatsAndBounds();
+    mDatapoints = datapoints;
+    calcStatsAndBounds();
     return;
   }
 
-  public Datapoint getLastPreVisible() {
-    if (mVisiblePreLastIdx >= 0 && mVisiblePreLastIdx < mDatapoints.size())
-      return mDatapoints.get(mVisiblePreLastIdx);
-    return null;
-  }
-
-  public Datapoint getFirstVisible() {
-    if (mVisibleFirstIdx >= 0 && mVisibleFirstIdx < mDatapoints.size())
-      return mDatapoints.get(mVisibleFirstIdx);
-    return null;
-  }
-
-  public Datapoint getLastVisible() {
-    if (mVisibleLastIdx >= 0 && mVisibleLastIdx < mDatapoints.size())
-      return mDatapoints.get(mVisibleLastIdx);
-    return null;
-  }
-
-  public Datapoint getFirstPostVisible() {
-    if (mVisiblePostFirstIdx >= 0 && mVisiblePostFirstIdx < mDatapoints.size())
-      return mDatapoints.get(mVisiblePostFirstIdx);
-    return null;
-  }
-
-  public Datapoint lookupVisibleDatapoint(FloatTuple press) {
+  public Datapoint lookupDatapoint(FloatTuple press) {
     Datapoint d;
 
     if (isEnabled() == false)
       return null;
 
-    if (mVisibleFirstIdx != Integer.MIN_VALUE
-        && mVisibleLastIdx != Integer.MAX_VALUE) {
-      for (int i = mVisibleFirstIdx; i <= mVisibleLastIdx; i++) {
-        d = mDatapoints.get(i);
+    int size = mDatapoints.size();
+    for (int i = 0; i < size; i++) {
+      d = mDatapoints.get(i);
 
-        if (press.x >= d.mScreenValue1.x - mTouchRadius
-            && press.x <= d.mScreenValue1.x + mTouchRadius
-            && press.y >= d.mScreenValue1.y - mTouchRadius
-            && press.y <= d.mScreenValue1.y + mTouchRadius) {
-          return d;
-        }
-        if (press.x >= d.mScreenValue2.x - mTouchRadius
-            && press.x <= d.mScreenValue2.x + mTouchRadius
-            && press.y >= d.mScreenValue2.y - mTouchRadius
-            && press.y <= d.mScreenValue2.y + mTouchRadius) {
-          return d;
-        }
+      // TODO: check to make sure we only check in-range values
+      if (press.x >= d.mScreenValue1.x - mTouchRadius
+          && press.x <= d.mScreenValue1.x + mTouchRadius
+          && press.y >= d.mScreenValue1.y - mTouchRadius
+          && press.y <= d.mScreenValue1.y + mTouchRadius) {
+        return d;
+      }
+      if (press.x >= d.mScreenValue2.x - mTouchRadius
+          && press.x <= d.mScreenValue2.x + mTouchRadius
+          && press.y >= d.mScreenValue2.y - mTouchRadius
+          && press.y <= d.mScreenValue2.y + mTouchRadius) {
+        return d;
       }
     }
+
     return null;
   }
 
@@ -367,51 +266,6 @@ public final class TimeSeries {
   public ArrayList<Datapoint> getDatapoints() {
     return mDatapoints;
   }
-
-  public List<Datapoint> getVisiblePre() {
-    List<Datapoint> view = null;
-    if (mVisiblePreFirstIdx != Integer.MIN_VALUE
-        && mVisiblePreLastIdx != Integer.MAX_VALUE) {
-      try {
-        view = mDatapoints.subList(mVisiblePreFirstIdx, mVisiblePreLastIdx + 1);
-      } catch(IndexOutOfBoundsException e) {
-        // nothing
-      } catch(IllegalArgumentException e) {
-        // nothing
-      }
-    }
-    return view;
-  }
-
-  public List<Datapoint> getVisible() {
-    List<Datapoint> view = null;
-    if (mVisibleFirstIdx != Integer.MIN_VALUE
-        && mVisibleLastIdx != Integer.MAX_VALUE) {
-      try {
-        view = mDatapoints.subList(mVisibleFirstIdx, mVisibleLastIdx + 1);
-      } catch(IndexOutOfBoundsException e) {        
-        // nothing
-      } catch(IllegalArgumentException e) {
-        // nothing
-      }
-    }
-    return view;
-  }
-
-  public List<Datapoint> getVisiblePost() {
-    List<Datapoint> view = null;
-    if (mVisiblePostFirstIdx != Integer.MIN_VALUE
-        && mVisiblePostLastIdx != Integer.MAX_VALUE) {
-      try {
-        view =mDatapoints.subList(mVisiblePostFirstIdx, mVisiblePostLastIdx + 1);
-      } catch(IndexOutOfBoundsException e) {
-        // nothing
-      } catch(IllegalArgumentException e) {
-        // nothing
-      }
-    }
-    return view;
-  }
   
   public Datapoint findPreNeighbor(long timestamp) {
     return findNeighbor(timestamp, true);
@@ -441,90 +295,15 @@ public final class TimeSeries {
     mPainter.drawMarker(canvas, start, end);
   }
   
-  private void interpolateBoundsToOffscreen() {
-    int nDatapoints;
-    Datapoint d1 = null;
-    Datapoint d2 = null;
-    float iy = 0.0f;
-
-    List<Datapoint> preVisible = getVisiblePre();
-    List<Datapoint> visible = getVisible();
-    List<Datapoint> postVisible = getVisiblePost();
-
-    nDatapoints = mDatapoints.size();
-    if (nDatapoints < 2)
-      return;
-
-    if (postVisible != null) {
-      // datapoints after visible range to interpolate to
-      d2 = postVisible.get(0);
-      if (visible != null) {
-        // also datapoints in visible range
-        d1 = visible.get(visible.size() - 1);
-      } else if (preVisible != null) {
-        // no datapoints in visible range, grab last from before the
-        // visible range
-        d1 = preVisible.get(preVisible.size() - 1);
-      } else {
-        // no datapoints to connect it to
-        return;
-      }
-
-      if (d2.mTsStart > d1.mTsStart) {
-        iy = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
-        if (iy > 0 && d2.mValue > mVisibleMaxY) {
-          mVisibleMaxY = d2.mValue;
-        }
-        if (iy < 0 && d2.mValue < mVisibleMinY) {
-          mVisibleMinY = d2.mValue;
-        }
-      }
-    }
-    if (preVisible != null) {
-      // we have a datapoint before the beginning to interpolate
-      d1 = preVisible.get(preVisible.size() - 1);
-      if (visible != null) {
-        // also datapoints in visible range
-        d2 = visible.get(0);
-      } else if (postVisible != null) {
-        // no datapoints in visible range, grab first from beyond the
-        // visible range
-        d2 = postVisible.get(0);
-      } else {
-        // no datapoints to connect it to
-        return;
-      }
-
-      if (d1.mTsStart < d2.mTsStart) {
-        iy = (d2.mValue - d1.mValue) / (d2.mTsStart - d1.mTsStart);
-        if (iy < 0 && d1.mValue > mVisibleMaxY) {
-          mVisibleMaxY = d1.mValue;
-        }
-        if (iy > 0 && d1.mValue < mVisibleMinY) {
-          mVisibleMinY = d1.mValue;
-        }
-      }
-    }
-  }
-
   private void setColor(String color) {
-    mColorStr = color;
+    mRow.mColor = color;
     mPainter.setColor(color);
-  }
-
-  private void resetIndices() {
-    mVisiblePreFirstIdx = Integer.MIN_VALUE;
-    mVisiblePreLastIdx = Integer.MIN_VALUE;
-    mVisibleFirstIdx = Integer.MIN_VALUE;
-    mVisibleLastIdx = Integer.MIN_VALUE;
-    mVisiblePostFirstIdx = Integer.MIN_VALUE;
-    mVisiblePostLastIdx = Integer.MIN_VALUE;
   }
 
   private void resetMinMax() {
     mVisibleMinY = Float.MAX_VALUE;
     mVisibleMaxY = Float.MIN_VALUE;
-    mVisibleMinX = Long.MAX_VALUE;
-    mVisibleMaxX = Long.MIN_VALUE;
+    mVisibleMinX = Integer.MAX_VALUE;
+    mVisibleMaxX = Integer.MIN_VALUE;
   }
 }

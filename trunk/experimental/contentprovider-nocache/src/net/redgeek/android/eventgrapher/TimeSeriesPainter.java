@@ -115,7 +115,7 @@ public interface TimeSeriesPainter {
       FloatTuple second = null;
       int datapointsSize;
 
-      if (ts.isEnabled() == false)
+      if (ts.isEnabled() == false || ts.getDatapoints() == null)
         return;
 
       mPath.rewind();
@@ -126,14 +126,15 @@ public interface TimeSeriesPainter {
       ArrayList<Datapoint> datapoints = ts.getDatapoints();
       datapointsSize = datapoints.size();
       
-      int offset = ts.getVisiblePreLastIdx();
-      if (offset < 0 || offset == Integer.MAX_VALUE)
-        offset = 0;
-      int end = ts.getVisiblePostFirstIdx();
-      if (end < 0 || end == Integer.MAX_VALUE)
-        end = datapointsSize - 1;
+//      int offset = ts.getVisiblePreLastIdx();
+//      if (offset < 0 || offset == Integer.MAX_VALUE)
+//        offset = 0;
+//      int end = ts.getVisiblePostFirstIdx();
+//      if (end < 0 || end == Integer.MAX_VALUE)
+//        end = datapointsSize - 1;
+//      for (int i = offset; i < datapointsSize && i <= end; i++) {
 
-      for (int i = offset; i < datapointsSize && i <= end; i++) {
+      for (int i = 0; i < datapointsSize; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
           second = thisPoint.mScreenValue1;
@@ -163,7 +164,7 @@ public interface TimeSeriesPainter {
       FloatTuple second = null;
       int datapointsSize;
 
-      if (ts.isEnabled() == false)
+      if (ts.isEnabled() == false || ts.getDatapoints() == null)
         return;
 
       // we don't have to draw all the point preceding the first visible on,
@@ -171,15 +172,16 @@ public interface TimeSeriesPainter {
       ArrayList<Datapoint> datapoints = ts.getDatapoints();
       datapointsSize = datapoints.size();
       
-      int offset = ts.getVisiblePreLastIdx();
-      if (offset < 0 || offset == Integer.MAX_VALUE)
-        offset = 0;
-      int end = ts.getVisiblePostFirstIdx();
-      if (end < 0 || end == Integer.MAX_VALUE)
-        end = datapointsSize - 1;
+//    int offset = ts.getVisiblePreLastIdx();
+//    if (offset < 0 || offset == Integer.MAX_VALUE)
+//      offset = 0;
+//    int end = ts.getVisiblePostFirstIdx();
+//    if (end < 0 || end == Integer.MAX_VALUE)
+//      end = datapointsSize - 1;
+//    for (int i = offset; i < datapointsSize && i <= end; i++) {
 
       mTrend.rewind();
-      for (int i = offset; i < datapointsSize && i <= end; i++) {
+      for (int i = 0; i < datapointsSize; i++) {
         thisPoint = datapoints.get(i);
         if (thisPoint != null)
           second = thisPoint.mScreenTrend1;

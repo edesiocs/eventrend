@@ -134,13 +134,6 @@ public class TimeSeriesData {
       "quarter",
       "year",
     };
-    public static final long[] AGGREGATE_TABLE_PERIOD = {
-      DateMapCache.DAY_MS / DateMapCache.SECOND_MS,
-      DateMapCache.WEEK_MS / DateMapCache.SECOND_MS,
-      DateMapCache.MONTH_MS / DateMapCache.SECOND_MS,
-      DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS,
-      DateMapCache.YEAR_MS / DateMapCache.SECOND_MS,
-    };
 
     /**
      * The table creation sql
@@ -358,8 +351,6 @@ public class TimeSeriesData {
     public static final int DATAPOINT_SUM_VALUE_YEAR_IDX        = 54;
     public static final int DATAPOINT_SUM_VALUE_SQR_YEAR_IDX    = 55;
 
-
-    
     public static long getId(Cursor c) {
       return c.getLong(c.getColumnIndexOrThrow(_ID));
     }
@@ -1043,11 +1034,11 @@ public class TimeSeriesData {
     
     public static final int[] AGGREGATION_PERIOD_TIMES = {
       0,    
-      (int) (DateMapCache.DAY_MS / DateMapCache.SECOND_MS),    
-      (int) (DateMapCache.WEEK_MS / DateMapCache.SECOND_MS),    
-      (int) (DateMapCache.MONTH_MS / DateMapCache.SECOND_MS),    
-      (int) (DateMapCache.QUARTER_MS / DateMapCache.SECOND_MS),    
-      (int) (DateMapCache.YEAR_MS / DateMapCache.SECOND_MS),    
+      (int) DateMap.DAY_SECS,    
+      (int) DateMap.WEEK_SECS,    
+      (int) DateMap.MONTH_SECS,    
+      (int) DateMap.QUARTER_SECS,    
+      (int) DateMap.YEAR_SECS,    
     };
 
     public static final String[] AGGREGATION_PERIOD_NAMES = {
@@ -1065,6 +1056,26 @@ public class TimeSeriesData {
           return i;
       }
       return -1;
+    }
+    
+    public static String mapPeriodToString(int period) {
+      int length = TimeSeries.AGGREGATION_PERIOD_TIMES.length;
+      for (int i = 0; i < length; i++) {
+        if (period == TimeSeries.AGGREGATION_PERIOD_TIMES[i]) {
+          return TimeSeries.AGGREGATION_PERIOD_NAMES[i].toLowerCase();
+        }
+      }
+      return TimeSeries.AGGREGATION_PERIOD_NAMES[0];
+    }
+    
+    public static int mapStringToPeriod(String period) {
+      int length = TimeSeries.AGGREGATION_PERIOD_NAMES.length;
+      for (int i = 0; i < length; i++) {
+        if (period.toLowerCase().equals(TimeSeries.AGGREGATION_PERIOD_NAMES[i].toLowerCase())) {
+          return TimeSeries.AGGREGATION_PERIOD_TIMES[i];
+        }
+      }
+      return TimeSeries.AGGREGATION_PERIOD_TIMES[0];
     }
 
     public static String periodToUriAggregation(int period) {
@@ -1181,6 +1192,30 @@ public class TimeSeriesData {
     public static int getSeconds(Cursor c) {
       return c.getInt(c.getColumnIndexOrThrow(SECONDS));
     }
+    
+    /** Number of milliseconds in a second */
+    public static final int SECOND_MS = 1000;
+    /** Number of milliseconds in a minute */
+    public static final int MINUTE_SECS = 60;
+    /** Number of milliseconds in an hour */
+    public static final int HOUR_SECS = MINUTE_SECS * 60;
+    /** Number of milliseconds in a morning or evening (1/2 day) */
+    public static final int AMPM_SECS = HOUR_SECS * 12;
+    /** Number of milliseconds in a day */
+    public static final int DAY_SECS = HOUR_SECS * 24;
+    /** Number of milliseconds in a week */
+    public static final int WEEK_SECS = DAY_SECS * 7;
+    /** Number of milliseconds in a year */
+    public static final int YEAR_SECS = WEEK_SECS * 52;
+    /** Number of milliseconds in a quarter (as defined by 1/4 of a year) */
+    public static final int QUARTER_SECS = WEEK_SECS * 13;
+    /** Number of milliseconds in a month (as defined by 1/12 of a year) */
+    public static final int MONTH_SECS = YEAR_SECS / 12;
+    
+    public static final String[] MONTHS = { "Jan", "Feb", "Mar", "Apr", "May",
+      "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    public static final String[] DAYS = { "Sun", "M", "Tu", "W", "Th", "F", "Sat", };
+    public static final String[] QUARTERS = { "Q1", "Q2", "Q3", "Q4", };
   }
   
   public static final class FormulaCache implements BaseColumns {

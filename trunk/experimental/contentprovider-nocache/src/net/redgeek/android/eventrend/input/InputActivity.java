@@ -57,6 +57,7 @@ import net.redgeek.android.eventgrapher.GraphActivity;
 import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
@@ -190,7 +191,7 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   public long getTimestampSeconds() {
-    return mTimestamp.mMillis / DateMapCache.SECOND_MS;
+    return mTimestamp.mMillis / DateMap.SECOND_MS;
   }
 
   public long getLastAddId() {
@@ -231,7 +232,7 @@ public class InputActivity extends EvenTrendActivity {
         if (mPickNow.isChecked() == true)
           setTimestampNow();
 
-        mNowHandler.postDelayed(mUpdateNowTime, DateUtil.SECOND_MS);
+        mNowHandler.postDelayed(mUpdateNowTime, DateMap.SECOND_MS);
       }
     };
 
@@ -417,7 +418,7 @@ public class InputActivity extends EvenTrendActivity {
   // *** clock ***//
 
   private void scheduleUpdateNow() {
-    mNowHandler.postDelayed(mUpdateNowTime, DateUtil.SECOND_MS);
+    mNowHandler.postDelayed(mUpdateNowTime, DateMap.SECOND_MS);
   }
 
   private void scheduleUpdateStop() {
@@ -514,6 +515,10 @@ public class InputActivity extends EvenTrendActivity {
       case CONTEXT_MOVE_DOWN:
         if (position + 1 < cla.getCount())
           swapCategoryPositions(cla, position, position + 1);
+        break;
+      case CONTEXT_DELETE:
+        catId = ((CategoryRow) cla.getItem(position)).mId;
+        deleteCategory(catId);
         break;
       default:
         return super.onContextItemSelected(item);
@@ -660,9 +665,16 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   private void editCategory(long catId) {
-      Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, catId);
-      Intent i = new Intent(Intent.ACTION_EDIT, uri);
-      startActivityForResult(i, ARC_CATEGORY_EDIT);
+    Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, catId);
+    Intent i = new Intent(Intent.ACTION_EDIT, uri);
+    startActivityForResult(i, ARC_CATEGORY_EDIT);
+  }
+
+  private void deleteCategory(long catId) {
+    Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, catId);
+    getContentResolver().delete(uri, null, null);
+    fillCategoryData(-1);
+    setCurrentViews(true);
   }
 
 //  private void editEntries() {

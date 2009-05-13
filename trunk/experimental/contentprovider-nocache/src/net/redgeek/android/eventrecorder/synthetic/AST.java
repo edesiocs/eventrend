@@ -16,6 +16,8 @@
 
 package net.redgeek.android.eventrecorder.synthetic;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrecorder.synthetic.Tokenizer.Token;
 import net.redgeek.android.eventrecorder.synthetic.Tokenizer.TokenID;
 import net.redgeek.android.eventrend.util.DateUtil;
@@ -189,26 +191,26 @@ public class AST {
     }
   }
 
-  public static class UnitsOperand implements Operand<DateUtil.Period> {
-    private DateUtil.Period mPeriod = null;
+  public static class UnitsOperand implements Operand<Integer> {
+    private Integer mPeriod = null;
 
     public UnitsOperand() {
     }
 
-    public UnitsOperand(DateUtil.Period period) {
+    public UnitsOperand(int period) {
       mPeriod = period;
     }
 
-    public void setValue(DateUtil.Period period) {
+    public void setValue(Integer period) {
       mPeriod = period;
     }
 
-    public DateUtil.Period getValue() {
+    public Integer getValue() {
       return mPeriod;
     }
 
     public String toString() {
-      return DateUtil.mapPeriodToString(mPeriod);
+      return TimeSeries.mapPeriodToString(mPeriod);
     }
   }
 
@@ -432,8 +434,8 @@ public class AST {
       DeltaOperand prev = new DeltaOperand(out.mValue);
       return prev;
     } else if (out.mTokenID == Tokenizer.TokenID.PERIOD_CONSTANT) {
-      DateUtil.Period p = DateUtil.mapStringToPeriod(out.mValue);
-      UnitsOperand units = new UnitsOperand(p);
+      int period = TimeSeries.mapStringToPeriod(out.mValue);
+      UnitsOperand units = new UnitsOperand(period);
       return units;
     }
 
