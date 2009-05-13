@@ -1273,7 +1273,7 @@ public class TimeSeriesProvider extends ContentProvider {
           }
         } catch (Exception e) { } // nothing
         
-        qb.appendWhere(TimeSeries._ID + " = " 
+        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " 
             + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint.TS_START + " >= " + start + " AND ");
         qb.appendWhere(Datapoint.TS_START + " < " + end + " ");

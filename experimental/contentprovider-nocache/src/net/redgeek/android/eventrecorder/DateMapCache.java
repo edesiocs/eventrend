@@ -297,9 +297,6 @@ public class DateMapCache {
     label.mHour = (delta - ((label.mDay - 1) * DateMap.DAY_SECS)) / DateMap.HOUR_SECS;
     label.mMinute = (delta - ((label.mDay - 1) * DateMap.DAY_SECS) - (label.mHour * DateMap.HOUR_SECS))/ DateMap.HOUR_SECS;
 
-    Log.v("datemap", seconds + " -> " + label.mYear +"/"+ label.mMonth +"/"+ label.mDay
-        + " " + label.mHour +":"+ label.mMinute + "[" +label.mDOW+"]");
-    
     return true;
   }
 
