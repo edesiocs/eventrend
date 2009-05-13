@@ -859,11 +859,11 @@ public class TimeSeriesProvider extends ContentProvider {
     Datapoint.setSumEntries(values, entries);
     Datapoint.setSumValue(values, value);
 
-    // set the aggregated stats
-    int length = Datapoint.AGGREGATE_SUFFIX.length;
-    for (int i = 0; i < length; i++) {
-      String suffix = Datapoint.AGGREGATE_SUFFIX[i];
-      period = (int) Datapoint.AGGREGATE_TABLE_PERIOD[i];
+    // set the aggregated stats, skip index 0 (no aggregation)
+    int length = TimeSeries.AGGREGATION_PERIOD_TIMES.length;
+    for (int i = 1; i < length; i++) {
+      String suffix = Datapoint.AGGREGATE_SUFFIX[i-1];
+      period = TimeSeries.AGGREGATION_PERIOD_TIMES[i];
       periodStart = mDateMap.secondsOfPeriodStart(timestamp, period);
       periodEnd = mDateMap.secondsOfPeriodEnd(periodStart, period);
       
@@ -952,11 +952,11 @@ public class TimeSeriesProvider extends ContentProvider {
     Cursor c;
     StringBuilder where = new StringBuilder();
 
-    // update the aggregated stats
-    int length = Datapoint.AGGREGATE_SUFFIX.length;
-    for (int i = 0; i < length; i++) {
-      String suffix = Datapoint.AGGREGATE_SUFFIX[i];
-      period = (int) TimeSeriesData.Datapoint.AGGREGATE_TABLE_PERIOD[i];
+    // update the aggregated stats, skip index 0 (no aggregation)
+    int length = TimeSeries.AGGREGATION_PERIOD_TIMES.length;
+    for (int i = 1; i < length; i++) {
+      String suffix = Datapoint.AGGREGATE_SUFFIX[i-1];
+      period = TimeSeries.AGGREGATION_PERIOD_TIMES[i];
       newPeriodStart = mDateMap.secondsOfPeriodStart(timestamp, period);
       newPeriodEnd = mDateMap.secondsOfPeriodEnd(newPeriodStart, period);
       oldPeriodStart = mDateMap.secondsOfPeriodStart(lastTimestamp, period);
@@ -1166,7 +1166,21 @@ public class TimeSeriesProvider extends ContentProvider {
     }
     return sDatapointProjection;
   }
-      
+
+  private String fetchGroupByString(String aggregation) {
+    if (aggregation == null) {
+      return Datapoint.TS_START;
+    } 
+    else if (aggregation.equals("day")
+        || aggregation.equals("week")
+        || aggregation.equals("month")
+        || aggregation.equals("quarter")
+        || aggregation.equals("year")) {
+      return Datapoint.TS_START + "_" + aggregation;
+    }
+    return Datapoint.TS_START;
+  }
+
   private Cursor queryDatapointInternal(String selection, String[] selectionArgs,
       String groupBy, String sortOrder, String limit) {
     SQLiteDatabase db = mDbHelper.getReadableDatabase();
@@ -1236,7 +1250,7 @@ public class TimeSeriesProvider extends ContentProvider {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
           if (map == null)
             qb.setProjectionMap(fetchProjectionMap(agg));
-          groupBy = Datapoint.TS_START + "_" + agg;
+          groupBy = fetchGroupByString(agg);
         } catch (Exception e) { } // nothing
         qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
         limit = count;
@@ -1253,7 +1267,7 @@ public class TimeSeriesProvider extends ContentProvider {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
           if (map != null)
             qb.setProjectionMap(fetchProjectionMap(agg));
-          groupBy = Datapoint.TS_START + "_" + agg;
+          groupBy = fetchGroupByString(agg);
           if (sortOrder == null || TextUtils.isEmpty(sortOrder)) {
             orderBy = Datapoint.TS_START + " desc ";            
           }
@@ -1472,6 +1486,9 @@ public class TimeSeriesProvider extends ContentProvider {
           db.delete(TimeSeries.TABLE_NAME, TimeSeries._ID + "=" + seriesId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
               whereArgs);
+          db.delete(FormulaCache.TABLE_NAME, FormulaCache.RESULT_SERIES + "=" + seriesId
+              + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
+              whereArgs);
           db.setTransactionSuccessful();
         } catch (Exception e) {
           Log.v(TAG, e.getMessage());
@@ -1579,7 +1596,7 @@ public class TimeSeriesProvider extends ContentProvider {
           cal.set(Calendar.SECOND, 0);
           cal.set(Calendar.MILLISECOND, 0);
 
-          secs = (int) (cal.getTimeInMillis() / DateMapCache.SECOND_MS);
+          secs = (int) (cal.getTimeInMillis() / DateMap.SECOND_MS);
           dow = cal.get(Calendar.DAY_OF_WEEK);
  
           values.clear();

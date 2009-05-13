@@ -83,7 +83,7 @@ public class Formula {
     public Double mDouble;
     public Long mLong;
     public SeriesData mSeries;
-    public DateUtil.Period mPeriod;
+    public int mPeriod;
     public boolean mTimestamp;
 
     public OperandInstance() {
@@ -102,7 +102,7 @@ public class Formula {
       instance.mDouble = (Double) operand.getValue();
     } else if (operand.getClass().equals(AST.UnitsOperand.class)) {
       instance.mType = Tokenizer.TokenID.PERIOD_CONSTANT;
-      instance.mPeriod = (DateUtil.Period) operand.getValue();
+      instance.mPeriod = (Integer) operand.getValue();
     } else if (operand.getClass().equals(AST.DeltaOperand.class)) {
       instance.mType = Tokenizer.TokenID.DELTA;
       if (((String) operand.getValue()).equals(Tokenizer.TIMESTAMP)) {
@@ -144,7 +144,7 @@ public class Formula {
         else
           left.mSeries.previousValue();
       } else if (right.mType == Tokenizer.TokenID.PERIOD_CONSTANT) {
-        Long l = new Long(DateUtil.mapPeriodToLong(right.mPeriod));
+        Long l = new Long(right.mPeriod);
         left.mSeries.longOp(l, opcode, false);
       }
       return left;
@@ -156,7 +156,7 @@ public class Formula {
       else if (left.mType == Tokenizer.TokenID.LONG_VALUE)
         right.mSeries.longOp(right.mLong, opcode, true);
       else if (left.mType == Tokenizer.TokenID.PERIOD_CONSTANT) {
-        Long l = new Long(DateUtil.mapPeriodToLong(left.mPeriod));
+        Long l = new Long(left.mPeriod);
         right.mSeries.longOp(l, opcode, true);
       }
       return right;
@@ -171,7 +171,7 @@ public class Formula {
         || right.mType == Tokenizer.TokenID.PERIOD_CONSTANT) {
       Long l;
       if (right.mType == Tokenizer.TokenID.PERIOD_CONSTANT)
-        l = new Long(DateUtil.mapPeriodToLong(right.mPeriod));
+        l = new Long(right.mPeriod);
       else
         l = new Long(right.mLong);
 
@@ -196,7 +196,7 @@ public class Formula {
         || right.mType == Tokenizer.TokenID.PERIOD_CONSTANT) {
       Long l;
       if (right.mType == Tokenizer.TokenID.PERIOD_CONSTANT)
-        l = new Long(DateUtil.mapPeriodToLong(right.mPeriod));
+        l = new Long(right.mPeriod);
       else
         l = new Long(right.mLong);
 

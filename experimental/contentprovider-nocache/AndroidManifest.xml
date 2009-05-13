@@ -103,7 +103,7 @@
 		</activity>
 
     <activity 
-     android:label="EvenTrend Calendar View" 
+     android:label="EvenTrend Calendar" 
      android:name="net.redgeek.android.eventcalendar.CalendarActivity">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />

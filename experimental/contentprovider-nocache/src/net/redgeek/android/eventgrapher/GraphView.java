@@ -20,7 +20,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -29,12 +28,13 @@ import android.widget.ZoomControls;
 
 import net.redgeek.android.eventgrapher.primitives.FloatTuple;
 import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
-import net.redgeek.android.eventrend.util.DateUtil.Period;
 
 import java.util.Calendar;
 
@@ -90,7 +90,9 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   private TimeSeriesCollector mTSC;
   private Calendar mCal;
   private FloatTuple mLastEvent;
-
+  private boolean mRequiresUpdate = true;
+  private DateMapCache mDateMap;
+  
   // Tasks and handlers
   private Handler mZoomHandler;
   private Runnable mHideZoomControls;
@@ -110,8 +112,11 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     mCal = Calendar.getInstance();
 
     mCollector = new DataCollectionTask(mTSC);
-    mGraph = new Graph(mCtx, mTSC, getWidth(), getHeight());
     mZoomHandler = new Handler();
+    mDateMap = new DateMapCache();
+    mDateMap.populateCache(mCtx);
+    
+    mGraph = new Graph(mCtx, mTSC, mDateMap, getWidth(), getHeight());
   }
 
   private void setupUI(ZoomControls zoomControls) {
@@ -144,9 +149,9 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
         start += delta;
         end -= delta;
 
-        if (start + DateUtil.MINUTE_MS * 10 >= end) {
-          end += ((DateUtil.MINUTE_MS * 10) / 2);
-          start = (int) (end - ((DateUtil.MINUTE_MS * 10) / 2));
+        if (start + (DateMap.MINUTE_SECS) * 10 >= end) {
+          end += (((DateMap.MINUTE_SECS) * 10) / 2);
+          start = (int) (end - (((DateMap.MINUTE_SECS) * 10) / 2));
         }
 
         mGraph.setGraphRange(start, end);
@@ -255,11 +260,6 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void executeNonGuiTask() throws Exception {
-    int start = mGraph.getGraphStart();
-    int end = mGraph.getGraphEnd();
-    String aggregation = mGraph.getGraphAggregation();
-
-    mCollector.setSpan(start, end, aggregation);
     mCollector.doCollection();
   }
 
@@ -273,11 +273,6 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   }
 
   public void updateData() {
-    int start = mGraph.getGraphStart();
-    int end = mGraph.getGraphEnd();
-
-    mGraph.setGraphRange(start, end);
-
     // Useful debugging: uncomment the following, and comment out the
     // addTask() below -- this makes the data collection run synchronously.
     // mCollector.setSpan(start, end);
@@ -285,18 +280,20 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     // updateStatus();
     // invalidate();
 
-    GUITaskQueue.getInstance().addTask(mProgress, this);
+    if (mRequiresUpdate == true) {
+      GUITaskQueue.getInstance().addTask(mProgress, this);
+      mRequiresUpdate = false;
+    } else {
+      updateStatus();
+      setFocusable(true);
+      invalidate();
+    }
   }
 
   private void updateStatus() {
     int start = mGraph.getGraphStart();
     int end = mGraph.getGraphEnd();
     String str = new String();
-
-    if (mTSC.getAutoAggregation() == true) {
-      Period span = mGraph.getSpan();
-      str = "Aggregation: " + DateUtil.mapPeriodToString(span) + " ";
-    }
 
     if (mGraph.mSelectedDatapoint != null) {
       str += mGraph.mSelectedDatapoint.toLabelString() + ": "
@@ -306,9 +303,6 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
       return;
     }
 
-    if (mTSC.getAutoAggregation() == false) {
-      str += DateUtil.toTimestamp(start) + " - " + DateUtil.toTimestamp(end);
-    }
     mStatus.setText(str);
     mStatus.setTextColor(Color.GRAY);
   }
@@ -318,15 +312,10 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     int end = mGraph.getGraphEnd();
 
     int delta = end - start;
-    Calendar cal = Calendar.getInstance();
-    cal.setTimeInMillis(start);
-    DateUtil.setToPeriodStart(cal, mGraph.getSpan());
-    start = (int) (cal.getTimeInMillis() / DateUtil.SECOND_MS);
+    start = mDateMap.secondsOfPeriodStart(start, mGraph.getSpan());
     end = start + delta;
 
     mGraph.setGraphRange(start, end);
-
-    Log.v("graphview", "snapToSpan() -> updateData");
 
     updateData();
   }
@@ -335,8 +324,8 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
     int start = mGraph.getGraphStart();
     int end = mGraph.getGraphEnd();
 
-    end = (int) (mCal.getTimeInMillis() / DateUtil.SECOND_MS);
-    start = (int) (end - DateUtil.DAY_MS * 7);
+    end = (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS);
+    start = (int) (end - (DateMap.DAY_SECS * 7));
 
     mGraph.setGraphRange(start, end);
   }

@@ -16,7 +16,10 @@
 
 package net.redgeek.android.eventgrapher;
 
+import net.redgeek.android.eventgrapher.primitives.TimeSeries;
 import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+
+import java.util.ArrayList;
 
 /**
  * This is the potentially the most frequently executed task, with the possible
@@ -34,9 +37,6 @@ import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
  */
 public class DataCollectionTask {
   private TimeSeriesCollector mTSC = null;
-  private String mAggregation;
-  private int mStartMS = 0;
-  private int mEndMS = 0;
 
   public DataCollectionTask() {
   }
@@ -49,13 +49,10 @@ public class DataCollectionTask {
     mTSC = tsc;
   }
 
-  public void setSpan(int startMs, int endMs, String aggregation) {
-    mStartMS = startMs;
-    mEndMS = endMs;
-    mAggregation = aggregation;
-  }
-
   public void doCollection() {
-    mTSC.gatherSeriesLocking(mStartMS, mEndMS, mAggregation);
+    ArrayList<TimeSeries> series = mTSC.getAllSeries();
+    for (int i = 0; i < series.size(); i++) {
+      mTSC.fetchTimeSeriesData(series.get(i).mRow.mId);
+    }
   }
 }
