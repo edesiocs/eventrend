@@ -83,7 +83,7 @@ public class TimeSeriesCollector {
     Builder builder = ContentUris.withAppendedId(
         TimeSeriesData.TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()
         .appendPath("range").appendPath("0").appendPath(""+Integer.MAX_VALUE);
-    if (TextUtils.isEmpty(mAggregation))
+    if (TextUtils.isEmpty(mAggregation) == false)
       builder.appendPath(mAggregation);
     
     Uri uri = builder.build();

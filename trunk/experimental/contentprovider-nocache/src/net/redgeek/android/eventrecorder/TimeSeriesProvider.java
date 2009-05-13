@@ -1248,7 +1248,7 @@ public class TimeSeriesProvider extends ContentProvider {
           qb.setProjectionMap(sDatapointProjection);
         try {
           agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-          if (map == null)
+          if (map == null && agg != null)
             qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = fetchGroupByString(agg);
         } catch (Exception e) { } // nothing
@@ -1264,8 +1264,8 @@ public class TimeSeriesProvider extends ContentProvider {
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);
         try {
-          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
-          if (map != null)
+          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
+          if (map == null && agg != null)
             qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = fetchGroupByString(agg);
           if (sortOrder == null || TextUtils.isEmpty(sortOrder)) {
