@@ -205,8 +205,7 @@ public class GraphActivity extends EvenTrendActivity {
           long id) {
         String period = ((TextView) v).getText().toString().toLowerCase();
         mTSC.setAggregationPeriod(period);
-        mGraphView.setRequiresUpdate();
-        graph();
+        graph(true);
         return;
       }
 
@@ -218,21 +217,21 @@ public class GraphActivity extends EvenTrendActivity {
     mShowTrendsToggleListener = new CompoundButton.OnCheckedChangeListener() {
       public void onCheckedChanged(CompoundButton view, boolean isChecked) {
         mGraphView.setTrendView(isChecked);
-        graph();
+        graph(false);
       }
     };
 
     mShowGoalsToggleListener = new CompoundButton.OnCheckedChangeListener() {
       public void onCheckedChanged(CompoundButton view, boolean isChecked) {
         mGraphView.setGoalView(isChecked);
-        graph();
+        graph(false);
       }
     };
 
     mShowMarkersToggleListener = new CompoundButton.OnCheckedChangeListener() {
       public void onCheckedChanged(CompoundButton view, boolean isChecked) {
         mGraphView.setMarkersView(isChecked);
-        graph();
+        graph(false);
       }
     };
   }
@@ -298,7 +297,7 @@ public class GraphActivity extends EvenTrendActivity {
         return true;
       case MENU_GRAPH_SNAP_TO_PERIOD_ID:
         mGraphView.snapToSpan();
-        graph();
+        graph(false);
         return true;
       case MENU_CALENDAR_VIEW_ID:
         calendarView();
@@ -316,7 +315,9 @@ public class GraphActivity extends EvenTrendActivity {
 //    startActivityForResult(i, PREFS_EDIT);
   }
 
-  private void graph() {
+  private void graph(boolean updateData) {
+    if (updateData == true)
+      mGraphView.setRequiresUpdate();
     mGraphView.updateData();
     mGraphView.invalidate();
   }
@@ -377,7 +378,7 @@ public class GraphActivity extends EvenTrendActivity {
 
     b.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
       public void onClick(DialogInterface dialog, int whichButton) {
-        ((GraphActivity) mCtx).graph();
+        ((GraphActivity) mCtx).graph(false);
       }
     });
     Dialog d = b.create();
@@ -400,7 +401,7 @@ public class GraphActivity extends EvenTrendActivity {
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
-    graph();
+    graph(false);
   }
 
   @Override
@@ -423,7 +424,7 @@ public class GraphActivity extends EvenTrendActivity {
   @Override
   protected void onResume() {
     mGraphView.setColorScheme();
-    graph();
+    graph(true);
     super.onResume();
   }
 
