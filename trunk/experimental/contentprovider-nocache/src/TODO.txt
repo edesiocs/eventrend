@@ -11,6 +11,10 @@ Import:
 - implement v2 importing
 - implement v1 importing
 - implement spreadsheet importing
+Grapher:
+- graph ranges differently
+- fix x-labels when zoomed to minute level
+- only graph the visible portions
 
 This file intended for temporary notes only.  See
 

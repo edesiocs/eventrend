@@ -20,12 +20,12 @@ import android.graphics.Canvas;
 
 import net.redgeek.android.eventgrapher.GraphView;
 import net.redgeek.android.eventgrapher.TimeSeriesPainter;
+import net.redgeek.android.eventrecorder.interpolators.CubicInterpolator;
 import net.redgeek.android.eventrecorder.interpolators.TimeSeriesInterpolator;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.util.Number;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A representation of series of Datapoints plottable on screen. Specific
@@ -65,6 +65,7 @@ public final class TimeSeries {
   private void initialize(CategoryRow row) {
     mRow = row;
 
+    mInterpolator = new CubicInterpolator();
     mPainter = new TimeSeriesPainter.Default();
     mEnabled = false;
     setColor(row.mColor);
@@ -76,10 +77,6 @@ public final class TimeSeries {
   @Override
   public String toString() {
     return mRow.mTimeSeriesName + " (id: " + mRow.mId + ")";
-  }
-
-  public void clearSeries() {
-    mDatapoints.clear();
   }
 
   public void setPointRadius(float f) {
@@ -176,7 +173,6 @@ public final class TimeSeries {
   }
 
   public void setDatapoints(ArrayList<Datapoint> datapoints) {
-    clearSeries();
     mDatapoints = datapoints;
     calcStatsAndBounds();
     return;

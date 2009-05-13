@@ -44,6 +44,10 @@ public final class Datapoint implements Comparator<Datapoint> {
   public long mDatapointId;  
   
   public Datapoint() {
+    mScreenValue1 = new FloatTuple(0.0f, 0.0f);
+    mScreenValue2 = new FloatTuple(0.0f, 0.0f);
+    mScreenTrend1 = new FloatTuple(0.0f, 0.0f);
+    mScreenTrend2 = new FloatTuple(0.0f, 0.0f);
   }
 
   public Datapoint(int start, int stop, float value, float trend, float stddev, 
