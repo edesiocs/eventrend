@@ -272,6 +272,10 @@ public class GraphView extends View implements OnLongClickListener, GUITask {
   public void onFailure(Throwable t) {
   }
 
+  public void setRequiresUpdate() {
+    mRequiresUpdate = true;
+  }
+  
   public void updateData() {
     // Useful debugging: uncomment the following, and comment out the
     // addTask() below -- this makes the data collection run synchronously.

@@ -205,6 +205,7 @@ public class GraphActivity extends EvenTrendActivity {
           long id) {
         String period = ((TextView) v).getText().toString().toLowerCase();
         mTSC.setAggregationPeriod(period);
+        mGraphView.setRequiresUpdate();
         graph();
         return;
       }
