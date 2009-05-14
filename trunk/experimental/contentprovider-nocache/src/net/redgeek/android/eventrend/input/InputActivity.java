@@ -144,10 +144,8 @@ public class InputActivity extends EvenTrendActivity {
   private TimeSeriesContentObserver mTimeSeriesObserver = null;
   
   // For undo
-  private long mLastAddId = -1;
-  private float mLastAddValue = 0.0f;
-  private long mLastAddTimestamp = 0;
-  private TextView mLastAddTextView;
+  private long mLastAddTimeSeriesId = -1;
+  private long mLastAddDatapointId = -1;
   private CategoryRowView mLastAddRowView;
   private int mContextPosition = -1;
   private Lock mUndoLock;
@@ -203,10 +201,6 @@ public class InputActivity extends EvenTrendActivity {
 
   public long getTimestampSeconds() {
     return mTimestamp.mMillis / DateMap.SECOND_MS;
-  }
-
-  public long getLastAddId() {
-    return mLastAddId;
   }
 
   // *** background tasks ***/
@@ -787,57 +781,46 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   // used for undo
-  public void setLastAdd(long id, float val, long timestamp, TextView textView,
-      CategoryRowView rowView) {
+  public void setLastAdd(long tsId, long dpId, CategoryRowView view) {
     while (mUndoLock.tryLock() == false) {
     }
     mUndo.setClickable(true);
     mUndo.setTextColor(Color.BLACK);
-    mLastAddId = id;
-    mLastAddValue = val;
-    mLastAddTimestamp = timestamp;
-    mLastAddTextView = textView;
-    mLastAddRowView = rowView;
+    mLastAddTimeSeriesId = tsId;
+    mLastAddDatapointId = dpId;
+    mLastAddRowView = view;
     mUndoLock.unlock();
   }
 
   public void undo() {
-//    while (mUndoLock.tryLock() == false) {
-//    }
-//    EntryDbTable.Row entry = getDbh().fetchEntry(mLastAddId);
-//    if (entry == null)
-//      return;
-//
-//    CategoryDbTable.Row cat = getDbh().fetchCategory(entry.getCategoryId());
-//    if (cat == null)
-//      return;
-//
-//    float oldValue = entry.getValue();
-//    String newValueStr;
-//    if (entry.getNEntries() == 1) {
-//      getDbh().deleteEntry(mLastAddId);
-//      newValueStr = "(deleted)";
-//    } else {
-//      newValueStr = "" + mLastAddValue;
-//      entry.setValue(mLastAddValue);
-//      entry.setNEntries(entry.getNEntries() - 1);
-//      getDbh().updateEntry(entry);
-//    }
-//    mUndoLock.unlock();
-//
-//    mTSC.updateCategoryTrend(cat.getId());
-//
-//    String shortStr = "Undid @ " + DateUtil.toShortTimestamp(mLastAddTimestamp)
-//        + ": " + oldValue + " -> " + newValueStr;
-//    String longStr = "Undid " + cat.getCategoryName() + " @ "
-//        + DateUtil.toTimestamp(mLastAddTimestamp) + ": " + oldValue + " -> "
-//        + newValueStr;
-//    mLastAddTextView.setText(shortStr);
-//    Toast.makeText(this, longStr, Toast.LENGTH_LONG).show();
-//    slideOutRightIn(mLastAddRowView, getCtx());
-//
-//    mUndo.setClickable(false);
-//    mUndo.setTextColor(Color.DKGRAY);
+    while (mUndoLock.tryLock() == false) {
+    }
+    
+    if (mLastAddTimeSeriesId < 1 || mLastAddDatapointId < 1 || mLastAddRowView == null) {
+      mUndo.setClickable(false);
+      mUndo.setTextColor(Color.DKGRAY);
+      mDialogErrorTitle = "Error";
+      mDialogErrorMsg = "There is no recent entry to undo.";
+      showDialog(ERROR_DIALOG_ID);
+      return;
+    }
+    
+    Uri uri = ContentUris.withAppendedId(
+        TimeSeriesData.TimeSeries.CONTENT_URI, mLastAddTimeSeriesId).buildUpon()
+        .appendPath("datapoints").appendPath(""+mLastAddDatapointId).build();
+    int count = getContentResolver().delete(uri, null, null);
+    mUndoLock.unlock();
+    mLastAddRowView.populateFields();
+    mUndo.setClickable(false);
+    mUndo.setTextColor(Color.DKGRAY);
+
+    if (count != 1) {
+      mDialogErrorTitle = "Error";
+      mDialogErrorMsg = "Error undoing add: " + count;
+      showDialog(ERROR_DIALOG_ID);
+    } else {    
+      slideOutRightIn(mLastAddRowView, mCtx);    
+    }
   }
 
   public IEventRecorderService getRecorderService() {

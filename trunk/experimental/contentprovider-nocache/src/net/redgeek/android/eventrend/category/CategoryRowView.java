@@ -141,40 +141,12 @@ public class CategoryRowView extends LinearLayout implements GUITask {
             throw new Exception("recordEventStart failed with error " + mNewDatapointId);
         }
       }
-    }
+    }    
   }
 
   public void afterExecute() {
     populateFields();
-
-    // String status;
-    // String toast;
-    //
-    // float newValue = mAddEntryTask.mLastAddValue;
-    // float oldValue = mAddEntryTask.mLastAddOldValue;
-    // long timestamp = mAddEntryTask.mLastAddTimestamp;
-    //
-    // if (mAddEntryTask.mLastAddUpdate == true) {
-    // ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, oldValue,
-    // timestamp, mCategoryUpdateView, mRowView);
-    // status = "Update @ " + DateUtil.toShortTimestamp(timestamp) + ": "
-    // + oldValue + " -> " + newValue;
-    // mCategoryUpdateView.setText(status);
-    // } else {
-    // ((InputActivity) mCtx).setLastAdd(mAddEntryTask.mLastAddId, newValue,
-    // timestamp, mCategoryUpdateView, mRowView);
-    //
-    // status = "Add @ "
-    // + DateUtil.toShortTimestamp(mAddEntryTask.mLastAddTimestamp) + ": "
-    // + newValue;
-    // mCategoryUpdateView.setText(status);
-    // }
-    //
-    // CategoryDbTable.Row cat = mDbh.fetchCategory(mDbRow.getId());
-    // updateTrendIcon(cat.getTrendState());
-    // float trendValue = Number.Round(cat.getLastTrend(), mDecimals);
-    // mTrendValueView.setText(Float.valueOf(trendValue).toString());
-
+    ((InputActivity) mCtx).setLastAdd(mRow.mId, mNewDatapointId, mRowView);
     ((InputActivity) mCtx).redrawSyntheticViews();
   }
 
