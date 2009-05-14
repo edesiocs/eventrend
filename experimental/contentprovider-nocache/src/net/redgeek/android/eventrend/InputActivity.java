@@ -97,7 +97,8 @@ public class InputActivity extends EvenTrendActivity {
   private static final int HELP_DIALOG_ID = 2;
   private static final int SERVICE_CONNECTING_DIALOG_ID = 3;
   private static final int DELETE_DIALOG_ID = 4;
-  private static final int ERROR_DIALOG_ID = 5;
+  private static final int EARLY_ENTRY_DIALOG_ID = 5;
+  private static final int ERROR_DIALOG_ID = 10;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -253,9 +254,9 @@ public class InputActivity extends EvenTrendActivity {
     mPickNow.setOnClickListener(mPickNowListener);
 
     mUndo = (Button) findViewById(R.id.entry_undo);
-    mUndo.setClickable(false);
     mUndo.setTextColor(Color.DKGRAY);
     mUndo.setOnClickListener(mUndoListener);
+    mUndo.setClickable(false);
 
     mFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
     mFlipper.setInAnimation(AnimationUtils.loadAnimation(this,
@@ -303,6 +304,12 @@ public class InputActivity extends EvenTrendActivity {
         mTimestamp.mMonth = monthOfYear;
         mTimestamp.mDay = dayOfMonth;
         updateDisplay();
+        long now = System.currentTimeMillis();
+        long delta = now - mTimestamp.mMillis;
+        long month = (long)DateMap.MONTH_SECS * (long)DateMap.SECOND_MS;
+        if (delta > month) {
+          showDialog(EARLY_ENTRY_DIALOG_ID);
+        }
       }
     };
 
@@ -378,7 +385,6 @@ public class InputActivity extends EvenTrendActivity {
   protected void onResume() {
     scheduleUpdateNow();
     registerContentObservers();
-
     super.onResume();
   }
 
@@ -472,9 +478,9 @@ public class InputActivity extends EvenTrendActivity {
       case MENU_ADD_ID:
         createCategory();
         return true;
-//      case MENU_EDIT_ID:
-//        editEntries();
-//        return true;
+      case MENU_EDIT_ID:
+        editEntries();
+        return true;
       case MENU_VISUALIZE_ID:
         visualizeEntries();
         return true;
@@ -535,6 +541,8 @@ public class InputActivity extends EvenTrendActivity {
 
   @Override
   protected Dialog onCreateDialog(int id) {
+    String title;
+    String msg;
     switch (id) {
       case TIME_DIALOG_ID:
         return new TimePickerDialog(this, mTimeSetListener, mTimestamp.mHour,
@@ -549,9 +557,15 @@ public class InputActivity extends EvenTrendActivity {
         return mDialogUtil.newProgressDialog(
             "Connecting to recorder service and updating stats ...");
       case DELETE_DIALOG_ID:
-        String title = "Delete " + mDeleteCategoryName + "?";
-        String msg = "All associated entries will also be deleted!";
+        title = "Delete " + mDeleteCategoryName + "?";
+        msg = "All associated entries will also be deleted!";
         return deleteDialog(title, msg);
+      case EARLY_ENTRY_DIALOG_ID:
+        title = "Warning";
+        msg = "Adding an entry far in the past can result in a very long delay "
+          + "as statistics are re-calculated, particularly if 'zerofill' is "
+          + "configured for an entry.";
+        return mDialogUtil.newOkDialog(title, msg);        
       case ERROR_DIALOG_ID:
         return mDialogUtil.newOkDialog(mDialogErrorTitle, mDialogErrorMsg);
     }
@@ -711,11 +725,11 @@ public class InputActivity extends EvenTrendActivity {
     setCurrentViews(true);
   }
 
-//  private void editEntries() {
+  private void editEntries() {
 //    Intent i = new Intent(this, EntryListActivity.class);
 //    mTSC.clearSeriesLocking();
 //    startActivityForResult(i, ENTRY_LIST);
-//  }
+  }
 
   private void editPrefs() {
     Intent i = new Intent(this, Preferences.class);
@@ -779,10 +793,11 @@ public class InputActivity extends EvenTrendActivity {
   public void undo() {
     while (mUndoLock.tryLock() == false) {
     }
+
+    mUndo.setClickable(false);
+    mUndo.setTextColor(Color.DKGRAY);
     
     if (mLastAddTimeSeriesId < 1 || mLastAddDatapointId < 1 || mLastAddRowView == null) {
-      mUndo.setClickable(false);
-      mUndo.setTextColor(Color.DKGRAY);
       mDialogErrorTitle = "Error";
       mDialogErrorMsg = "There is no recent entry to undo.";
       showDialog(ERROR_DIALOG_ID);
@@ -795,8 +810,6 @@ public class InputActivity extends EvenTrendActivity {
     int count = getContentResolver().delete(uri, null, null);
     mUndoLock.unlock();
     mLastAddRowView.populateFields();
-    mUndo.setClickable(false);
-    mUndo.setTextColor(Color.DKGRAY);
 
     if (count != 1) {
       mDialogErrorTitle = "Error";

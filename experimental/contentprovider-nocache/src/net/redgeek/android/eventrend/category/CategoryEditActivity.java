@@ -59,10 +59,6 @@ import net.redgeek.android.eventrend.util.Number;
 import java.util.ArrayList;
 
 public class CategoryEditActivity extends EvenTrendActivity {
-  public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 1;
-  public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 2;
-  public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
-  
   static final int DIALOG_HELP_GROUP = 1;
   static final int DIALOG_HELP_CATEGORY = 2;
   static final int DIALOG_HELP_GOAL = 3;
@@ -130,7 +126,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
   private String mColorStr;
   private Long mRowId;
   private int mMaxRank;
-  private boolean mSave = false;
   private String mType;
   
   // Listeners
@@ -480,9 +475,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mFormulaEditListener = new View.OnClickListener() {
       public void onClick(View view) {
         // TODO: formula-related stuff
-         mSave = true;
          saveState();
-         mSave = false;
          Intent i = new Intent(mCtx, FormulaEditorActivity.class);
          i.putExtra(TimeSeries._ID, mRowId);
          startActivityForResult(i, ARC_FORMULA_EDIT);
@@ -491,8 +484,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
     mOkListener = new View.OnClickListener() {
       public void onClick(View view) {
-        mSave = true;
-        setResult(RESULT_OK);
+        setResult(saveState());
         finish();
       }
     };
@@ -579,69 +571,82 @@ public class CategoryEditActivity extends EvenTrendActivity {
     // populateFields();
   }
 
-  private void saveState() {
-    if (mSave == true) {
-      double d;
-      String value;
-      ContentValues values = new ContentValues();
+  private int saveState() {
+    double d;
+    String value;
+    ContentValues values = new ContentValues();
 
-      mRow.mDecimals = Integer.valueOf(mDecimalsText.getText().toString()).intValue();
-      
-      values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
-      values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
-      d = Number.Round(Double.valueOf(mGoalText.getText().toString()).doubleValue(), mRow.mDecimals);
-      values.put(TimeSeries.GOAL, d);
-      values.put(TimeSeries.COLOR, mColorStr);
-      values.put(TimeSeries.PERIOD, mPeriodSeconds);
-      values.put(TimeSeries.UNITS, mUnitsText.getText().toString());
-      values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked() ? 1 : 0);
-      d = Number.Round(Double.valueOf(mSensitivityText.getText().toString()).doubleValue(), mRow.mDecimals * 2);
-      values.put(TimeSeries.SENSITIVITY, d);
-      d = Number.Round(Double.valueOf(mSmoothingText.getText().toString()).doubleValue(), mRow.mDecimals * 2);
-      values.put(TimeSeries.SMOOTHING, d);
-      values.put(TimeSeries.HISTORY, Integer.valueOf(mHistoryText.getText().toString()).intValue());
-      values.put(TimeSeries.DECIMALS, Integer.valueOf(mDecimalsText.getText().toString()).intValue());
-      values.put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
-      values.put(TimeSeries.INTERPOLATION, "");
-      // TODO:  formula-related stuff
-      if (mRow.mFormula == null || TextUtils.isEmpty(mRow.mFormula))
-        values.put(TimeSeries.FORMULA, "");
-      else
-        values.put(TimeSeries.FORMULA, mRow.mFormula);
-      
-      mAggRadio = (RadioButton) findViewById(mAggRadioGroup.getCheckedRadioButtonId());
-      values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString().toLowerCase());
+    mRow.mDecimals = Integer.valueOf(mDecimalsText.getText().toString())
+        .intValue();
 
-      if (mSeriesTypeSpinner.getSelectedItem().toString().toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
-        values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
-        values.put(TimeSeries.INCREMENT, 1.0f);
-      } else {
-        d = Number.Round(Double.valueOf(mDefaultValueText.getText().toString()).doubleValue(), mRow.mDecimals);
-        values.put(TimeSeries.DEFAULT_VALUE, d);
-        d = Number.Round(Double.valueOf(mIncrementText.getText().toString()).doubleValue(), mRow.mDecimals);
-        values.put(TimeSeries.INCREMENT, d);
-      }
+    values.put(TimeSeries.TIMESERIES_NAME, mCategoryText.getText().toString());
+    values.put(TimeSeries.GROUP_NAME, mGroupCombo.getText().toString());
+    d = Number.Round(Double.valueOf(mGoalText.getText().toString())
+        .doubleValue(), mRow.mDecimals);
+    values.put(TimeSeries.GOAL, d);
+    values.put(TimeSeries.COLOR, mColorStr);
+    values.put(TimeSeries.PERIOD, mPeriodSeconds);
+    values.put(TimeSeries.UNITS, mUnitsText.getText().toString());
+    values.put(TimeSeries.ZEROFILL, mZeroFillCheck.isChecked() ? 1 : 0);
+    d = Number.Round(Double.valueOf(mSensitivityText.getText().toString())
+        .doubleValue(), mRow.mDecimals * 2);
+    values.put(TimeSeries.SENSITIVITY, d);
+    d = Number.Round(Double.valueOf(mSmoothingText.getText().toString())
+        .doubleValue(), mRow.mDecimals * 2);
+    values.put(TimeSeries.SMOOTHING, d);
+    values.put(TimeSeries.HISTORY, Integer.valueOf(
+        mHistoryText.getText().toString()).intValue());
+    values.put(TimeSeries.DECIMALS, Integer.valueOf(
+        mDecimalsText.getText().toString()).intValue());
+    values
+        .put(TimeSeries.TYPE, mSeriesTypeSpinner.getSelectedItem().toString());
+    values.put(TimeSeries.INTERPOLATION, "");
+    // TODO: formula-related stuff
+    if (mRow.mFormula == null || TextUtils.isEmpty(mRow.mFormula))
+      values.put(TimeSeries.FORMULA, "");
+    else
+      values.put(TimeSeries.FORMULA, mRow.mFormula);
 
-      if (mRowId == null) {
-        // insert
-        values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
-        values.put(TimeSeries.RANK, mMaxRank + 1);
-        Uri uri = getContentResolver().insert(TimeSeriesData.TimeSeries.CONTENT_URI, values);
-        if (uri != null) {
-          String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
-          mRowId = Long.valueOf(rowIdStr);
-          setResult(CATEGORY_CREATED);
-        } else {
-          setResult(CATEGORY_OP_ERR);
-        }
-      } else {
-        // update
-        values.put(TimeSeries.RANK, mRow.mRank);
-        Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, mRowId);
-        getContentResolver().update(uri, values, null, null);
-        setResult(CATEGORY_MODIFIED);
-      }
+    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
+        .getCheckedRadioButtonId());
+    values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString()
+        .toLowerCase());
+
+    if (mSeriesTypeSpinner.getSelectedItem().toString().toLowerCase().equals(
+        TimeSeries.TYPE_SYNTHETIC)) {
+      values.put(TimeSeries.DEFAULT_VALUE, 0.0f);
+      values.put(TimeSeries.INCREMENT, 1.0f);
+    } else {
+      d = Number.Round(Double.valueOf(mDefaultValueText.getText().toString())
+          .doubleValue(), mRow.mDecimals);
+      values.put(TimeSeries.DEFAULT_VALUE, d);
+      d = Number.Round(Double.valueOf(mIncrementText.getText().toString())
+          .doubleValue(), mRow.mDecimals);
+      values.put(TimeSeries.INCREMENT, d);
     }
+
+    if (mRowId == null) {
+      // insert
+      values.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
+      values.put(TimeSeries.RANK, mMaxRank + 1);
+      Uri uri = getContentResolver().insert(
+          TimeSeriesData.TimeSeries.CONTENT_URI, values);
+      if (uri != null) {
+        String rowIdStr = uri.getPathSegments().get(
+            TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+        mRowId = Long.valueOf(rowIdStr);
+        return CATEGORY_CREATED;
+      }
+    } else {
+      // update
+      values.put(TimeSeries.RANK, mRow.mRank);
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, mRowId);
+      getContentResolver().update(uri, values, null, null);
+      return CATEGORY_MODIFIED;
+    }
+    
+    return CATEGORY_OP_ERR;
   }
 
   @Override
