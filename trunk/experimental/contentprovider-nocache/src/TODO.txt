@@ -15,19 +15,24 @@ Input Activity:
 CategoryEdit/Wizard:
 - share common components
 - make formula editor not require saving the category
+  - move to it's own flipper screen?
 Import:
 - implement v2 importing
 - implement v1 importing
 - implement spreadsheet importing/exporting
 Grapher:
-- graph ranges differently
+- graph ranged datapoints differently
 - fix x-labels when zoomed to minute level
 - only graph the visible portions
 - fix graph range when range == 0 or 1
+- add back in correlator
 EntryLister:
 - implement
 EntryEditor:
 - implement
+Preferences:
+- auto backup frequency
+- auto backup format
 
 This file intended for temporary notes only.  See
 

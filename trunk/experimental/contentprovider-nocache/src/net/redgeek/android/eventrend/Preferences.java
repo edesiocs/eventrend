@@ -46,21 +46,10 @@ public class Preferences extends PreferenceActivity {
 
   public static final String PREFS_NAME = "EvenTrendPrefs";
 
-  public static final String PREFS_DEFAULT_VIEW = "DefaultView";
   public static final String PREFS_DEFAULT_GRAPH_BLACK = "BlackGraphBackground";
-  public static final String PREFS_DEFAULT_TO_LAST = "DefaultToLast";
-  public static final String PREFS_DECIMAL_PLACES = "DecimalPlaces";
-  public static final String PREFS_SMOOTHING_PERCENT = "SmoothingPercentage";
-  public static final String PREFS_HISTORY = "History";
-  public static final String PREFS_TREND_STDDEV = "DeviationSensitivity";
 
   public static final String PREFS_VIEW_DEFAULT = "";
   public static final boolean PREFS_GRAPH_BACKGROUND_BLACK = true;
-  public static final boolean PREFS_DEFAULT_TO_LAST_DEFAULT = false;
-  public static final int PREFS_DECIMAL_PLACES_DEFAULT = 2;
-  public static final float PREFS_SMOOTHING_PERCENT_DEFAULT = 0.1f;
-  public static final int PREFS_HISTORY_DEFAULT = 20;
-  public static final float PREFS_TREND_STDDEV_DEFAULT = 0.5f;
 
   private ContentResolver mContent;
   private DialogUtil      mDialogUtil;
@@ -94,56 +83,6 @@ public class Preferences extends PreferenceActivity {
         .setDefaultValue(new Boolean(PREFS_GRAPH_BACKGROUND_BLACK));
     dataInput.addPreference(defaultGraphBlack);
 
-    // Decimal places
-    EditTextPreference decimalPlaces = new EditTextPreference(this);
-    decimalPlaces.setDialogTitle("Number of Decimal Places");
-    decimalPlaces.setKey(PREFS_DECIMAL_PLACES);
-    decimalPlaces.setTitle("Decimal Places");
-    decimalPlaces.setSummary("The number of decimal places to round to");
-    decimalPlaces.setDefaultValue(new Integer(PREFS_DECIMAL_PLACES_DEFAULT)
-        .toString());
-    decimalPlaces.getEditText().setKeyListener(integer);
-    dataInput.addPreference(decimalPlaces);
-
-    // Trending prefs
-    PreferenceCategory trendingPrefs = new PreferenceCategory(this);
-    trendingPrefs.setTitle("Trending Parameters");
-    root.addPreference(trendingPrefs);
-
-    // History
-    EditTextPreference history = new EditTextPreference(this);
-    history.setDialogTitle("Trending History");
-    history.setKey(PREFS_HISTORY);
-    history.setTitle("History");
-    history
-        .setSummary("The number of datapoints to include in weighted averaging.");
-    history.setDefaultValue(new Integer(PREFS_HISTORY_DEFAULT).toString());
-    history.getEditText().setKeyListener(integer);
-    trendingPrefs.addPreference(history);
-
-    // Standard Deviation Sensitivity
-    EditTextPreference sensitivity = new EditTextPreference(this);
-    sensitivity.setDialogTitle("Deviation Sensitivity");
-    sensitivity.setKey(PREFS_TREND_STDDEV);
-    sensitivity.setTitle("Standard Deviation Sensitivity");
-    sensitivity
-        .setSummary("A scaling influencing trend icons.  Bigger == less sensitive.");
-    sensitivity.setDefaultValue(new Float(PREFS_TREND_STDDEV_DEFAULT)
-        .toString());
-    sensitivity.getEditText().setKeyListener(decimal);
-    trendingPrefs.addPreference(sensitivity);
-
-    // Smoothing
-    EditTextPreference smoothing = new EditTextPreference(this);
-    smoothing.setDialogTitle("Smoothing Constant");
-    smoothing.setKey(PREFS_SMOOTHING_PERCENT);
-    smoothing.setTitle("Smoothing Constant");
-    smoothing.setSummary("Weight to decay moving average weighting by.");
-    smoothing.setDefaultValue(new Float(PREFS_SMOOTHING_PERCENT_DEFAULT)
-        .toString());
-    smoothing.getEditText().setKeyListener(decimal);
-    trendingPrefs.addPreference(smoothing);
-
     return root;
   }
   
@@ -175,79 +114,10 @@ public class Preferences extends PreferenceActivity {
     return null;
   }
 
-  public static String getDefaultGroup(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    return settings.getString(PREFS_DEFAULT_VIEW, PREFS_VIEW_DEFAULT);
-  }
-
   public static boolean getDefaultGraphIsBlack(Context ctx) {
     SharedPreferences settings = PreferenceManager
         .getDefaultSharedPreferences(ctx);
     return settings.getBoolean(PREFS_DEFAULT_GRAPH_BLACK, new Boolean(
         PREFS_GRAPH_BACKGROUND_BLACK));
-  }
-
-  public static boolean getDefaultIsLastValue(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    return settings.getBoolean(PREFS_DEFAULT_TO_LAST, new Boolean(
-        PREFS_DEFAULT_TO_LAST_DEFAULT));
-  }
-
-  public static int getDecimalPlaces(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    String s = settings.getString(PREFS_DECIMAL_PLACES, new Integer(
-        PREFS_DECIMAL_PLACES_DEFAULT).toString());
-    int i;
-    try {
-      i = Integer.parseInt(s);
-    } catch (Exception e) {
-      i = PREFS_DECIMAL_PLACES_DEFAULT;
-    }
-    return i;
-  }
-
-  public static float getSmoothingConstant(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    String s = settings.getString(PREFS_SMOOTHING_PERCENT, new Float(
-        PREFS_SMOOTHING_PERCENT_DEFAULT).toString());
-    float f;
-    try {
-      f = Float.parseFloat(s);
-    } catch (Exception e) {
-      f = PREFS_SMOOTHING_PERCENT_DEFAULT;
-    }
-    return f;
-  }
-
-  public static int getHistory(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    String s = settings.getString(PREFS_HISTORY, new Integer(
-        PREFS_HISTORY_DEFAULT).toString());
-    int i;
-    try {
-      i = Integer.parseInt(s);
-    } catch (Exception e) {
-      i = PREFS_HISTORY_DEFAULT;
-    }
-    return i;
-  }
-
-  public static float getStdDevSensitivity(Context ctx) {
-    SharedPreferences settings = PreferenceManager
-        .getDefaultSharedPreferences(ctx);
-    String s = settings.getString(PREFS_TREND_STDDEV, new Float(
-        PREFS_TREND_STDDEV_DEFAULT).toString());
-    float f;
-    try {
-      f = Float.parseFloat(s);
-    } catch (Exception e) {
-      f = PREFS_TREND_STDDEV_DEFAULT;
-    }
-    return f;
   }
 }

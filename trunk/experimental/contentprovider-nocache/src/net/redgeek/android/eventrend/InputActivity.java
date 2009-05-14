@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package net.redgeek.android.eventrend.input;
+package net.redgeek.android.eventrend;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -62,8 +62,6 @@ import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.EvenTrendActivity;
-import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.category.CategoryEditActivity;
 import net.redgeek.android.eventrend.category.CategoryListAdapter;
@@ -162,11 +160,6 @@ public class InputActivity extends EvenTrendActivity {
   private String mDialogErrorTitle = "";
   private String mDialogErrorMsg = "";
   
-  // From preferences
-  private int mHistory;
-  private float mSmoothing;
-  private float mSensitivity;
-
   // Listeners
   private OnTouchListener mTouchListener;
   private View.OnClickListener mPickDateListener;
@@ -184,8 +177,6 @@ public class InputActivity extends EvenTrendActivity {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
-    getPrefs();
-    
     mProgressBox = new ProgressIndicator.DialogSoft(mCtx, SERVICE_CONNECTING_DIALOG_ID);
     setupTasksAndData();
     setupUI();
@@ -214,12 +205,6 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   // *** main setup routines ***/
-  private void getPrefs() {
-    mHistory = Preferences.getHistory(mCtx);
-    mSmoothing = Preferences.getSmoothingConstant(mCtx);
-    mSensitivity = Preferences.getStdDevSensitivity(mCtx);
-  }
-
   private void setupTasksAndData() {
     mUndoLock = new ReentrantLock();
     
@@ -393,7 +378,6 @@ public class InputActivity extends EvenTrendActivity {
   protected void onResume() {
     scheduleUpdateNow();
     registerContentObservers();
-    getPrefs();
 
     super.onResume();
   }
@@ -494,9 +478,9 @@ public class InputActivity extends EvenTrendActivity {
       case MENU_VISUALIZE_ID:
         visualizeEntries();
         return true;
-//      case MENU_PREFS_ID:
-//        editPrefs();
-//        return true;
+      case MENU_PREFS_ID:
+        editPrefs();
+        return true;
       case MENU_HELP_ID:
         showDialog(HELP_DIALOG_ID);
         return true;
@@ -732,11 +716,11 @@ public class InputActivity extends EvenTrendActivity {
 //    mTSC.clearSeriesLocking();
 //    startActivityForResult(i, ENTRY_LIST);
 //  }
-//
-//  private void editPrefs() {
-//    Intent i = new Intent(this, Preferences.class);
-//    startActivityForResult(i, PREFS_EDIT);
-//  }
+
+  private void editPrefs() {
+    Intent i = new Intent(this, Preferences.class);
+    startActivityForResult(i, ARC_PREFS_EDIT);
+  }
 
   private void visualizeEntries() {
     Uri uri = TimeSeries.CONTENT_URI;
@@ -750,7 +734,7 @@ public class InputActivity extends EvenTrendActivity {
       String catId = Long.toString(((CategoryRow) cla.getItem(j)).mId);
       catIds.add(catId);
     }
-    i.putStringArrayListExtra(GraphActivity.DEFAULT_VIEW_IDS, catIds);
+    i.putStringArrayListExtra(GraphActivity.VISUALIZATION_VIEW_IDS, catIds);
     startActivityForResult(i, ARC_VISUALIZE_VIEW);
   }
   

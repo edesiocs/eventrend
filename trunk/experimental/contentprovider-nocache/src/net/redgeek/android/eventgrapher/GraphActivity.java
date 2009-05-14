@@ -52,10 +52,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class GraphActivity extends EvenTrendActivity {
-  public static final String DEFAULT_VIEW_IDS = "graphViewIds";
-  public static final String GRAPH_START_TS = "graphEndTs";
-  public static final String GRAPH_END_TS = "graphStartTs";
-  public static final String GRAPH_AGGREGATION = "graphAggregation";
+  public static final String VISUALIZATION_VIEW_IDS = "visViewIds";
+  public static final String VISUALIZATION_START_TS = "visEndTs";
+  public static final String VISUALIZATION_END_TS = "visStartTs";
+  public static final String VISUALIZATION_AGGREGATION = "visAggregation";
 
   // Menu items
   private static final int MENU_GRAPH_FILTER_ID = Menu.FIRST;
@@ -124,7 +124,7 @@ public class GraphActivity extends EvenTrendActivity {
     mTSC = new TimeSeriesCollector(getContentResolver());
     mTSC.fetchTimeSeries();
 
-    mSeriesEnabled = getIntent().getStringArrayListExtra(DEFAULT_VIEW_IDS);
+    mSeriesEnabled = getIntent().getStringArrayListExtra(VISUALIZATION_VIEW_IDS);
     if (mSeriesEnabled != null) {
       for (int i = 0; i < mSeriesEnabled.size(); i++) {
         Integer j = Integer.valueOf(mSeriesEnabled.get(i));
@@ -136,14 +136,14 @@ public class GraphActivity extends EvenTrendActivity {
     int defaultEndTs = (int) (cal.getTimeInMillis() / DateMap.SECOND_MS);
     int defaultStartTs = (int) (defaultEndTs - ((DateMap.DAY_SECS) * 7));
 
-    mStartTs = getIntent().getIntExtra(GRAPH_START_TS, defaultStartTs);
-    mEndTs = getIntent().getIntExtra(GRAPH_END_TS, defaultEndTs);
+    mStartTs = getIntent().getIntExtra(VISUALIZATION_START_TS, defaultStartTs);
+    mEndTs = getIntent().getIntExtra(VISUALIZATION_END_TS, defaultEndTs);
 
     if (icicle != null) {
-      mStartTs = icicle.getInt(GRAPH_START_TS);
-      mEndTs = icicle.getInt(GRAPH_END_TS);
-      mAggregation = icicle.getInt(GRAPH_AGGREGATION);
-      mSeriesEnabled = icicle.getStringArrayList(DEFAULT_VIEW_IDS);
+      mStartTs = icicle.getInt(VISUALIZATION_START_TS);
+      mEndTs = icicle.getInt(VISUALIZATION_END_TS);
+      mAggregation = icicle.getInt(VISUALIZATION_AGGREGATION);
+      mSeriesEnabled = icicle.getStringArrayList(VISUALIZATION_VIEW_IDS);
       if (mSeriesEnabled != null) {
         for (int i = 0; i < mSeriesEnabled.size(); i++) {
           Integer j = Integer.valueOf(mSeriesEnabled.get(i));
@@ -414,10 +414,10 @@ public class GraphActivity extends EvenTrendActivity {
         mSeriesEnabled.add(new String(""+ts.mRow.mId));
     }
 
-    outState.putStringArrayList(DEFAULT_VIEW_IDS, mSeriesEnabled);
-    outState.putLong(GRAPH_START_TS, mGraphView.getGraph().getGraphStart());
-    outState.putLong(GRAPH_END_TS, mGraphView.getGraph().getGraphEnd());
-    outState.putLong(GRAPH_AGGREGATION, mAggregation);
+    outState.putStringArrayList(VISUALIZATION_VIEW_IDS, mSeriesEnabled);
+    outState.putLong(VISUALIZATION_START_TS, mGraphView.getGraph().getGraphStart());
+    outState.putLong(VISUALIZATION_END_TS, mGraphView.getGraph().getGraphEnd());
+    outState.putLong(VISUALIZATION_AGGREGATION, mAggregation);
     super.onSaveInstanceState(outState);
   }
 

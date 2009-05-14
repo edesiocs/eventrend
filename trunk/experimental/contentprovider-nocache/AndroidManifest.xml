@@ -10,7 +10,7 @@
   	android:icon="@drawable/icon">
     <activity 
       android:label="@string/app_name" 
-      android:name="net.redgeek.android.eventrend.input.InputActivity"
+      android:name="net.redgeek.android.eventrend.InputActivity"
       android:screenOrientation="sensor">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -111,7 +111,6 @@
       </intent-filter>
     </activity>
 
-<!--
 		<activity 
       android:label="EvenTrend Importer" 
 		  android:name="net.redgeek.android.eventrend.importing.ImportActivity">
@@ -126,7 +125,6 @@
         <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
       </intent-filter>
 		</activity>
--->
 
     <activity 
       android:label="EvenTrend Formula Editor" 
