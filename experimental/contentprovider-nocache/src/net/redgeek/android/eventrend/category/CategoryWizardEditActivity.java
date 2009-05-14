@@ -65,10 +65,8 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
   public static final int CATEGORY_CANCELED = RESULT_FIRST_USER + 1;
   public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 2;
   public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 3;
-  public static final int CATEGORY_DELETED  = RESULT_FIRST_USER + 4;
   public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
   
-  static final int DELETE_DIALOG_ID = 0;
   static final int DIALOG_HELP_GROUP = 1;
   static final int DIALOG_HELP_CATEGORY = 2;
   static final int DIALOG_HELP_GOAL = 3;
@@ -168,7 +166,6 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
   private Spinner.OnItemSelectedListener mSeriesTypeListener;
   private View.OnClickListener mFormulaEditListener;
   private View.OnClickListener mOkListener;
-  private View.OnClickListener mDeleteListener;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -862,10 +859,6 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
     String title;
     String msg;
     switch (id) {
-      case DELETE_DIALOG_ID:
-        title = "Delete " + mCategoryText.getText().toString() + "?";
-        msg = "All associated entries will also be deleted!";
-        return dialog(title, msg);
       case DIALOG_HELP_GROUP:
         title = getResources().getString(R.string.cat_group_title);
         msg = getResources().getString(R.string.cat_group_desc);
@@ -932,28 +925,6 @@ public class CategoryWizardEditActivity extends EvenTrendActivity {
         return mDialogUtil.newOkDialog(title, msg + "\n");
     }
     return null;
-  }
-
-  private Dialog dialog(String title, String msg) {
-    Builder b = new AlertDialog.Builder(mCtx);
-    b.setTitle(title);
-    b.setMessage(msg);
-    b.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int whichButton) {
-        Uri timeseries = ContentUris.withAppendedId(
-            TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId);
-        mCtx.getContentResolver().delete(timeseries, null, null);
-        setResult(CATEGORY_DELETED);
-        finish();
-      }
-    });
-    b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-      public void onClick(DialogInterface dialog, int whichButton) {
-        setResult(RESULT_CANCELED);
-      }
-    });
-    Dialog d = b.create();
-    return d;
   }
 
   private void setHelpDialog(int resId, final int dialog) {

@@ -260,10 +260,7 @@
       
       <TableRow android:layout_width="wrap_content"
         android:layout_height="wrap_content">
-        <Button android:layout_width="wrap_content"
-          android:layout_height="wrap_content" android:text="Delete"
-          android:id="@+id/category_edit_delete" android:layout_gravity="right|center_vertical">
-        </Button>
+        
         <Button android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:text="Ok"
           android:id="@+id/category_edit_ok" android:layout_gravity="right|center_vertical">

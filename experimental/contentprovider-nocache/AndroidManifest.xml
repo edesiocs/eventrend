@@ -22,11 +22,6 @@
         <category android:name="android.intent.category.DEFAULT" />
         <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
-      <intent-filter>
-        <action android:name="android.intent.action.INSERT" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
-      </intent-filter>
 		</activity>
 
     <activity 
@@ -96,7 +91,6 @@
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
-        <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
         <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>
@@ -112,7 +106,6 @@
       </intent-filter>
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
-        <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
         <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries" />
       </intent-filter>

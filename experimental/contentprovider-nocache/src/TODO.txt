@@ -1,20 +1,33 @@
+check all return values from recorderservice/provider
+move timseries abstractions out, change names
 
 Input Activity:
+- figure out why result codes aren't propogated
 - Make service connection dialog appear at start
   - Make sure to not attempt to use connection until established
 - Virtual Keyboard:
   - make it stick to numeric when appropriate
   - auto-scroll to put selected field in view
+- implement undo
+- test re-drawing after category edit/deletion/creation
+  - error dialog if any of the above fail
+- implement undo
 CategoryEdit/Wizard:
 - share common components
+- make formula editor not require saving the category
 Import:
 - implement v2 importing
 - implement v1 importing
-- implement spreadsheet importing
+- implement spreadsheet importing/exporting
 Grapher:
 - graph ranges differently
 - fix x-labels when zoomed to minute level
 - only graph the visible portions
+- fix graph range when range == 0 or 1
+EntryLister:
+- implement
+EntryEditor:
+- implement
 
 This file intended for temporary notes only.  See
 
