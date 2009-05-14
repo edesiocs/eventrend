@@ -1524,6 +1524,7 @@ public class TimeSeriesProvider extends ContentProvider {
           int oldStart = Datapoint.getTsStart(c);
           double oldValue = Datapoint.getValue(c);
           int oldEntries = Datapoint.getEntries(c);
+          c.close();
           
           count = db.delete(Datapoint.TABLE_NAME, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),
