@@ -16,12 +16,15 @@
 
 package net.redgeek.android.eventrend.input;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.app.AlertDialog.Builder;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.ContentObserver;
 import android.database.Cursor;
@@ -76,8 +79,6 @@ import java.util.HashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-// TODO:  change everything to content providers
-// TODO:  setup listeners for CP changes
 public class InputActivity extends EvenTrendActivity {
   // Menu-button IDs
   private static final int MENU_ADD_ID = Menu.FIRST;
@@ -97,6 +98,8 @@ public class InputActivity extends EvenTrendActivity {
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
   private static final int SERVICE_CONNECTING_DIALOG_ID = 3;
+  private static final int DELETE_DIALOG_ID = 4;
+  private static final int ERROR_DIALOG_ID = 5;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -152,7 +155,15 @@ public class InputActivity extends EvenTrendActivity {
   private int mOldHour = 0;
   private DateUtil.DateItem mTimestamp;
   private Calendar mCal;
+  
+  // For deletion:
+  private String mDeleteCategoryName = "";
+  private long mDeleteCategoryId = 0;
 
+  // For error dialogs:
+  private String mDialogErrorTitle = "";
+  private String mDialogErrorMsg = "";
+  
   // From preferences
   private int mHistory;
   private float mSmoothing;
@@ -399,20 +410,32 @@ public class InputActivity extends EvenTrendActivity {
     switch (requestCode) {
       case ARC_CATEGORY_EDIT:
         // TODO:  only re-draw if the group or rank has changed.
+        switch (resultCode) {
+          case CategoryEditActivity.CATEGORY_MODIFIED:
+            break;
+          default:
+            mDialogErrorTitle = "Error";
+            mDialogErrorMsg = "Error editing category";
+            showDialog(ERROR_DIALOG_ID);
+            break;
+        }
+        break;
       case ARC_CATEGORY_CREATE:
         switch (resultCode) {
           case CategoryEditActivity.CATEGORY_CREATED:
+            break;
           default:
-            // TODO: figure out why resultCode isn't propogated,
-            // display error dialog if the category isn't created
-            fillCategoryData(-1);
-            setCurrentViews(true);
+            mDialogErrorTitle = "Error";
+            mDialogErrorMsg = "Error creating category";
+            showDialog(ERROR_DIALOG_ID);
             break;
         }
         break;
       default:
         break;
     }
+    fillCategoryData(-1);
+    setCurrentViews(true);
   }
 
   // *** clock ***//
@@ -488,6 +511,7 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   public boolean onContextItemSelected(MenuItem item) {
+    CategoryRow row;
     AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item
         .getMenuInfo();
 
@@ -517,8 +541,10 @@ public class InputActivity extends EvenTrendActivity {
           swapCategoryPositions(cla, position, position + 1);
         break;
       case CONTEXT_DELETE:
-        catId = ((CategoryRow) cla.getItem(position)).mId;
-        deleteCategory(catId);
+        row = ((CategoryRow) cla.getItem(position));
+        mDeleteCategoryId = row.mId;
+        mDeleteCategoryName = row.mTimeSeriesName;
+        showDialog(DELETE_DIALOG_ID);
         break;
       default:
         return super.onContextItemSelected(item);
@@ -544,6 +570,12 @@ public class InputActivity extends EvenTrendActivity {
       case SERVICE_CONNECTING_DIALOG_ID:
         return mDialogUtil.newProgressDialog(
             "Connecting to recorder service and updating stats ...");
+      case DELETE_DIALOG_ID:
+        String title = "Delete " + mDeleteCategoryName + "?";
+        String msg = "All associated entries will also be deleted!";
+        return deleteDialog(title, msg);
+      case ERROR_DIALOG_ID:
+        return mDialogUtil.newOkDialog(mDialogErrorTitle, mDialogErrorMsg);
     }
     return null;
   }
@@ -560,6 +592,25 @@ public class InputActivity extends EvenTrendActivity {
             mTimestamp.mMonth, mTimestamp.mDay);
         break;
     }
+  }
+
+  private Dialog deleteDialog(String title, String msg) {
+    Builder b = new AlertDialog.Builder(mCtx);
+    b.setTitle(title);
+    b.setMessage(msg);
+    b.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+        deleteCategory(mDeleteCategoryId);
+        mDeleteCategoryId = 0;
+        mDeleteCategoryName = "";
+      }
+    });
+    b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+      }
+    });
+    Dialog d = b.create();
+    return d;
   }
 
   // *** Filling out the main listview ***//
@@ -672,7 +723,12 @@ public class InputActivity extends EvenTrendActivity {
 
   private void deleteCategory(long catId) {
     Uri uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, catId);
-    getContentResolver().delete(uri, null, null);
+    int count = getContentResolver().delete(uri, null, null);
+    if (count != 1) {
+      mDialogErrorTitle = "Error";
+      mDialogErrorMsg = "Error deleting category: " + count;
+      showDialog(ERROR_DIALOG_ID);
+    }
     fillCategoryData(-1);
     setCurrentViews(true);
   }
