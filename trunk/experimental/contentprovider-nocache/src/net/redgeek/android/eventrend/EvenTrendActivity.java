@@ -64,6 +64,12 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final int ARC_PREFS_EDIT = 50;
   public static final int ARC_FORMULA_EDIT = 60;
 
+  // Common activity result codes
+  public static final int CATEGORY_CANCELED = RESULT_FIRST_USER + 1;
+  public static final int CATEGORY_CREATED  = RESULT_FIRST_USER + 2;
+  public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 3;
+  public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
+
   protected Context mCtx;
   protected ContentResolver mContent;
   protected DialogUtil mDialogUtil;

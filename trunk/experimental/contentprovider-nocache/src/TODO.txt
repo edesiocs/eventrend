@@ -1,18 +1,18 @@
 check all return values from recorderservice/provider
 move timseries abstractions out, change names
 
+Provider:
+- spawn zero-filler if zero-fill gets turned on
 Input Activity:
-- figure out why result codes aren't propogated
 - Make service connection dialog appear at start
   - Make sure to not attempt to use connection until established
 - Virtual Keyboard:
   - make it stick to numeric when appropriate
   - auto-scroll to put selected field in view
-- figure out why undo is clickable at launch
-- test re-drawing after category edit/deletion/creation
-  - error dialog if any of the above fail
-- implement undo
+- make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
+- both: make sure correct radio button is selected
+- advanced: move ok button to right
 - share common components
 - make formula editor not require saving the category
   - move to it's own flipper screen?
@@ -21,6 +21,9 @@ Import:
 - implement v1 importing
 - implement spreadsheet importing/exporting
 Grapher:
+- establish "gathering data" dialog
+- fix markers when zooming
+- make sure aggregation is correct
 - graph ranged datapoints differently
 - fix x-labels when zoomed to minute level
 - only graph the visible portions
