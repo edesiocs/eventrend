@@ -42,7 +42,7 @@
 		<CheckBox android:layout_width="wrap_content" android:layout_height="wrap_content" android:id="@+id/entry_set_now" android:checked="true" android:text="Now"></CheckBox><Button 
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content" 
-			android:id="@+id/entry_undo" android:text="Undo Add">
+			android:id="@+id/entry_undo" android:text="Undo Add" android:clickable="false">
 		</Button>
 	</LinearLayout>
 	<LinearLayout 

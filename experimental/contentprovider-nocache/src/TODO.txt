@@ -8,7 +8,7 @@ Input Activity:
 - Virtual Keyboard:
   - make it stick to numeric when appropriate
   - auto-scroll to put selected field in view
-- implement undo
+- figure out why undo is clickable at launch
 - test re-drawing after category edit/deletion/creation
   - error dialog if any of the above fail
 - implement undo
