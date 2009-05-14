@@ -1,90 +1,78 @@
-///*
-// * Copyright (C) 2007 The Android Open Source Project
-// *
-// * Licensed under the Apache License, Version 2.0 (the "License");
-// * you may not use this file except in compliance with the License.
-// * You may obtain a copy of the License at
-// *
-// *      http://www.apache.org/licenses/LICENSE-2.0
-// *
-// * Unless required by applicable law or agreed to in writing, software
-// * distributed under the License is distributed on an "AS IS" BASIS,
-// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// * See the License for the specific language governing permissions and
-// * limitations under the License.
-// */
-//
-//package net.redgeek.android.eventrend.backgroundtasks;
-//
-//import java.io.BufferedReader;
-//import java.io.DataInputStream;
-//import java.io.FileInputStream;
-//import java.io.IOException;
-//import java.io.InputStreamReader;
-//import java.util.ArrayList;
-//
-//import net.redgeek.android.eventrecorder.CategoryDbTable;
-//import net.redgeek.android.eventrend.db.EntryDbTable;
-//import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-//import net.redgeek.android.eventrend.importing.CSV;
-//
-///**
-// * Import a CSV file into the database, replacing existing data. (Merge import
-// * is planned but not yet implemented.) Categories are created on demand, as the
-// * export format currently flattens the database into one file, meaning that
-// * most of the category fields are duplicated across every datapoint row.
-// * Furthermore, this means that if an entry exists without any associated
-// * datapoints, it will not exist in the output file, and thus will not be
-// * created when importing.
-// * 
-// * <p>
-// * Note that since this is "backgroundtask", no UI operations may be performed.
-// * 
-// * @author barclay
-// * 
-// */
-//public class ImportTask {
-//  private EvenTrendDbAdapter mDbh = null;
-//  private String mFilename = null;
-//  private int mHistory = -1;
-//
-//  // Intended for future discrete progress bar indicator:
-//  public int mNumRecords;
-//  public int mNumRecordsDone;
-//
-//  public ImportTask() {
-//  }
-//
-//  public ImportTask(EvenTrendDbAdapter dbh) {
-//    mDbh = dbh;
-//  }
-//
-//  public ImportTask(EvenTrendDbAdapter dbh, String filename, int history) {
-//    mDbh = dbh;
-//    mFilename = filename;
-//    mHistory = history;
-//  }
-//
-//  public void setDbh(EvenTrendDbAdapter dbh) {
-//    mDbh = dbh;
-//  }
-//
-//  public void setFilename(String filename) {
-//    mFilename = filename;
-//  }
-//
-//  public void setHistory(int history) {
-//    mHistory = history;
-//  }
-//
-//  public void doImport() throws IOException {
-//    if (mDbh == null || mFilename == null || mHistory < 0)
-//      return;
-//
-//    String line;
-//    ArrayList<String> columns = null;
-//    ArrayList<String> data = null;
-//
+/*
+ * Copyright (C) 2007 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package net.redgeek.android.eventrend.backgroundtasks;
+
+import android.content.ContentResolver;
+
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+
+/**
+ * Import a CSV file into the database, replacing existing data. (Merge import
+ * is planned but not yet implemented.) Categories are created on demand, as the
+ * export format currently flattens the database into one file, meaning that
+ * most of the category fields are duplicated across every datapoint row.
+ * Furthermore, this means that if an entry exists without any associated
+ * datapoints, it will not exist in the output file, and thus will not be
+ * created when importing.
+ * 
+ * <p>
+ * Note that since this is "backgroundtask", no UI operations may be performed.
+ * 
+ * @author barclay
+ * 
+ */
+public class ImportTask {
+  private ContentResolver mResolver = null;
+  private String mFilename = null;
+
+  // Intended for future discrete progress bar indicator:
+  public int mNumRecords;
+  public int mNumRecordsDone;
+
+  public ImportTask() {
+  }
+
+  public ImportTask(ContentResolver resolver) {
+    mResolver = resolver;
+  }
+
+  public ImportTask(ContentResolver resolver, String filename) {
+    mResolver = resolver;
+    mFilename = filename;
+  }
+
+  public void setFilename(String filename) {
+    mFilename = filename;
+  }
+
+  public void doImport() throws IOException {
+    if (mResolver == null || mFilename == null)
+      return;
+
+    String line;
+    ArrayList<String> columns = null;
+    ArrayList<String> data = null;
+
+    // TODO: implement
 //    mDbh.deleteAllCategories();
 //    mDbh.deleteAllEntries();
 //
@@ -113,11 +101,12 @@
 //    // c.moveToNext();
 //    // }
 //    // c.close();
-//
-//    return;
-//  }
-//
-//  private void insertEntry(ArrayList<String> data, ArrayList<String> columns) {
+
+    return;
+  }
+
+  private void insertEntry(ArrayList<String> data, ArrayList<String> columns) {
+    // TODO: implement
 //    CategoryDbTable.Row catQuery;
 //    CategoryDbTable.Row catNew = new CategoryDbTable.Row();
 //    EntryDbTable.Row entry = new EntryDbTable.Row();
@@ -176,5 +165,5 @@
 //    }
 //
 //    return;
-//  }
-//}
+  }
+}
