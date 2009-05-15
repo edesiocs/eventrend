@@ -18,19 +18,13 @@
 				android:text="Category" 
 				android:layout_gravity="left|center_vertical">
 			</TextView>
-			<LinearLayout 
-				android:id="@+id/entry_edit_category_menu_row" 
-				android:layout_height="wrap_content" 
-				android:layout_width="fill_parent">
-			</LinearLayout> 
-			<TextView 
-				android:id="@+id/entry_edit_category_changed"
-				android:layout_width="wrap_content" 
-				android:layout_height="wrap_content" 
-				android:text="" 
-				android:layout_gravity="right|center_vertical" 
-				android:textColor="@color/changed_value_marker">
-			</TextView>
+      <TextView 
+        android:id="@+id/entry_edit_name" 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="Category Name" 
+        android:layout_gravity="left|center_vertical">
+      </TextView>
 		</TableRow>
 		<TableRow 
 			android:layout_height="wrap_content" 
@@ -39,22 +33,15 @@
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
 				android:text="Value" 
-				android:layout_gravity="left|center_vertical">
+				android:layout_gravity="left|center_vertical" android:id="@+id/entry_value_label">
 			</TextView>
 			<EditText 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
 				android:id="@+id/entry_edit_value" 
-				android:layout_gravity="right|center_vertical" android:numeric="signed|decimal">
+				android:layout_gravity="right|center_vertical"
+        android:inputType="numberSigned|numberDecimal" android:minEms="4">
 			</EditText>
-			<TextView 
-				android:id="@+id/entry_edit_value_changed"
-				android:textColor="@color/changed_value_marker"
-				android:layout_width="wrap_content" 
-				android:layout_height="wrap_content" 
-				android:text="" 
-				android:layout_gravity="right|center_vertical">
-			</TextView>
 		</TableRow>
 
 		<TableRow 
@@ -63,22 +50,16 @@
 			<TextView 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
-				android:text="Aggregations: " 
-				android:layout_gravity="left|center_vertical">
+				android:text="# of Entries: " 
+				android:layout_gravity="left|center_vertical" android:id="@+id/entry_entries_label">
 			</TextView>
-			<TextView 
-				android:layout_width="wrap_content" 
-				android:layout_height="wrap_content" 
-				android:text="" 
-				android:id="@+id/entry_edit_n_entries" 
-				android:layout_gravity="left|center_vertical">
-			</TextView>
-			<TextView 
-				android:layout_width="wrap_content" 
-				android:layout_height="wrap_content" 
-				android:text="" 
-				android:layout_gravity="right|center_vertical">
-			</TextView>
+      <EditText 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:id="@+id/entry_edit_entries" 
+        android:layout_gravity="right|center_vertical"
+        android:inputType="numberSigned|numberDecimal" android:minEms="4">
+      </EditText>
 		</TableRow>
 		<TableRow 
 			android:layout_height="wrap_content" 
@@ -87,27 +68,66 @@
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
 				android:text="Timestamp: " 
-				android:layout_gravity="left|center_vertical">
+				android:layout_gravity="left|center_vertical" android:id="@+id/entry_ts_start_label">
 			</TextView>
 			<TextView 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
 				android:text="2009/01/01 12:00:00" 
-				android:id="@+id/entry_edit_timestamp" 
-				android:layout_gravity="left|center_vertical">
+				android:layout_gravity="left|center_vertical" android:id="@+id/entry_edit_ts_start">
 			</TextView>
-			<TextView 
-				android:id="@+id/entry_edit_timestamp_changed"
-				android:textColor="@color/changed_value_marker"
-				android:layout_width="wrap_content" 
-				android:layout_height="wrap_content" 
-				android:text="" 
-				android:layout_gravity="right|center_vertical">
-			</TextView>
+			
 		</TableRow>
+    <TableRow     
+      android:layout_height="wrap_content" 
+      android:layout_width="fill_parent"> 
+      <TextView 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="" 
+        android:layout_gravity="left|center_vertical">
+      </TextView>
+      <LinearLayout     
+        android:layout_height="wrap_content" 
+        android:layout_width="fill_parent"> 
+        <Button 
+          android:layout_width="wrap_content" 
+          android:layout_height="wrap_content" 
+          android:text="Now" android:id="@+id/entry_set_ts_start_now">
+        </Button>
+        <Button 
+          android:layout_width="wrap_content" 
+          android:layout_height="wrap_content" 
+          android:text="Set Date" android:id="@+id/entry_set_ts_start_date">
+        </Button>
+        <Button 
+          android:layout_width="wrap_content" 
+          android:layout_height="wrap_content" 
+          android:text="Set Time" android:id="@+id/entry_set_ts_start_time">
+        </Button>
+      </LinearLayout>
+    </TableRow>
+    <TableRow 
+      android:id="@+id/entry_ts_end_row" 
+      android:layout_height="wrap_content" 
+      android:layout_width="fill_parent">
+      <TextView 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="End Timestamp: " 
+        android:layout_gravity="left|center_vertical" android:id="@+id/entry_ts_end_label">
+      </TextView>
+      <TextView 
+        android:layout_width="wrap_content" 
+        android:layout_height="wrap_content" 
+        android:text="2009/01/01 12:00:00" 
+        android:layout_gravity="left|center_vertical" android:id="@+id/entry_edit_ts_end">
+      </TextView>
+      
+    </TableRow>
 		<TableRow 		
-			android:layout_height="wrap_content" 
-			android:layout_width="fill_parent">	
+      android:layout_height="wrap_content" 
+			android:layout_width="fill_parent" android:id="@+id/entry_edit_ts_end_row">	
 			<TextView 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
@@ -120,17 +140,17 @@
 				<Button 
 					android:layout_width="wrap_content" 
 					android:layout_height="wrap_content" 
-					android:id="@+id/entry_set_now" android:text="Now">
+					android:text="Now" android:id="@+id/entry_set_ts_end_now">
 				</Button>
 				<Button 
 					android:layout_width="wrap_content" 
 					android:layout_height="wrap_content" 
-					android:id="@+id/entry_set_date" android:text="Set Date">
+					android:text="Set Date" android:id="@+id/entry_set_ts_end_date">
 				</Button>
 				<Button 
 					android:layout_width="wrap_content" 
 					android:layout_height="wrap_content" 
-					android:id="@+id/entry_set_time" android:text="Set Time">
+					android:text="Set Time" android:id="@+id/entry_set_ts_end_time">
 				</Button>
 			</LinearLayout>
 		</TableRow>
