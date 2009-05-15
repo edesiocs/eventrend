@@ -3,6 +3,8 @@ move timseries abstractions out, change names
 different icons for different activities
 make Importer not show up on category edit list
 test ranges and synthetics
+set correct inputType on all views
+kill all TODOs
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
@@ -23,8 +25,10 @@ Grapher:
 - only graph the visible portions
 - fix graph range when range == 0 or 1
 - add back in correlator
+- add colored y-tick marks?
 EntryLister:
-- implement
+- finish conversion
+- change to fast-scroll list
 EntryEditor:
 - implement
 Preferences:
