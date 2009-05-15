@@ -12,9 +12,8 @@ Input Activity:
 - make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
 - both: make sure correct radio button is selected
-- both: make sure "back" doesn't save the category
+- both: make sure "back"/cancel doesn't save the category
 - both: test rank setting
-- share common components
 - make formula editor not require saving the category
 Import:
 - implement v2 importing

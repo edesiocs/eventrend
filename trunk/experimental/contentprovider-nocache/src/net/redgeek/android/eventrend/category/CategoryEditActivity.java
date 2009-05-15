@@ -16,15 +16,12 @@
 
 package net.redgeek.android.eventrend.category;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.AlertDialog.Builder;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.DialogInterface;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.net.Uri;
@@ -36,19 +33,15 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
-import android.widget.TableRow;
 import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.ColorPickerDialog;
@@ -66,86 +59,63 @@ public class CategoryEditActivity extends EvenTrendActivity {
   static final int DIALOG_HELP_AGGREGATE = 5;
   static final int DIALOG_HELP_AGGREGATE_PERIOD = 6;
   static final int DIALOG_HELP_UNITS = 8;
-  // synthetic config:
   static final int DIALOG_HELP_SYNTHETIC = 9;
   static final int DIALOG_HELP_FORMULA = 10;
-  // standard config:
   static final int DIALOG_HELP_DEFAULT_VALUE = 11;
   static final int DIALOG_HELP_INCREMENT = 12;
   static final int DIALOG_HELP_SERIES_TYPE = 13;
   static final int DIALOG_HELP_ZEROFILL = 14;
-  // previously preferences:
   static final int DIALOG_HELP_HISTORY = 15;
   static final int DIALOG_HELP_DECIMALS = 16;
   static final int DIALOG_HELP_SMOOTHING = 17;
   static final int DIALOG_HELP_SENSITIVITY = 18;
 
-  // UI elements
-  private LinearLayout mPeriodRow;
-  private TableRow mGroupRow;
-  private ComboBox mGroupCombo;
-  private EditText mCategoryText;
-  private Button mColorButton;
-  private DynamicSpinner mAggregatePeriodSpinner;
-  private EditText mGoalText;
-  private Button mOk;
-  private CheckBox mAdvancedCheck;
-  private TableRow mSeriesTypeRow;
-  private DynamicSpinner mSeriesTypeSpinner;
-  private RadioGroup mAggRadioGroup;
-  private RadioButton mAggRadio;
-  // synthetic elements:
-  private TableRow mFormulaRow;
-  private Button mFormulaEdit;
-  // standard elements:
-  private TableRow mDefaultValueRow;
-  private EditText mDefaultValueText;
-  private TableRow mIncrementRow;
-  private EditText mIncrementText;
-  private TableRow mZeroFillRow;
-  private CheckBox mZeroFillCheck;
-  // previously in prefs
-  private TableRow mTrendLabelRow;
-  private TableRow mUnitsRow;
-  private EditText mUnitsText;
-  private TableRow mHistoryRow;
-  private EditText mHistoryText;
-  private TableRow mDecimalsRow;
-  private EditText mDecimalsText;
-  private TableRow mSmoothingRow;
-  private EditText mSmoothingText;
-  private TableRow mSensitivityRow;
-  private EditText mSensitivityText;
+  // Common UI elements
+  protected ComboBox mGroupCombo;
+  protected EditText mCategoryText;
+  protected Button mColorButton;
+  protected DynamicSpinner mAggregatePeriodSpinner;
+  protected EditText mGoalText;
+  protected CheckBox mAdvancedCheck;
+  protected DynamicSpinner mSeriesTypeSpinner;
+  protected RadioGroup mAggRadioGroup;
+  protected RadioButton mAggRadio;
+  protected Button mFormulaEdit;
+  protected EditText mDefaultValueText;
+  protected EditText mIncrementText;
+  protected CheckBox mZeroFillCheck;
+  protected EditText mUnitsText;
+  protected EditText mHistoryText;
+  protected EditText mDecimalsText;
+  protected EditText mSmoothingText;
+  protected EditText mSensitivityText;
 
-  // Private data
-  private CategoryRow mRow;
-  private String mGroupName;
-  private int mPeriodSeconds;
+  // protected data
+  protected View mRoot;
+  protected Context mCtx;
+  protected CategoryRow mRow;
+  protected String mGroupName;
+  protected int mPeriodSeconds;
 
-  private Paint mPickerPaint;
-  private String mColorStr;
-  private Long mRowId;
-  private int mMaxRank;
-  private String mType;
+  protected Paint mPickerPaint;
+  protected String mColorStr;
+  protected Long mRowId;
+  protected int mMaxRank;
+  protected String mType;
   
   // Listeners
-  private RadioGroup.OnCheckedChangeListener mAggListener;
-  private ColorPickerDialog.OnColorChangedListener mColorChangeListener;
-  private View.OnClickListener mColorButtonListener;
-  private Spinner.OnItemSelectedListener mAggregatePeriodListener;
-  private CompoundButton.OnCheckedChangeListener mAdvancedListener;
-  private Spinner.OnItemSelectedListener mSeriesTypeListener;
-  private View.OnClickListener mFormulaEditListener;
-  private View.OnClickListener mOkListener;
+  protected RadioGroup.OnCheckedChangeListener mAggListener;
+  protected ColorPickerDialog.OnColorChangedListener mColorChangeListener;
+  protected View.OnClickListener mColorButtonListener;
+  protected Spinner.OnItemSelectedListener mAggregatePeriodListener;
+  protected Spinner.OnItemSelectedListener mSeriesTypeListener;
+  protected View.OnClickListener mFormulaEditListener;
 
   @Override
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
-
+    mCtx = this;
     getSavedStateContent(icicle);
-    setupUI();
-    populateFields();
-    updatePaint(mColorStr);
   }
 
   private void getSavedStateContent(Bundle icicle) {
@@ -214,27 +184,26 @@ public class CategoryEditActivity extends EvenTrendActivity {
     }
   }
 
-  private void setupUI() {
-    setContentView(R.layout.category_edit_advanced);
-
+  protected void setupUI(View root) {
+    mRoot = root;
+    
     setupListeners();
 
-    mCategoryText = (EditText) findViewById(R.id.category_edit_name);
+    mCategoryText = (EditText) root.findViewById(R.id.category_edit_name);
     InputFilter[] FilterArray = new InputFilter[1];
     FilterArray[0] = new RestrictedNameFilter("[\"\\\\]");
     mCategoryText.setFilters(FilterArray);
 
     setHelpDialog(R.id.category_edit_name_view, DIALOG_HELP_CATEGORY);
 
-    mGoalText = (EditText) findViewById(R.id.category_edit_goal);
+    mGoalText = (EditText) root.findViewById(R.id.category_edit_goal);
     setHelpDialog(R.id.category_edit_goal_view, DIALOG_HELP_GOAL);
 
-    mColorButton = (Button) findViewById(R.id.category_edit_color);
+    mColorButton = (Button) root.findViewById(R.id.category_edit_color);
     mColorButton.setOnClickListener(mColorButtonListener);
     setHelpDialog(R.id.category_edit_color_view, DIALOG_HELP_COLOR);
 
-    mPeriodRow = (TableRow) findViewById(R.id.category_edit_agg_period_row);
-    mAggregatePeriodSpinner = (DynamicSpinner) findViewById(R.id.category_edit_agg_period_menu);
+    mAggregatePeriodSpinner = (DynamicSpinner) root.findViewById(R.id.category_edit_agg_period_menu);
     for (int i = 0; i < TimeSeries.AGGREGATION_PERIOD_NAMES.length; i++) {
       mAggregatePeriodSpinner.addSpinnerItem(
           TimeSeries.AGGREGATION_PERIOD_NAMES[i], new Long(
@@ -244,8 +213,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mAggregatePeriodSpinner.setSelection(0);
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE_PERIOD);
 
-    mSeriesTypeRow = (TableRow) findViewById(R.id.category_edit_series_type_row);
-    mSeriesTypeSpinner = (DynamicSpinner) findViewById(R.id.category_edit_series_type_menu);
+    mSeriesTypeSpinner = (DynamicSpinner) root.findViewById(R.id.category_edit_series_type_menu);
     mSeriesTypeSpinner.setSelection(0);
     for (int i = 0; i < TimeSeries.TYPES.length; i++) {
       mSeriesTypeSpinner.addSpinnerItem(TimeSeries.TYPES[i], new Long(i));
@@ -257,43 +225,30 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mSeriesTypeSpinner.setOnItemSelectedListener(mSeriesTypeListener);
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_SERIES_TYPE);
 
-    mOk = (Button) findViewById(R.id.category_edit_ok);
-    mOk.setOnClickListener(mOkListener);
-
-    mAggRadioGroup = (RadioGroup) findViewById(R.id.category_edit_agg);
+    mAggRadioGroup = (RadioGroup) root.findViewById(R.id.category_edit_agg);
     mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
-    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
+    mAggRadio = (RadioButton) root.findViewById(mAggRadioGroup
         .getCheckedRadioButtonId());
     setHelpDialog(R.id.category_edit_agg_view, DIALOG_HELP_AGGREGATE);
 
-    // synthetic elements:
-    mFormulaRow = (TableRow) findViewById(R.id.category_edit_formula_row);
-    mFormulaRow.setVisibility(View.GONE);
-    mFormulaEdit = (Button) findViewById(R.id.category_edit_formula);
+    mFormulaEdit = (Button) root.findViewById(R.id.category_edit_formula);
     mFormulaEdit.setOnClickListener(mFormulaEditListener);
     setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
 
-    // standard elements:
-    mDefaultValueRow = (TableRow) findViewById(R.id.category_edit_default_value_row);
-    mDefaultValueText = (EditText) findViewById(R.id.category_edit_default_value);
+    mDefaultValueText = (EditText) root.findViewById(R.id.category_edit_default_value);
     setHelpDialog(R.id.category_edit_default_value_view,
         DIALOG_HELP_DEFAULT_VALUE);
 
-    mIncrementRow = (TableRow) findViewById(R.id.category_edit_increment_row);
-    mIncrementText = (EditText) findViewById(R.id.category_edit_increment);
+    mIncrementText = (EditText) root.findViewById(R.id.category_edit_increment);
     setHelpDialog(R.id.category_edit_increment_view, DIALOG_HELP_INCREMENT);
 
-    mZeroFillRow = (TableRow) findViewById(R.id.category_edit_zerofill_row);
-    mZeroFillRow.setVisibility(View.GONE);
-    mZeroFillCheck = (CheckBox) findViewById(R.id.category_edit_zerofill);
+    mZeroFillCheck = (CheckBox) root.findViewById(R.id.category_edit_zerofill);
     setHelpDialog(R.id.category_edit_zerofill_view, DIALOG_HELP_ZEROFILL);
 
-    mUnitsRow = (TableRow) findViewById(R.id.category_edit_units_row);
-    mUnitsText = (EditText) findViewById(R.id.category_edit_units);
+    mUnitsText = (EditText) root.findViewById(R.id.category_edit_units);
     setHelpDialog(R.id.category_edit_units_view, DIALOG_HELP_UNITS);
 
-    mGroupRow = (TableRow) findViewById(R.id.category_edit_group_row);
-    mGroupCombo = (ComboBox) findViewById(R.id.category_edit_group);
+    mGroupCombo = (ComboBox) root.findViewById(R.id.category_edit_group);
     ArrayList<String> groups = fetchAllGroups();
     int size = groups.size();
     String group;
@@ -305,29 +260,17 @@ public class CategoryEditActivity extends EvenTrendActivity {
     }
     setHelpDialog(R.id.category_edit_group_view, DIALOG_HELP_GROUP);
 
-    mHistoryRow = (TableRow) findViewById(R.id.category_edit_history_row);
-    mHistoryText = (EditText) findViewById(R.id.category_edit_history);
+    mHistoryText = (EditText) root.findViewById(R.id.category_edit_history);
     setHelpDialog(R.id.category_edit_history_view, DIALOG_HELP_HISTORY);
 
-    mDecimalsRow = (TableRow) findViewById(R.id.category_edit_decimals_row);
-    mDecimalsText = (EditText) findViewById(R.id.category_edit_decimals);
+    mDecimalsText = (EditText) root.findViewById(R.id.category_edit_decimals);
     setHelpDialog(R.id.category_edit_decimals_view, DIALOG_HELP_DECIMALS);
 
-    mSmoothingRow = (TableRow) findViewById(R.id.category_edit_smoothing_row);
-    mSmoothingText = (EditText) findViewById(R.id.category_edit_smoothing);
+    mSmoothingText = (EditText) root.findViewById(R.id.category_edit_smoothing);
     setHelpDialog(R.id.category_edit_smoothing_view, DIALOG_HELP_SMOOTHING);
 
-    mSensitivityRow = (TableRow) findViewById(R.id.category_edit_sensitivity_row);
-    mSensitivityText = (EditText) findViewById(R.id.category_edit_sensitivity);
+    mSensitivityText = (EditText) root.findViewById(R.id.category_edit_sensitivity);
     setHelpDialog(R.id.category_edit_sensitivity_view, DIALOG_HELP_SENSITIVITY);
-
-    mTrendLabelRow = (TableRow) findViewById(R.id.category_edit_trend_row);
-      
-    // these changes the layout, so needs to be last
-    mAdvancedCheck = (CheckBox) findViewById(R.id.category_edit_advanced);
-    mAdvancedCheck.setOnCheckedChangeListener(mAdvancedListener);
-    mAdvancedCheck.setChecked(false);
-    setVisibleViews();
   }
 
   private ArrayList<String> fetchAllGroups() {
@@ -351,74 +294,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
     }
     return groups;
   }
-
-  private void setZerofillCheckStatus() {
-    if (mAggRadio == null || mAdvancedCheck == null || mType == null)
-      return;
-      
-    if (mPeriodSeconds == 0 
-        || mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)
-        || mAggRadio.getText().toString().toLowerCase().equals(TimeSeries.AGGREGATION_AVG)
-        || mAdvancedCheck.isChecked() == false) {
-      mZeroFillRow.setVisibility(View.GONE);
-    } else {
-      mZeroFillRow.setVisibility(View.VISIBLE);
-    }
-  }
-  
-  private void setUserDefinedInput() {
-    if (mType == null)
-      return;
-    
-    if (mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC)) {
-      mFormulaRow.setVisibility(View.VISIBLE);
-      mDefaultValueRow.setVisibility(View.GONE);
-      mIncrementRow.setVisibility(View.GONE);
-    } else if (mType.toLowerCase().equals(TimeSeries.TYPE_RANGE)) {
-      mFormulaRow.setVisibility(View.GONE);
-      mDefaultValueRow.setVisibility(View.GONE);
-      mIncrementRow.setVisibility(View.GONE);
-    } else {
-      mFormulaRow.setVisibility(View.GONE);
-      mDefaultValueRow.setVisibility(View.VISIBLE);
-      mIncrementRow.setVisibility(View.VISIBLE);
-    }
-  }
-  
-  private void setVisibleViews() {
-    if (mAdvancedCheck == null)
-      return;
-
-    if (mAdvancedCheck != null && mAdvancedCheck.isChecked() == true) {
-      mPeriodRow.setVisibility(View.VISIBLE);
-      mSeriesTypeRow.setVisibility(View.VISIBLE);
-      mGroupRow.setVisibility(View.VISIBLE);
-      mTrendLabelRow.setVisibility(View.VISIBLE);
-      mHistoryRow.setVisibility(View.VISIBLE);
-      mDecimalsRow.setVisibility(View.VISIBLE);
-      mSmoothingRow.setVisibility(View.VISIBLE);
-      mSensitivityRow.setVisibility(View.VISIBLE);
-      mUnitsRow.setVisibility(View.VISIBLE);
-    } else {
-      mPeriodRow.setVisibility(View.GONE);
-      mSeriesTypeRow.setVisibility(View.GONE);
-      mGroupRow.setVisibility(View.GONE);
-      mTrendLabelRow.setVisibility(View.GONE);
-      mHistoryRow.setVisibility(View.GONE);
-      mDecimalsRow.setVisibility(View.GONE);
-      mSmoothingRow.setVisibility(View.GONE);
-      mSensitivityRow.setVisibility(View.GONE);
-      mUnitsRow.setVisibility(View.GONE);
-    }
-    setZerofillCheckStatus();
-    setUserDefinedInput();
-  }  
   
   private void setupListeners() {
     mAggListener = new RadioGroup.OnCheckedChangeListener() {
       public void onCheckedChanged(RadioGroup group, int checkedId) {
-        mAggRadio = (RadioButton) findViewById(checkedId);
-        setVisibleViews();
+        mAggRadio = (RadioButton) mRoot.findViewById(checkedId);
       }
     };
 
@@ -444,7 +324,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
           long id) {
         mPeriodSeconds = (int) mAggregatePeriodSpinner
             .getMappingFromPosition(position);
-        setVisibleViews();
         return;
       }
 
@@ -457,18 +336,11 @@ public class CategoryEditActivity extends EvenTrendActivity {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
         mType = ((TextView) v).getText().toString();
-        setVisibleViews();
         return;
       }
 
       public void onNothingSelected(AdapterView arg0) {
         return;
-      }
-    };
-
-    mAdvancedListener = new CompoundButton.OnCheckedChangeListener() {
-      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        setVisibleViews();
       }
     };
 
@@ -481,16 +353,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
          startActivityForResult(i, ARC_FORMULA_EDIT);
       }
     };
-
-    mOkListener = new View.OnClickListener() {
-      public void onClick(View view) {
-        setResult(saveState());
-        finish();
-      }
-    };
   }
 
-  private void updatePaint(String color) {
+  protected void updatePaint(String color) {
     int colorInt = Color.LTGRAY;
     try {
       colorInt = Color.parseColor(color);
@@ -504,7 +369,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mColorButton.setBackgroundColor(colorInt);
   }
 
-  private void populateFields() {
+  protected void populateFields() {
     if (mRowId != null && mRow != null) {
       mCategoryText.setText(mRow.mTimeSeriesName);
       mDefaultValueText.setText(Double.valueOf(mRow.mDefaultValue).toString());
@@ -537,9 +402,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
         
       String aggregation = mRow.mAggregation;
       if (aggregation.toLowerCase().equals(TimeSeries.AGGREGATION_AVG)) {
-        mAggRadio = (RadioButton) findViewById(R.id.category_edit_agg_sum);
+        mAggRadio = (RadioButton) mRoot.findViewById(R.id.category_edit_agg_sum);
       } else {
-        mAggRadio = (RadioButton) findViewById(R.id.category_edit_agg_sum);
+        mAggRadio = (RadioButton) mRoot.findViewById(R.id.category_edit_agg_sum);
       }
       mAggRadio.setChecked(true);
     } else {
@@ -567,11 +432,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    // TODO: check to see if we need this
-    // populateFields();
   }
 
-  private int saveState() {
+  protected int saveState() {
     double d;
     String value;
     ContentValues values = new ContentValues();
@@ -607,7 +470,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     else
       values.put(TimeSeries.FORMULA, mRow.mFormula);
 
-    mAggRadio = (RadioButton) findViewById(mAggRadioGroup
+    mAggRadio = (RadioButton) mRoot.findViewById(mAggRadioGroup
         .getCheckedRadioButtonId());
     values.put(TimeSeries.AGGREGATION, mAggRadio.getText().toString()
         .toLowerCase());
@@ -653,7 +516,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
     String formula = null;
-    // TODO: formula stuff
     if (intent != null) {
       mRow.mFormula = intent.getStringExtra(TimeSeries.FORMULA);
     }
@@ -670,7 +532,6 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mRow.mFormula = TimeSeries.getFormula(c);
       c.close();
     }
-//    populateFields();
   }
 
   @Override
@@ -747,7 +608,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
   }
 
   private void setHelpDialog(int resId, final int dialog) {
-    TextView tv = (TextView) findViewById(resId);
+    TextView tv = (TextView) mRoot.findViewById(resId);
     tv.setOnClickListener(new View.OnClickListener() {
       public void onClick(View view) {
         showDialog(dialog);
