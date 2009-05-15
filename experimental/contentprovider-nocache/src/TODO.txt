@@ -4,6 +4,7 @@ move timseries abstractions out, change names
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
+- test row re-ordering
 - test convertView in getView with many categories
 - Virtual Keyboard:
   - make it stick to numeric when appropriate
@@ -12,6 +13,7 @@ Input Activity:
 CategoryEdit/Wizard:
 - both: make sure correct radio button is selected
 - both: make sure "back" doesn't save the category
+- both: test rank setting
 - share common components
 - make formula editor not require saving the category
 Import:
