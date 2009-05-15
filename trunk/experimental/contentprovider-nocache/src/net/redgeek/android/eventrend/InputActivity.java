@@ -47,12 +47,10 @@ import android.view.animation.AnimationSet;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.view.animation.TranslateAnimation;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.ViewFlipper;
@@ -63,7 +61,6 @@ import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.category.CategoryAdvancedEditActivity;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
 import net.redgeek.android.eventrend.util.DateUtil;
@@ -633,21 +630,17 @@ public class InputActivity extends EvenTrendActivity {
   private void setCurrentViews(boolean animate) {
     // These can't be set until the views have been populated from
     // DB in fillCategoryData()
-    ScrollView sv = (ScrollView) mFlipper.getCurrentView();
-    if (sv != null) {
-      mVisibleCategoriesLayout = (LinearLayout) sv.getChildAt(0);
-      if (mVisibleCategoriesLayout != null) {
-        mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
-        if (animate == true)
-          slideDown(mVisibleCategoriesLayout, mCtx);
-      }
+    mVisibleCategoriesLayout = (LinearLayout) mFlipper.getCurrentView();
+    if (mVisibleCategoriesLayout != null) {
+      mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
+      if (animate == true)
+        slideDown(mVisibleCategoriesLayout, mCtx);
     }
   }
 
   private void fillCategoryData(int switchToView) {
     int list = 0;
     HashMap<String, Integer> hm = new HashMap<String, Integer>();
-    ScrollView sv = null;
     LinearLayout ll = null;
     TimeSeries ts;
 
@@ -671,12 +664,8 @@ public class InputActivity extends EvenTrendActivity {
           ll.setOrientation(LinearLayout.VERTICAL);
           ll.setId(LINEAR_LAYOUT_ID_BASE + i);
 
-          sv = new ScrollView(this);
-          sv.setId(SCROLL_VIEW_ID_BASE+1);
-          sv.addView(ll);
-          
           mCategories.add(ll);
-          mFlipper.addView(sv);
+          mFlipper.addView(ll);
           hm.put(group, listNum);
           list++;
         }
