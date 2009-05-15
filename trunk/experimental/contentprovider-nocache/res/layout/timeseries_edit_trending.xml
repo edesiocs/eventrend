@@ -34,6 +34,7 @@
           android:paddingRight="3px" android:paddingLeft="3px">
         </TextView>
         <EditText android:layout_width="wrap_content"
+          android:inputType="phone"
           android:layout_height="wrap_content" android:id="@+id/category_edit_decimals"
           android:layout_gravity="right|center_vertical" android:text="2" android:numeric="integer" android:gravity="right|center_vertical" android:minEms="5">
         </EditText>
@@ -54,6 +55,7 @@
           android:paddingRight="3px">
         </TextView>
         <EditText android:layout_width="wrap_content"
+          android:inputType="phone"
           android:layout_height="wrap_content" android:id="@+id/category_edit_history"
           android:layout_gravity="right|center_vertical" android:text="20" android:numeric="integer" android:gravity="right|center_vertical" android:minEms="5">
         </EditText>
@@ -74,6 +76,7 @@
           android:paddingRight="3px">
         </TextView>
         <EditText android:layout_width="wrap_content"
+          android:inputType="phone"
           android:layout_height="wrap_content" android:id="@+id/category_edit_smoothing"
           android:layout_gravity="right|center_vertical" android:text="0.1" android:numeric="decimal" android:gravity="right|center_vertical" android:minEms="5">
         </EditText>
@@ -94,6 +97,7 @@
           android:paddingRight="3px">
         </TextView>
         <EditText android:layout_width="wrap_content"
+          android:inputType="phone"
           android:layout_height="wrap_content" android:id="@+id/category_edit_sensitivity"
           android:layout_gravity="right|center_vertical" android:text="0.5" android:numeric="decimal" android:gravity="right|center_vertical" android:minEms="5">
         </EditText>
