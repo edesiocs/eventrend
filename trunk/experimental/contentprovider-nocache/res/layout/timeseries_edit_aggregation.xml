@@ -42,7 +42,7 @@
             android:id="@+id/category_edit_agg_sum">
           </RadioButton>
           <RadioButton android:layout_width="wrap_content"
-            android:layout_height="wrap_content" android:id="@+id/category_edit_agg_rating"
+            android:layout_height="wrap_content" android:id="@+id/category_edit_agg_average"
             android:text="Average">
           </RadioButton>
         </RadioGroup>

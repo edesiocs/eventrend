@@ -11,7 +11,6 @@ Input Activity:
   - auto-scroll to put selected field in view
 - make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
-- both: make sure correct radio button is selected
 - both: make sure "back"/cancel doesn't save the category
 - both: test rank setting
 - make formula editor not require saving the category
@@ -35,6 +34,7 @@ EntryEditor:
 Preferences:
 - auto backup frequency
 - auto backup format
+- auto-discard data
 GData Spreadsheet interface
 
 This file intended for temporary notes only.  See

@@ -81,7 +81,6 @@ public class CategoryWizardEditActivity extends CategoryEditActivity {
   private Button   mNextPage3a;
 
   // Page 3b: synthetics setting:
-  private TextView mFormulaText;
   private Button   mCancelPage3b;
   private Button   mBackPage3b;
   private Button   mNextPage3b;
@@ -95,6 +94,7 @@ public class CategoryWizardEditActivity extends CategoryEditActivity {
   
   // Page 5:  customization
   private Button   mCancelPage5;
+  private Button   mBackPage5;
   private Button   mSavePage5;
   private Button   mAdvancedPage5;
 
@@ -257,6 +257,9 @@ public class CategoryWizardEditActivity extends CategoryEditActivity {
   private View setuiUIPage4() {
     LinearLayout page = (LinearLayout) mInflater.inflate(R.layout.timeseries_edit_aggregation, null);
 
+    mZerofillHelp = (TextView) page.findViewById(R.id.category_edit_zerofill_row_help);
+    mZerofillLayout = (LinearLayout) page.findViewById(R.id.category_edit_zerofill_row);
+
     mAggregatePeriodListenerChild = new Spinner.OnItemSelectedListener() {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
@@ -349,6 +352,13 @@ public class CategoryWizardEditActivity extends CategoryEditActivity {
       }
     });
     
+    mBackPage5 = (Button) page.findViewById(R.id.category_edit_back);
+    mBackPage5.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View view) {
+        slideRight();
+      }
+    });
+
     mSavePage5 = (Button) page.findViewById(R.id.category_edit_save);
     mSavePage5.setOnClickListener(new View.OnClickListener() {
       public void onClick(View view) {
@@ -393,9 +403,9 @@ public class CategoryWizardEditActivity extends CategoryEditActivity {
   }
   
   private void setupUIPost() {
-    mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListener);
+    mAggregatePeriodSpinner.setOnItemSelectedListener(mAggregatePeriodListenerChild);
     mAggregatePeriodSpinner.setSelection(0);
-    mAggRadioGroup.setOnCheckedChangeListener(mAggListener);
+    mAggRadioGroup.setOnCheckedChangeListener(mAggListenerChild);
   }
   
   protected void slideLeft() {

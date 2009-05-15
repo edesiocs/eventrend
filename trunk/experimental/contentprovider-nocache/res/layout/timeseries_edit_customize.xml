@@ -98,6 +98,10 @@
         </Button>
         <Button android:layout_width="wrap_content"
           android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
+          android:id="@+id/category_edit_back" android:text="&lt; Back">
+        </Button>
+        <Button android:layout_width="wrap_content"
+          android:layout_height="wrap_content" android:layout_gravity="right|center_vertical"
           android:id="@+id/category_edit_save" android:text="Save!">
         </Button>
         <Button android:layout_width="wrap_content"
