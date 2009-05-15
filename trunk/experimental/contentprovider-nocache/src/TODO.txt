@@ -2,10 +2,12 @@ check all return values from recorderservice/provider
 move timseries abstractions out, change names
 different icons for different activities
 make Importer not show up on category edit list
+test ranges and synthetics
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
+- cache of category views
 - make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
 - make formula editor not require saving the category

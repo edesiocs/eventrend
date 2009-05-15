@@ -73,6 +73,36 @@ public class DateMapCache {
     }
   }
   
+  public String toDisplayTime(int seconds, int period) {
+    DateItem d = new DateItem();
+    String s;
+    if (getDateItem(seconds, d) == false)
+      return "?/?/? ?:?:?";
+
+    if (period == DateMap.YEAR_SECS) {
+      s = "" + d.mYear;
+    }
+    else if (period == DateMap.QUARTER_SECS) {
+      int quarter = (d.mMonth / 3) + 1;
+      s = d.mYear + " Q" + quarter;
+    }
+    else if (period == DateMap.MONTH_SECS) {
+      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth);
+    }
+    else if (period == DateMap.WEEK_SECS || period == DateMap.DAY_SECS) {
+      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth)
+          + "/" + (d.mDay < 10 ? "0" + d.mDay : d.mDay);
+    }
+    else {
+      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth)
+          + "/" + (d.mDay < 10 ? "0" + d.mDay : d.mDay) + " "
+          + (d.mHour < 10 ? "0" + d.mHour : d.mHour) + ":"
+          + (d.mMinute < 10 ? "0" + d.mMinute : d.mMinute);
+    }
+    return s;
+  }
+
+  
   public DateMapCache() {
     mCal = Calendar.getInstance();
     mYearToEntry = new TreeMap<Integer, ArrayList<DateMapCacheEntry>>();
