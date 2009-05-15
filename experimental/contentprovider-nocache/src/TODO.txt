@@ -11,10 +11,9 @@ Input Activity:
 - make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
 - both: make sure correct radio button is selected
-- advanced: move ok button to right
+- both: make sure "back" doesn't save the category
 - share common components
 - make formula editor not require saving the category
-  - move to it's own flipper screen?
 Import:
 - implement v2 importing
 - implement v1 importing
@@ -35,6 +34,7 @@ EntryEditor:
 Preferences:
 - auto backup frequency
 - auto backup format
+GData Spreadsheet interface
 
 This file intended for temporary notes only.  See
 
