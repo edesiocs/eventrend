@@ -27,7 +27,7 @@
     <activity 
       android:label="Category Editor (Expert)" 
       android:alwaysRetainTaskState="true"
-      android:name="net.redgeek.android.eventrend.category.CategoryEditActivity">
+      android:name="net.redgeek.android.eventrend.category.CategoryAdvancedEditActivity">
       <intent-filter>
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.EDIT" />

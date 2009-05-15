@@ -63,7 +63,7 @@ import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.category.CategoryEditActivity;
+import net.redgeek.android.eventrend.category.CategoryAdvancedEditActivity;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
 import net.redgeek.android.eventrend.util.DateUtil;
@@ -410,7 +410,7 @@ public class InputActivity extends EvenTrendActivity {
       case ARC_CATEGORY_EDIT:
         // TODO:  only re-draw if the group or rank has changed.
         switch (resultCode) {
-          case CategoryEditActivity.CATEGORY_MODIFIED:
+          case CategoryAdvancedEditActivity.CATEGORY_MODIFIED:
             break;
           default:
             mDialogErrorTitle = "Error";
@@ -421,7 +421,7 @@ public class InputActivity extends EvenTrendActivity {
         break;
       case ARC_CATEGORY_CREATE:
         switch (resultCode) {
-          case CategoryEditActivity.CATEGORY_CREATED:
+          case CategoryAdvancedEditActivity.CATEGORY_CREATED:
             break;
           default:
             mDialogErrorTitle = "Error";
