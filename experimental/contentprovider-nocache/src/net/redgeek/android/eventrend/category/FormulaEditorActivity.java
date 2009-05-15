@@ -16,9 +16,10 @@
 
 package net.redgeek.android.eventrend.category;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ContentUris;
-import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -70,7 +71,6 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   // private data
   private Formula mFormula;
   private long mCatId;
-  private boolean mSave;
   private String mText;
 
   @Override
@@ -101,7 +101,6 @@ public class FormulaEditorActivity extends EvenTrendActivity {
       }
     }
 
-    mSave = false;
     mFormula = new Formula();
   }
 
@@ -237,8 +236,9 @@ public class FormulaEditorActivity extends EvenTrendActivity {
         // TODO: try parsing, check result
         mFormula.setFormula(mPage.getText().toString());
         if (mFormula.isValid()) {
-          mSave = true;
-          setResult(RESULT_OK);
+          Intent result = new Intent();
+          result.putExtra(TimeSeries.FORMULA, mFormula.toString());
+          setResult(RESULT_OK, result);
           finish();
         } else {
           showDialog(PARSE_ERROR_DIALOG);
@@ -331,7 +331,6 @@ public class FormulaEditorActivity extends EvenTrendActivity {
   @Override
   protected void onPause() {
     super.onPause();
-    saveState();
   }
 
   @Override
@@ -340,13 +339,11 @@ public class FormulaEditorActivity extends EvenTrendActivity {
     populateFields();
   }
   
-  private void saveState() {
-    if (mSave == true) {
-      ContentValues values = new ContentValues();
-      values.put(TimeSeries.FORMULA, mFormula.toString());
-      Uri timeseries = ContentUris.withAppendedId(
-          TimeSeriesData.TimeSeries.CONTENT_URI, mCatId);
-      getContentResolver().update(timeseries, values, null, null);
-    }
-  }
+//  private void saveState() {
+//    ContentValues values = new ContentValues();
+//    values.put(TimeSeries.FORMULA, mFormula.toString());
+//    Uri timeseries = ContentUris.withAppendedId(
+//        TimeSeriesData.TimeSeries.CONTENT_URI, mCatId);
+//    getContentResolver().update(timeseries, values, null, null);
+//  }
 }
