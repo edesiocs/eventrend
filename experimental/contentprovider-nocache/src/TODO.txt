@@ -1,19 +1,15 @@
 check all return values from recorderservice/provider
 move timseries abstractions out, change names
+different icons for different activities
+make Importer not show up on category edit list
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
-- test row re-ordering
-- test convertView in getView with many categories
-- Virtual Keyboard:
-  - make it stick to numeric when appropriate
-  - auto-scroll to put selected field in view
 - make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
-- both: make sure "back"/cancel doesn't save the category
-- both: test rank setting
 - make formula editor not require saving the category
+- test changing all fields, changing orientation
 Import:
 - implement v2 importing
 - implement v1 importing

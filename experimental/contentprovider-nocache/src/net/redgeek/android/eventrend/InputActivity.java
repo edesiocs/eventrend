@@ -408,33 +408,44 @@ public class InputActivity extends EvenTrendActivity {
     super.onActivityResult(requestCode, resultCode, intent);
     switch (requestCode) {
       case ARC_CATEGORY_EDIT:
-        // TODO:  only re-draw if the group or rank has changed.
         switch (resultCode) {
-          case CategoryAdvancedEditActivity.CATEGORY_MODIFIED:
+          case RESULT_CANCELED:
+          case EvenTrendActivity.CATEGORY_CANCELED:
+            break;
+          case EvenTrendActivity.CATEGORY_MODIFIED:
+            fillCategoryData(-1);
+            setCurrentViews(true);
             break;
           default:
             mDialogErrorTitle = "Error";
             mDialogErrorMsg = "Error editing category";
             showDialog(ERROR_DIALOG_ID);
+            fillCategoryData(-1);
+            setCurrentViews(true);
             break;
         }
         break;
       case ARC_CATEGORY_CREATE:
         switch (resultCode) {
-          case CategoryAdvancedEditActivity.CATEGORY_CREATED:
+          case RESULT_CANCELED:
+          case EvenTrendActivity.CATEGORY_CANCELED:
+            break;
+          case EvenTrendActivity.CATEGORY_CREATED:
+            fillCategoryData(-1);
+            setCurrentViews(true);
             break;
           default:
             mDialogErrorTitle = "Error";
             mDialogErrorMsg = "Error creating category";
             showDialog(ERROR_DIALOG_ID);
+            fillCategoryData(-1);
+            setCurrentViews(true);
             break;
         }
         break;
       default:
         break;
     }
-    fillCategoryData(-1);
-    setCurrentViews(true);
   }
 
   // *** clock ***//
@@ -871,7 +882,7 @@ public class InputActivity extends EvenTrendActivity {
     CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(higher);
     CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(lower);
 
-    swapUpDown(top, bottom, mCtx);    
+    // swapUpDown(top, bottom, mCtx);    
     fillCategoryData(mFlipper.getDisplayedChild());
     setCurrentViews(true);
   }
