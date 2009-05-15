@@ -51,10 +51,10 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
-import android.widget.ListView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import net.redgeek.android.eventgrapher.GraphActivity;
@@ -63,9 +63,7 @@ import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.category.CategoryEditActivity;
-import net.redgeek.android.eventrend.category.CategoryListAdapter;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.category.CategoryRowView;
 import net.redgeek.android.eventrend.util.DateUtil;
@@ -101,9 +99,9 @@ public class InputActivity extends EvenTrendActivity {
   private static final int EARLY_ENTRY_DIALOG_ID = 5;
   private static final int ERROR_DIALOG_ID = 10;
 
-  // Generated IDs for flipper listview
+  // Generated IDs for flipper scrollviews
   public static final int SCROLL_VIEW_ID_BASE = 1000;
-  public static final int LIST_VIEW_ID_BASE = 2000;
+  public static final int LINEAR_LAYOUT_ID_BASE = 2000;
 
   // UI elements
   private ViewFlipper mFlipper;
@@ -112,9 +110,8 @@ public class InputActivity extends EvenTrendActivity {
   private CheckBox mPickNow;
   private Button mUndo;
   private TextView mTimestampView;
-  private ArrayList<ListView> mCategories;
-  private ArrayList<CategoryListAdapter> mCLAs;
-  private ListView mVisibleCategoriesLayout;
+  private ArrayList<LinearLayout> mCategories;
+  private LinearLayout mVisibleCategoriesLayout;
 
   ProgressIndicator.Titlebar mProgress;
   ProgressIndicator.DialogSoft mProgressBox;
@@ -168,6 +165,7 @@ public class InputActivity extends EvenTrendActivity {
   private View.OnClickListener mPickTimeListener;
   private View.OnClickListener mPickNowListener;
   private View.OnClickListener mUndoListener;
+  private View.OnLongClickListener mRowSelectListener;
   private DatePickerDialog.OnDateSetListener mDateSetListener;
   private TimePickerDialog.OnTimeSetListener mTimeSetListener;
 
@@ -240,8 +238,7 @@ public class InputActivity extends EvenTrendActivity {
 
     mNowHandler = new Handler();
     
-    mCategories = new ArrayList<ListView>();
-    mCLAs = new ArrayList<CategoryListAdapter>();
+    mCategories = new ArrayList<LinearLayout>();
   }
 
   private void setupUI() {
@@ -325,13 +322,26 @@ public class InputActivity extends EvenTrendActivity {
         updateDisplay();
       }
     };
-  }
 
-  @Override
-  protected void onListItemClick(ListView l, View v, int position, long id) {
-    super.onListItemClick(l, v, position, id);
-    mContextPosition = position;
-    l.showContextMenu();
+    mRowSelectListener = new View.OnLongClickListener() {
+      @Override
+      public boolean onLongClick(View v) {
+        CategoryRowView row = (CategoryRowView) v;
+        
+        int child = mFlipper.getDisplayedChild();
+        LinearLayout list = mCategories.get(child);
+
+        mContextPosition = -1;
+        for (int i = 0; i < list.getChildCount(); i++) {
+          CategoryRowView view = (CategoryRowView) list.getChildAt(i);
+          if (view == row) {
+            mContextPosition = i;
+          }
+        }
+        
+        return false;
+      }
+    };
   }
 
   // *** All things gesture-related ***//
@@ -367,7 +377,7 @@ public class InputActivity extends EvenTrendActivity {
         return mGestureDetector.onTouchEvent(event);
       }
     };
-    mFlipper.setLongClickable(true);
+//    mFlipper.setLongClickable(true);
     mFlipper.setOnTouchListener(mTouchListener);
   }
 
@@ -499,42 +509,35 @@ public class InputActivity extends EvenTrendActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  @Override
   public boolean onContextItemSelected(MenuItem item) {
+    CategoryRowView rowView;
     CategoryRow row;
-    AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item
-        .getMenuInfo();
-
-    int position;
-    if (menuInfo == null || menuInfo.position < 0) {
-      position = mContextPosition;
-    } else {
-      position = menuInfo.position;
-      menuInfo.position = -1;
-    }
 
     int child = mFlipper.getDisplayedChild();
-    CategoryListAdapter cla = mCLAs.get(child);
+    LinearLayout list = mCategories.get(child);
+    rowView = (CategoryRowView) list.getChildAt(mContextPosition);
+    row = rowView.mRow;
 
     long catId;
     switch (item.getItemId()) {
       case CONTEXT_EDIT:
-        catId = ((CategoryRow) cla.getItem(position)).mId;
+        catId = row.mId;
         editCategory(catId);
         break;
       case CONTEXT_MOVE_UP:
-        if (position > 0)
-          swapCategoryPositions(cla, position - 1, position);
+        if (mContextPosition > 0)
+          swapCategoryPositions(list, mContextPosition - 1, mContextPosition);
         break;
       case CONTEXT_MOVE_DOWN:
-        if (position + 1 < cla.getCount())
-          swapCategoryPositions(cla, position, position + 1);
+        if (mContextPosition + 1 < list.getChildCount())
+          swapCategoryPositions(list, mContextPosition, mContextPosition + 1);
         break;
       case CONTEXT_DELETE:
-        row = ((CategoryRow) cla.getItem(position));
         mDeleteCategoryId = row.mId;
         mDeleteCategoryName = row.mTimeSeriesName;
         showDialog(DELETE_DIALOG_ID);
-        break;
+        break;      
       default:
         return super.onContextItemSelected(item);
     }
@@ -619,29 +622,31 @@ public class InputActivity extends EvenTrendActivity {
   private void setCurrentViews(boolean animate) {
     // These can't be set until the views have been populated from
     // DB in fillCategoryData()
-    mVisibleCategoriesLayout = (ListView) mFlipper.getCurrentView();
-    if (mVisibleCategoriesLayout != null) {
-      mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
-      if (animate == true)
-        slideDown(mVisibleCategoriesLayout, mCtx);
+    ScrollView sv = (ScrollView) mFlipper.getCurrentView();
+    if (sv != null) {
+      mVisibleCategoriesLayout = (LinearLayout) sv.getChildAt(0);
+      if (mVisibleCategoriesLayout != null) {
+        mVisibleCategoriesLayout.setOnCreateContextMenuListener(this);
+        if (animate == true)
+          slideDown(mVisibleCategoriesLayout, mCtx);
+      }
     }
   }
 
   private void fillCategoryData(int switchToView) {
     int list = 0;
     HashMap<String, Integer> hm = new HashMap<String, Integer>();
-    CategoryListAdapter cla = null;
-    ListView lv = null;
+    ScrollView sv = null;
+    LinearLayout ll = null;
     TimeSeries ts;
 
     int defaultGroupId = 0;
 
-    mCLAs.clear();
     mCategories.clear();
     mFlipper.removeAllViews();
     
     Uri timeSeries = TimeSeriesData.TimeSeries.CONTENT_URI;
-    Cursor c = managedQuery(timeSeries, null, null, null, null);
+    Cursor c = managedQuery(timeSeries, null, null, null, TimeSeries.DEFAULT_SORT_ORDER);
     if (c.moveToFirst()) {
       int count = c.getCount();
       for (int i = 0; i < count; i++) {
@@ -650,31 +655,34 @@ public class InputActivity extends EvenTrendActivity {
         Integer listNum = hm.get(group);
         if (listNum == null) {
           listNum = new Integer(list);
-          cla = new CategoryListAdapter(this);
-          mCLAs.add(cla);
-          lv = new ListView(this);
-          lv.setId(LIST_VIEW_ID_BASE + i);
-          mCategories.add(lv);
-          mFlipper.addView(lv);
+          
+          ll = new LinearLayout(this);
+          ll.setOrientation(LinearLayout.VERTICAL);
+          ll.setId(LINEAR_LAYOUT_ID_BASE + i);
+
+          sv = new ScrollView(this);
+          sv.setId(SCROLL_VIEW_ID_BASE+1);
+          sv.addView(ll);
+          
+          mCategories.add(ll);
+          mFlipper.addView(sv);
           hm.put(group, listNum);
           list++;
         }
 
-        cla = mCLAs.get(listNum.intValue());
-        
         CategoryRow row = new CategoryRow(c);
         row.mTimestamp = mTimestamp.mMillis;
         row.mGroup = group;
-        
-        cla.addItem(row);
+
+        CategoryRowView rowView = new CategoryRowView(this, row);
+        rowView.setLongClickable(true);
+        rowView.setOnLongClickListener(mRowSelectListener);
+
+        ll = mCategories.get(listNum.intValue());
+        ll.addView(rowView);
+
         c.moveToNext();
       }
-    }
-
-    for (int i = 0; i < list; i++) {
-      lv = mCategories.get(i);
-      cla = mCLAs.get(i);
-      lv.setAdapter(cla);
     }
 
     if (switchToView < 0)
@@ -695,11 +703,11 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   public void redrawSyntheticViews() {
-    for (int i = 0; i < mFlipper.getChildCount(); i++) {
-      ListView lv = (ListView) mFlipper.getChildAt(i);
-
-      for (int j = 0; j < lv.getChildCount(); j++) {
-        CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
+    for (int i = 0; i < mCategories.size(); i++) {
+      LinearLayout list = mCategories.get(i);
+      
+      for (int j = 0; j < list.getChildCount(); j++) {
+        CategoryRowView row = (CategoryRowView) list.getChildAt(j);
         if (row.mRow.mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC) == true) {
           row.populateFields(row.mRow);
 //          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, mCtx);
@@ -752,9 +760,9 @@ public class InputActivity extends EvenTrendActivity {
     ArrayList<String> catIds = new ArrayList<String>();
     
     int child = mFlipper.getDisplayedChild();
-    CategoryListAdapter cla = mCLAs.get(child);
-    for (int j = 0; j < cla.getCount(); j++) {
-      String catId = Long.toString(((CategoryRow) cla.getItem(j)).mId);
+    LinearLayout list = mCategories.get(child);
+    for (int j = 0; j < list.getChildCount(); j++) {
+      String catId = Long.toString(((CategoryRowView) list.getChildAt(j)).mRow.mId);
       catIds.add(catId);
     }
     i.putStringArrayListExtra(GraphActivity.VISUALIZATION_VIEW_IDS, catIds);
@@ -838,12 +846,15 @@ public class InputActivity extends EvenTrendActivity {
   }  
 
   // *** Animations ***//
-  private void swapCategoryPositions(CategoryListAdapter cla, int higher,
+  private void swapCategoryPositions(LinearLayout list, int higher,
       int lower) {
     ContentValues values = new ContentValues();
     Uri uri;
-    CategoryRow above = (CategoryRow) cla.getItem(higher);
-    CategoryRow below = (CategoryRow) cla.getItem(lower);
+    CategoryRowView aboveView = (CategoryRowView) list.getChildAt(higher);
+    CategoryRowView belowView = (CategoryRowView) list.getChildAt(lower);    
+    
+    CategoryRow above = aboveView.mRow;
+    CategoryRow below = belowView.mRow;
 
     int rank = below.mRank;
     below.mRank = above.mRank;
@@ -857,12 +868,10 @@ public class InputActivity extends EvenTrendActivity {
     uri = ContentUris.withAppendedId(TimeSeriesData.TimeSeries.CONTENT_URI, below.mId);
     getContentResolver().update(uri, values, null, null);
 
-    CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout
-        .getChildAt(higher);
-    CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout
-        .getChildAt(lower);
+    CategoryRowView top = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(higher);
+    CategoryRowView bottom = (CategoryRowView) mVisibleCategoriesLayout.getChildAt(lower);
 
-//    swapUpDown(top, bottom, mCtx);    
+    swapUpDown(top, bottom, mCtx);    
     fillCategoryData(mFlipper.getDisplayedChild());
     setCurrentViews(true);
   }
