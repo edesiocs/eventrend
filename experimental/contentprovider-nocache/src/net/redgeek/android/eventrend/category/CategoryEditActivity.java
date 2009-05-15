@@ -89,6 +89,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
   protected EditText mDecimalsText;
   protected EditText mSmoothingText;
   protected EditText mSensitivityText;
+  protected TextView mFormulaText;
 
   // protected data
   protected View mRoot;
@@ -234,7 +235,8 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mFormulaEdit = (Button) root.findViewById(R.id.category_edit_formula);
     mFormulaEdit.setOnClickListener(mFormulaEditListener);
     setHelpDialog(R.id.category_edit_formula_view, DIALOG_HELP_FORMULA);
-
+    mFormulaText = (TextView) root.findViewById(R.id.category_edit_formula_text);
+    
     mDefaultValueText = (EditText) root.findViewById(R.id.category_edit_default_value);
     setHelpDialog(R.id.category_edit_default_value_view,
         DIALOG_HELP_DEFAULT_VALUE);
@@ -385,6 +387,9 @@ public class CategoryEditActivity extends EvenTrendActivity {
       mGroupName = mRow.mGroup;
       mGroupCombo.setText(mGroupName);
 
+      if (mFormulaText != null && TextUtils.isEmpty(mRow.mFormula) == false)
+        mFormulaText.setText(mRow.mFormula);
+      
       mZeroFillCheck.setChecked(mRow.mZerofill > 0 ? true : false);
       
       mPeriodSeconds = mRow.mPeriod;
@@ -402,7 +407,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         
       String aggregation = mRow.mAggregation;
       if (aggregation.toLowerCase().equals(TimeSeries.AGGREGATION_AVG)) {
-        mAggRadio = (RadioButton) mRoot.findViewById(R.id.category_edit_agg_sum);
+        mAggRadio = (RadioButton) mRoot.findViewById(R.id.category_edit_agg_average);
       } else {
         mAggRadio = (RadioButton) mRoot.findViewById(R.id.category_edit_agg_sum);
       }
