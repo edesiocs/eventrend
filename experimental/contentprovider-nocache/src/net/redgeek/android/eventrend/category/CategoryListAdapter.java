@@ -74,8 +74,37 @@ public class CategoryListAdapter extends BaseAdapter {
   }
 
   public View getView(int position, View convertView, ViewGroup parent) {
-    CategoryRowView row = new CategoryRowView(mCtx, mItems.get(position));
-    row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    CategoryRowView row;
+    if (convertView == null) {
+      row = new CategoryRowView(mCtx, mItems.get(position));
+      row.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    } else {
+      row = (CategoryRowView) convertView;
+      CategoryRow cat = mItems.get(position);
+      row.populateFields(cat);
+//      row.mRow = cat;      
+//      row.mRow.mId = cat.mId;
+//      row.mRow.mTimeSeriesName = new String(cat.mTimeSeriesName);
+//      row.mRow.mRecordingDatapointId = cat.mRecordingDatapointId;
+//      row.mRow.mGroup = new String(cat.mGroup);
+//      row.mRow.mDefaultValue = cat.mDefaultValue;
+//      row.mRow.mIncrement = cat.mIncrement;
+//      row.mRow.mGoal = cat.mGoal;
+//      row.mRow.mColor = new String(cat.mColor);
+//      row.mRow.mPeriod = cat.mPeriod;
+//      row.mRow.mUnits = new String(cat.mUnits);
+//      row.mRow.mRank = cat.mRank;
+//      row.mRow.mAggregation = new String(cat.mAggregation);
+//      row.mRow.mType = new String(cat.mType);
+//      row.mRow.mZerofill = cat.mZerofill;
+//      row.mRow.mFormula = new String(cat.mFormula);
+//      row.mRow.mInterpolation = new String(cat.mInterpolation);
+//      row.mRow.mSensitivity = cat.mSensitivity;
+//      row.mRow.mSmoothing = cat.mSmoothing;
+//      row.mRow.mHistory = cat.mHistory;
+//      row.mRow.mDecimals = cat.mDecimals;
+//      row.mRow.mTimestamp = cat.mTimestamp;
+    }
     return row;
-  }
+  }    
 }

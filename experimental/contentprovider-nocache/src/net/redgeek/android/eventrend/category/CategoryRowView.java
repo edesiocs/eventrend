@@ -16,17 +16,15 @@
 
 package net.redgeek.android.eventrend.category;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.Uri.Builder;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -100,7 +98,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
     setupTasks();
     setupUI();
-    populateFields();
+    populateFields(mRow);
   }
 
   public boolean isSelectable() {
@@ -148,7 +146,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   }
 
   public void afterExecute() {
-    populateFields();
+    populateFields(mRow);
     ((InputActivity) mCtx).setLastAdd(mRow.mId, mNewDatapointId, mRowView);
     ((InputActivity) mCtx).redrawSyntheticViews();
   }
@@ -226,45 +224,46 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     };
   }
 
-  public void populateFields() {
+  public void populateFields(CategoryRow view) {
     try {
       mColorInt = Color.parseColor(mRow.mColor);
     } catch (IllegalArgumentException e) {
       mColorInt = Color.WHITE;
     }
 
-    mCategoryNameView.setText(mRow.mTimeSeriesName);
+    mCategoryNameView.setText(view.mTimeSeriesName);
     mCategoryNameView.setTextColor(mColorInt);
 
     mAddButton.setClickable(true);
-    if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
+    if (view.mType.equals(TimeSeriesData.TimeSeries.TYPE_DISCRETE)) {
       mAddButton.setText("Add");      
       mAddButton.setTextColor(Color.BLACK);
-    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
+    } else if (view.mType.equals(TimeSeriesData.TimeSeries.TYPE_RANGE)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
       mDefaultValue.setVisibility(View.INVISIBLE);
-      if (mRow.mRecordingDatapointId > 0) {
+      if (view.mRecordingDatapointId > 0) {
         mAddButton.setText("Stop");
         mAddButton.setTextColor(Color.RED);
       } else {
         mAddButton.setText("Start");
         mAddButton.setTextColor(Color.BLACK);
       }
-    } else if (mRow.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC)) {
+    } else if (view.mType.equals(TimeSeriesData.TimeSeries.TYPE_SYNTHETIC)) {
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
       mDefaultValue.setVisibility(View.INVISIBLE);
       mAddButton.setVisibility(View.INVISIBLE);
     }
-    
-    mDefaultValue.setText(Double.valueOf(mRow.mDefaultValue).toString());
+
+    // This will change the soft keyboard to text mode (doh!)
+    mDefaultValue.setText(Double.valueOf(view.mDefaultValue).toString());
 
     int trendState = Trend.TREND_UNKNOWN;
-    String aggregation = TimeSeries.periodToUriAggregation(mRow.mPeriod);
+    String aggregation = TimeSeries.periodToUriAggregation(view.mPeriod);
     
     Builder uriBuilder = ContentUris.withAppendedId(
-        TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mId).buildUpon()
+        TimeSeriesData.TimeSeries.CONTENT_URI, view.mId).buildUpon()
         .appendPath("recent").appendPath("2");
     if (aggregation != null) {
       uriBuilder.appendPath(aggregation);
@@ -281,14 +280,14 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         double newTrend = TimeSeriesData.Datapoint.getTrend(c);
         double displayTrend = newTrend;
 
-        if (mRow.mAggregation.equals(TimeSeries.AGGREGATION_AVG)) {
+        if (view.mAggregation.equals(TimeSeries.AGGREGATION_AVG)) {
           int nEntries = TimeSeriesData.Datapoint.getEntries(c);
           if (nEntries < 0)
             nEntries = 1;
           displayTrend /= nEntries;
         }
-        displayTrend = Number.Round(newTrend, mRow.mDecimals);
-        if (mRow.mType.equals(TimeSeries.TYPE_RANGE)) {
+        displayTrend = Number.Round(newTrend, view.mDecimals);
+        if (view.mType.equals(TimeSeries.TYPE_RANGE)) {
           mTrendValueView.setText(DateUtil.toString(displayTrend));
         } else {
           mTrendValueView.setText(Double.valueOf(displayTrend).toString());
@@ -298,15 +297,15 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         double oldTrend = Datapoint.getTrend(c);
         double stdDev = Datapoint.getStdDev(c);
     
-        trendState = Trend.getTrendIconState(oldTrend, newTrend, mRow.mGoal, 
-            mRow.mSensitivity, stdDev);
+        trendState = Trend.getTrendIconState(oldTrend, newTrend, view.mGoal, 
+            view.mSensitivity, stdDev);
         
-        if (mRow.mType.equals(TimeSeries.TYPE_RANGE)) {
+        if (view.mType.equals(TimeSeries.TYPE_RANGE)) {
           status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
-              mRow.mPeriod) + ": " + DateUtil.toString(newValue);          
+              view.mPeriod) + ": " + DateUtil.toString(newValue);          
         } else {
           status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
-              mRow.mPeriod) + ": " + newValue;          
+              view.mPeriod) + ": " + newValue;          
         }
         mCategoryUpdateView.setText(status);
       }

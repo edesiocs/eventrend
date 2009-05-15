@@ -2,10 +2,9 @@ check all return values from recorderservice/provider
 move timseries abstractions out, change names
 
 Provider:
-- spawn zero-filler if zero-fill gets turned on
+- spawn zero-filler if zero-fill gets set for a category
 Input Activity:
-- Make service connection dialog appear at start
-  - Make sure to not attempt to use connection until established
+- test convertView in getView with many categories
 - Virtual Keyboard:
   - make it stick to numeric when appropriate
   - auto-scroll to put selected field in view

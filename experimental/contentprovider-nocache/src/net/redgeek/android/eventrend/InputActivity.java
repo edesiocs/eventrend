@@ -54,6 +54,7 @@ import android.widget.DatePicker;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import net.redgeek.android.eventgrapher.GraphActivity;
@@ -178,13 +179,19 @@ public class InputActivity extends EvenTrendActivity {
   public void onCreate(Bundle icicle) {
     super.onCreate(icicle);
 
+    mProgress = new ProgressIndicator.Titlebar(mCtx);
     mProgressBox = new ProgressIndicator.DialogSoft(mCtx, SERVICE_CONNECTING_DIALOG_ID);
+    
+    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+    setContentView(R.layout.category_list);
+
     setupTasksAndData();
+    
     setupUI();
-
     fillCategoryData(-1);
-
     setCurrentViews(true);
+    
+    scheduleUpdateNow();
   }
 
   public TextView getTimestampView() {
@@ -199,6 +206,10 @@ public class InputActivity extends EvenTrendActivity {
   @Override
   public void executeNonGuiTask() throws Exception {
     startAndBind();
+  }
+  
+  @Override
+  public void afterExecute() {
   }
 
   @Override
@@ -228,18 +239,12 @@ public class InputActivity extends EvenTrendActivity {
     };
 
     mNowHandler = new Handler();
-    scheduleUpdateNow();
+    
+    mCategories = new ArrayList<ListView>();
+    mCLAs = new ArrayList<CategoryListAdapter>();
   }
 
   private void setupUI() {
-    requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-    setContentView(R.layout.category_list);
-
-    mProgress = new ProgressIndicator.Titlebar(mCtx);
-
-    mCategories = new ArrayList<ListView>();
-    mCLAs = new ArrayList<CategoryListAdapter>();
-
     initListeners();
 
     mTimestampView = (TextView) findViewById(R.id.entry_timestamp);
@@ -554,8 +559,12 @@ public class InputActivity extends EvenTrendActivity {
         String str = getResources().getString(R.string.overview);
         return mDialogUtil.newOkDialog("Help", str);
       case SERVICE_CONNECTING_DIALOG_ID:
-        return mDialogUtil.newProgressDialog(
-            "Connecting to recorder service and updating stats ...");
+        Dialog d = mDialogUtil.newProgressDialog(
+            "Connecting to recorder service ... "
+            + "note this can take a while if the service is busy calculating "
+            + "stats.");
+        d.setCancelable(false);
+        return d;
       case DELETE_DIALOG_ID:
         title = "Delete " + mDeleteCategoryName + "?";
         msg = "All associated entries will also be deleted!";
@@ -692,7 +701,7 @@ public class InputActivity extends EvenTrendActivity {
       for (int j = 0; j < lv.getChildCount(); j++) {
         CategoryRowView row = (CategoryRowView) lv.getChildAt(j);
         if (row.mRow.mType.toLowerCase().equals(TimeSeries.TYPE_SYNTHETIC) == true) {
-          row.populateFields();
+          row.populateFields(row.mRow);
 //          CategoryRowView.setLayoutAnimationSlideOutLeftIn(row, mCtx);
         }
       }
@@ -809,7 +818,7 @@ public class InputActivity extends EvenTrendActivity {
         .appendPath("datapoints").appendPath(""+mLastAddDatapointId).build();
     int count = getContentResolver().delete(uri, null, null);
     mUndoLock.unlock();
-    mLastAddRowView.populateFields();
+    mLastAddRowView.populateFields(mLastAddRowView.mRow);
 
     if (count != 1) {
       mDialogErrorTitle = "Error";
