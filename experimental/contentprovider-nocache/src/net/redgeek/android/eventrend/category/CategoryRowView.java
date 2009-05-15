@@ -82,8 +82,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private double mAddValue;
 
   private Context mCtx;
-  private ContentResolver mContent;
-  private DateMapCache mDateCache;
+  private DateMapCache mDateMap;
 
   private boolean mSelectable = true;
 
@@ -93,8 +92,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mRowView = this;
     mRow = viewRow;
     mNewDatapointId = 0;
-    mContent = mCtx.getContentResolver();
-    mDateCache = ((InputActivity) mCtx).getDateMapCache();
+    mDateMap = ((InputActivity) mCtx).getDateMapCache();
 
     setupTasks();
     setupUI();
@@ -279,13 +277,15 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         double newValue = TimeSeriesData.Datapoint.getValue(c);
         double newTrend = TimeSeriesData.Datapoint.getTrend(c);
         double displayTrend = newTrend;
+        double displayValue = newValue;
 
         if (view.mAggregation.equals(TimeSeries.AGGREGATION_AVG)) {
           int nEntries = TimeSeriesData.Datapoint.getEntries(c);
           if (nEntries < 0)
             nEntries = 1;
-          displayTrend /= nEntries;
+          displayValue /= nEntries;
         }
+        displayValue = Number.Round(displayValue, view.mDecimals);
         displayTrend = Number.Round(newTrend, view.mDecimals);
         if (view.mType.equals(TimeSeries.TYPE_RANGE)) {
           mTrendValueView.setText(DateUtil.toString(displayTrend));
@@ -301,11 +301,11 @@ public class CategoryRowView extends LinearLayout implements GUITask {
             view.mSensitivity, stdDev);
         
         if (view.mType.equals(TimeSeries.TYPE_RANGE)) {
-          status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
-              view.mPeriod) + ": " + DateUtil.toString(newValue);          
+          status = mDateMap.toDisplayTime(Datapoint.getTsStart(c), 
+              view.mPeriod) + ": " + DateUtil.toString(displayValue);          
         } else {
-          status = DateUtil.toDisplayTime(Datapoint.getTsStart(c), 
-              view.mPeriod) + ": " + newValue;          
+          status = mDateMap.toDisplayTime(Datapoint.getTsStart(c), 
+              view.mPeriod) + ": " + displayValue;          
         }
         mCategoryUpdateView.setText(status);
       }

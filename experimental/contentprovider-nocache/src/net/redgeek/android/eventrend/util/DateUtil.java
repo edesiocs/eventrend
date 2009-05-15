@@ -180,52 +180,6 @@ public final class DateUtil {
   }
 
   /**
-   * Returns a "timestamp" formated string representing the time formatted for
-   * the period.
-   * 
-   * @param seconds
-   *          The time in seconds since epoch
-   * @param period
-   *          The number of seconds in the period
-   * @return The timestamp string.
-   */
-  public static String toDisplayTime(int seconds, int period) {
-    String s;
-    Calendar c = Calendar.getInstance();
-    c.setTimeInMillis(seconds * DateMap.SECOND_MS);
-    if (period == DateMap.YEAR_SECS) {
-      s = "" + c.get(Calendar.YEAR);
-    }
-    else if (period == DateMap.QUARTER_SECS) {
-      int month = c.get(Calendar.MONTH);
-      int quarter = (int)(month / 3) + 1;
-      s = c.get(Calendar.YEAR) + " Q" + quarter;
-    }
-    else if (period == DateMap.MONTH_SECS) {
-      s = c.get(Calendar.YEAR) + "/" + l2pad(c.get(Calendar.MONTH));
-    }
-    else if (period == DateMap.WEEK_SECS) {
-      s = c.get(Calendar.YEAR) + "/" 
-        +l2pad(c.get(Calendar.MONTH)) + "/" 
-        + l2pad(c.get(Calendar.DAY_OF_MONTH));
-    }
-    else if (period == DateMap.DAY_SECS) {
-      s = c.get(Calendar.YEAR) + "/" 
-        + l2pad(c.get(Calendar.MONTH))
-        + "/" + l2pad(c.get(Calendar.DAY_OF_MONTH));
-    }
-    else {
-      s = c.get(Calendar.YEAR) + "/" 
-        + l2pad(c.get(Calendar.MONTH)) + "/" 
-        + l2pad(c.get(Calendar.DAY_OF_MONTH)) + " "
-        + l2pad(c.get(Calendar.HOUR_OF_DAY)) + ":"
-        + l2pad(c.get(Calendar.MINUTE)) + ":"
-        + l2pad(c.get(Calendar.SECOND));
-    }
-    return s;
-  }
-
-  /**
    * Returns a "short timestamp" formated string representing the time:
    * "HH:MM:SS"
    * 

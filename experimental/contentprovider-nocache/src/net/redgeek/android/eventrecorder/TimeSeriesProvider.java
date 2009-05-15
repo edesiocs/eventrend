@@ -679,14 +679,15 @@ public class TimeSeriesProvider extends ContentProvider {
       if (timestamp == tsStart) {      
         id = Datapoint.getId(c);
         value = Datapoint.getValue(c);
+        entries = Datapoint.getEntries(c);
 
-        Datapoint.setTrend(values, value);
+        Datapoint.setTrend(values, value / entries);
         Datapoint.setStdDev(values, 0.0f);
 
         int length = Datapoint.AGGREGATE_SUFFIX.length;
         for (int i = 0; i < length; i++) {
           String suffix = Datapoint.AGGREGATE_SUFFIX[i];
-          Datapoint.setTrend(values, suffix, value);
+          Datapoint.setTrend(values, suffix, value / entries);
           Datapoint.setStdDev(values, suffix, 0.0f);
         }
         
@@ -755,16 +756,16 @@ public class TimeSeriesProvider extends ContentProvider {
 
         if (newPeriodStart > oldPeriodStart) {
           // restart the per-period counters
-          trend = calculateTrend(value, oldTrend, smoothing);
+          trend = calculateTrend(value / entries, oldTrend, smoothing);
           Datapoint.setTrend(values, suffix, trend);
         } else {
           // add to the per-period counters
           if (c2.getCount() < 2) {
             // there was a previous entry, but it was in this same period,
             // so there's no entry before this for the period
-            Datapoint.setTrend(values, suffix, oldValue + value);
+            Datapoint.setTrend(values, suffix, (oldValue + value) / (oldEntries + entries));
           } else {
-            trend = calculateTrend(oldValue + value, oldTrend, smoothing);
+            trend = calculateTrend((oldValue / oldEntries) + (value / entries), oldTrend, smoothing);
             Datapoint.setTrend(values, suffix, trend);
           }                
         }
@@ -853,7 +854,7 @@ public class TimeSeriesProvider extends ContentProvider {
     int period, periodStart, periodEnd;
     
     // set the non-aggregated stats
-    Datapoint.setTrend(values, value);
+    Datapoint.setTrend(values, value / entries);
     Datapoint.setStdDev(values, 0.0f);
     Datapoint.setSumValueSqr(values, value * value);              
     Datapoint.setSumEntries(values, entries);
@@ -871,7 +872,7 @@ public class TimeSeriesProvider extends ContentProvider {
       Datapoint.setTsEnd(values, suffix, periodEnd);
       Datapoint.setValue(values, suffix, value);
       Datapoint.setEntries(values, suffix, entries);
-      Datapoint.setTrend(values, suffix, value);
+      Datapoint.setTrend(values, suffix, value / entries);
       Datapoint.setStdDev(values, suffix, 0.0f);
       Datapoint.setSumEntries(values, suffix, entries);
       Datapoint.setSumValue(values, suffix, value);
@@ -898,7 +899,7 @@ public class TimeSeriesProvider extends ContentProvider {
     double newValueSumSqr = oldValueSumSqr + (value * value);
     int newEntriesSum = oldEntriesSum + entries;
 
-    double trend = calculateTrend(value, oldTrend, smoothing);
+    double trend = calculateTrend(value / entries, oldTrend, smoothing);
     Datapoint.setTrend(values, trend);
     Datapoint.setSumEntries(values, newEntriesSum);
     Datapoint.setSumValue(values, newValueSum);
@@ -984,16 +985,16 @@ public class TimeSeriesProvider extends ContentProvider {
         // restart the per-period counters
         Datapoint.setValue(values, suffix, value);
         Datapoint.setEntries(values, suffix, entries);
-        newTrend = calculateTrend(value, oldTrend, smoothing);
+        newTrend = calculateTrend(value / entries, oldTrend, smoothing);
         Datapoint.setTrend(values, suffix, newTrend);
       } else {
         // add to the per-period counters
         if (c.getCount() < 2) {
           // there was a previous entry, but it was in this same period,
           // so there's no entry before this for the period
-          Datapoint.setTrend(values, suffix, oldValue + value);
+          Datapoint.setTrend(values, suffix, (oldValue + value) / (oldEntries + entries));
         } else {
-          newTrend = calculateTrend(oldValue + value, oldTrend, smoothing);
+          newTrend = calculateTrend((oldValue / oldEntries) + (value / entries), oldTrend, smoothing);
           Datapoint.setTrend(values, suffix, newTrend);
         }                
         Datapoint.setValue(values, suffix, oldValue + value);
