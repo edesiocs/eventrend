@@ -74,7 +74,7 @@ public interface ProgressIndicator {
   }
 
   /**
-   * A ProgressIndicator that displays and dismissed a dialog box, most likely
+   * A ProgressIndicator that displays and dismisses a dialog box, most likely
    * with an indeterminate progress indicator. This dialog is "soft" because it
    * is cancel-able.
    * 
