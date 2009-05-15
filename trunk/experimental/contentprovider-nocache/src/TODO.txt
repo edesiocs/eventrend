@@ -8,9 +8,7 @@ Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
 - cache of category views
-- make sure averages and aggregations work correctly on display and trend calcs
 CategoryEdit/Wizard:
-- make formula editor not require saving the category
 - test changing all fields, changing orientation
 Import:
 - implement v2 importing

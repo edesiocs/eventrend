@@ -349,7 +349,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
     mFormulaEditListener = new View.OnClickListener() {
       public void onClick(View view) {
         // TODO: formula-related stuff
-         saveState();
+//         saveState();
          Intent i = new Intent(mCtx, FormulaEditorActivity.class);
          i.putExtra(TimeSeries._ID, mRowId);
          startActivityForResult(i, ARC_FORMULA_EDIT);
@@ -519,23 +519,19 @@ public class CategoryEditActivity extends EvenTrendActivity {
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
     super.onActivityResult(requestCode, resultCode, intent);
-    String formula = null;
-    if (intent != null) {
-      mRow.mFormula = intent.getStringExtra(TimeSeries.FORMULA);
-    }
-    if (mRow != null && mRow.mFormula == null && mRowId > 0) {
-      String[] projection = new String[] { TimeSeries.FORMULA };
-      Uri timeseries = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, mRow.mId);
-      Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
-      if (c.getCount() < 1) {
-        c.close();
-        return;
-      }
-
-      c.moveToFirst();
-      mRow.mFormula = TimeSeries.getFormula(c);
-      c.close();
-    }
+    switch(requestCode) { 
+      case ARC_FORMULA_EDIT:
+        switch(resultCode) {
+          case RESULT_OK:
+            mRow.mFormula = intent.getStringExtra(TimeSeries.FORMULA);
+            break; 
+          default:
+            break;
+        }
+        break;
+      default:
+        break;
+    } 
   }
 
   @Override
