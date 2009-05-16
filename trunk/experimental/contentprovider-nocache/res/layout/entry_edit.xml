@@ -127,7 +127,8 @@
     </TableRow>
 		<TableRow 		
       android:layout_height="wrap_content" 
-			android:layout_width="fill_parent" android:id="@+id/entry_edit_ts_end_row">	
+			android:layout_width="fill_parent"
+      android:id="@+id/entry_edit_ts_end_row">	
 			<TextView 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 

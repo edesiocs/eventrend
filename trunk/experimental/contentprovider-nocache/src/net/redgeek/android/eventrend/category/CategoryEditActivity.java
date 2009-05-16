@@ -139,7 +139,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
         if (mRowId < 0)
           mRowId = null;
       }
-      // lastly, fall back on the icicle ...
+      // lastly, fall back on the bundle ...
       if (mRowId == null) {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
