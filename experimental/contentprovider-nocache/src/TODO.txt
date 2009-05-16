@@ -5,6 +5,8 @@ make Importer not show up on category edit list
 test ranges and synthetics
 set correct inputType on all views
 kill all TODOs
+scale the goal (if a sum) in graph/calendar views
+remove all DateUtil.* fcns, or more to DateMapCache
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
