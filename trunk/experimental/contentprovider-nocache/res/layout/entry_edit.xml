@@ -40,7 +40,8 @@
 				android:layout_height="wrap_content" 
 				android:id="@+id/entry_edit_value" 
 				android:layout_gravity="right|center_vertical"
-        android:inputType="numberSigned|numberDecimal" android:minEms="4">
+        android:inputType="phone"
+        android:minEms="4">
 			</EditText>
 		</TableRow>
 
@@ -58,7 +59,8 @@
         android:layout_height="wrap_content" 
         android:id="@+id/entry_edit_entries" 
         android:layout_gravity="right|center_vertical"
-        android:inputType="numberSigned" android:minEms="4">
+        android:inputType="phone"
+        android:minEms="4">
       </EditText>
 		</TableRow>
 		<TableRow 
