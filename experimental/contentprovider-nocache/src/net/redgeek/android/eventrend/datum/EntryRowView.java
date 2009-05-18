@@ -17,57 +17,50 @@
 package net.redgeek.android.eventrend.datum;
 
 import android.content.Context;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
-import android.widget.TableRow;
 import android.widget.TextView;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.DateUtil;
 
 public class EntryRowView extends TableLayout {
-  private TextView mCategoryText;
   private TextView mValueText;
   private TextView mTimestampText;
 
   private long mRowId;
-
-  private TableRow mRow;
+  private Context mCtx;
+  private DateMapCache mDateMap;
+  
+  private LinearLayout mRow;
   private int mPad = 2;
 
-  public EntryRowView(Context context, EntryRow anEntry) {
+  public EntryRowView(Context context, EntryRow anEntry, DateMapCache dateMap) {
     super(context);
-
+    mCtx = context;
+    mDateMap = dateMap;
     setupUI(context);
     populateFields(anEntry);
   }
 
   private void setupUI(Context context) {
-    mRow = new TableRow(context);
+    setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
 
-    mCategoryText = new TextView(context);
-    mCategoryText.setPadding(mPad, mPad, mPad, mPad);
+    LayoutInflater inflater = (LayoutInflater) mCtx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    inflater.inflate(R.layout.entry_row, this);
 
-    mTimestampText = new TextView(context);
-    mTimestampText.setPadding(mPad, mPad, mPad, mPad);
-
-    mValueText = new TextView(context);
-    mValueText.setPadding(mPad, mPad, mPad, mPad);
-
-    mRow.addView(mCategoryText, new TableRow.LayoutParams(1));
-    mRow.addView(mTimestampText, new TableRow.LayoutParams(1));
-    mRow.addView(mValueText, new TableRow.LayoutParams(1));
-
-    this.addView(mRow, new TableLayout.LayoutParams());
+    mRow = (LinearLayout) findViewById(R.id.entry_row);
+    mTimestampText = (TextView) findViewById(R.id.entry_timestamp);
+    mValueText = (TextView) findViewById(R.id.entry_value);
   }
 
   private void populateFields(EntryRow entry) {
-    mCategoryText.setText(entry.mName);
-    mTimestampText.setText(DateUtil.toTimestamp(entry.mTsStart));
+    mTimestampText.setText(mDateMap.toDisplayTime(entry.mTsStart, 0));
     mValueText.setText(Double.valueOf(entry.mValue).toString());
     mRowId = entry.mId;
-  }
-
-  public void setCategoryName(String words) {
-    mCategoryText.setText(words);
   }
 
   public void setValue(double value) {
@@ -75,7 +68,7 @@ public class EntryRowView extends TableLayout {
   }
 
   public void setTimestamp(int timestamp) {
-    mTimestampText.setText(DateUtil.toTimestamp(timestamp));
+    mTimestampText.setText(mDateMap.toDisplayTime(timestamp, 0));
   }
 
   public long getRowId() {

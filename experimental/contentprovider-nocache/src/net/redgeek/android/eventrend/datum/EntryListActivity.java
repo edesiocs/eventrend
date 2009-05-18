@@ -22,17 +22,16 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
@@ -62,10 +61,10 @@ public class EntryListActivity extends EvenTrendActivity {
   private static final int DIALOG_PROGRESS = 3;
 
   // UI elements
+  private DateMapCache mDateMap;
   private EntryListAdapter mEla;
   private LinearLayout mCategoryMenuRow;
   private DynamicSpinner mCategoryMenu;
-  private TextView mStatus;
   private String mFilename;
   private String mErrMsg;
   ProgressIndicator.DialogSoft mProgress;
@@ -74,10 +73,7 @@ public class EntryListActivity extends EvenTrendActivity {
   private OnItemSelectedListener mCategoryMenuListener;
 
   // Private Data
-  private long mCatId;
-  private String mCatName;
-  private HashMap<Long, String> mIdMap;
-  
+  private long mCatId;  
   private String mImportDir;
 
   // Tasks
@@ -101,7 +97,8 @@ public class EntryListActivity extends EvenTrendActivity {
   private void setupTasksAndData() {
     // TODO:
     //    mExporter = new ExportTask(getDbh());
-    mIdMap = new HashMap<Long, String>();
+    mDateMap = new DateMapCache();
+    mDateMap.populateCache(mCtx);
   }
 
   private void setupUI() {
@@ -110,14 +107,9 @@ public class EntryListActivity extends EvenTrendActivity {
     setContentView(R.layout.entry_list);
 
     mCategoryMenuRow = (LinearLayout) findViewById(R.id.entry_list_category_menu_row);
-    mCategoryMenu = (DynamicSpinner) new DynamicSpinner(this);
-    mCategoryMenuRow.addView(mCategoryMenu, new LinearLayout.LayoutParams(
-        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-    mCategoryMenuRow.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    mCategoryMenu = (DynamicSpinner) findViewById(R.id.entry_list_category_spinner);
     mCategoryMenu.setOnItemSelectedListener(mCategoryMenuListener);
     setupMenu();
-
-    mStatus = (TextView) findViewById(R.id.edit_list_status);
 
     mProgress = new ProgressIndicator.DialogSoft(mCtx, DIALOG_PROGRESS);
   }
@@ -127,7 +119,6 @@ public class EntryListActivity extends EvenTrendActivity {
       public void onItemSelected(AdapterView parent, View v, int position,
           long id) {
         mCatId = (long) mCategoryMenu.getMappingFromPosition(position);
-        mCatName = mIdMap.get(mCatId);
         fillEntryData();
       }
 
@@ -152,7 +143,6 @@ public class EntryListActivity extends EvenTrendActivity {
         long catId = TimeSeries.getId(c);
         String label = TimeSeries.getTimeSeriesName(c);
         mCategoryMenu.addSpinnerItem(label, catId);
-        mIdMap.put(Long.valueOf(catId), label);
         c.moveToNext();
       }
       c.close();
@@ -169,21 +159,21 @@ public class EntryListActivity extends EvenTrendActivity {
     Cursor c = mCtx.getContentResolver().query(uri, null, null, null, 
       Datapoint.TS_START + " desc ");
     
-    mEla = new EntryListAdapter(this);
+    mEla = new EntryListAdapter(this, mDateMap);
     c.moveToFirst();
     for (int i = 0; i < c.getCount(); i++) {
-      row = new EntryRow(mCatName);
+      row = new EntryRow();
       row.mId = Datapoint.getId(c);
       row.mTimeSeriesId = Datapoint.getTimeSeriesId(c);
       row.mValue = Datapoint.getValue(c);
       row.mEntries = Datapoint.getEntries(c);
       row.mTsStart = Datapoint.getTsStart(c);
       row.mTsEnd = Datapoint.getTsEnd(c);
-      row.mName = "";
       
       mEla.addItem(row);
       c.moveToNext();
     }
+    c.close();
 
     setListAdapter(mEla);
   }
@@ -276,8 +266,8 @@ public class EntryListActivity extends EvenTrendActivity {
   protected void onListItemClick(ListView l, View v, int position, long id) {
     super.onListItemClick(l, v, position, id);
     long rowId = ((EntryRowView) v).getRowId();
-    Intent i = new Intent(this, EntryEditActivity.class);
-    i.putExtra(Datapoint._ID, rowId);
+    Uri uri = ContentUris.withAppendedId(TimeSeriesData.Datapoint.CONTENT_URI, rowId);
+    Intent i = new Intent(Intent.ACTION_EDIT, uri);
     startActivityForResult(i, ARC_ENTRY_EDIT);
   }
 

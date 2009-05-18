@@ -58,7 +58,7 @@
         android:layout_height="wrap_content" 
         android:id="@+id/entry_edit_entries" 
         android:layout_gravity="right|center_vertical"
-        android:inputType="numberSigned|numberDecimal" android:minEms="4">
+        android:inputType="numberSigned" android:minEms="4">
       </EditText>
 		</TableRow>
 		<TableRow 
@@ -128,7 +128,8 @@
 		<TableRow 		
       android:layout_height="wrap_content" 
 			android:layout_width="fill_parent"
-      android:id="@+id/entry_edit_ts_end_row">	
+      android:id="@+id/entry_ts_end_label_row" 
+      >	
 			<TextView 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 
@@ -156,8 +157,9 @@
 			</LinearLayout>
 		</TableRow>
 		<TableRow 
-			android:layout_width="wrap_content" 
-			android:layout_height="wrap_content">
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+      android:id="@+id/entry_edit_ts_end_row">  
 			<Button 
 				android:layout_width="wrap_content" 
 				android:layout_height="wrap_content" 

@@ -65,7 +65,7 @@
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.PICK" />
         <category android:name="android.intent.category.DEFAULT" />
-        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.datapoint" />
+        <data android:mimeType="vnd.android.cursor.dir/vnd.redgeek.timeseries.datapoint" />
       </intent-filter>
 		</activity>
 
@@ -76,7 +76,7 @@
         <action android:name="android.intent.action.VIEW" />
         <action android:name="android.intent.action.EDIT" />
         <category android:name="android.intent.category.DEFAULT" />
-        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.datapoint" />
+        <data android:mimeType="vnd.android.cursor.item/vnd.redgeek.timeseries.datapoint" />
       </intent-filter>
 		</activity>
 		

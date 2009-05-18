@@ -16,21 +16,25 @@
 
 package net.redgeek.android.eventrend.datum;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
+import net.redgeek.android.eventrecorder.DateMapCache;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class EntryListAdapter extends BaseAdapter {
   private Context mCtx;
+  private DateMapCache mDateMap;
   private List<EntryRow> mItems = new ArrayList<EntryRow>();
 
-  public EntryListAdapter(Context context) {
+  public EntryListAdapter(Context context, DateMapCache dateMap) {
     mCtx = context;
+    mDateMap = dateMap;
   }
 
   public void addItem(EntryRow it) {
@@ -68,12 +72,11 @@ public class EntryListAdapter extends BaseAdapter {
   public View getView(int position, View convertView, ViewGroup parent) {
     EntryRowView row;
     if (convertView == null) {
-      row = new EntryRowView(mCtx, mItems.get(position));
+      row = new EntryRowView(mCtx, mItems.get(position), mDateMap);
       row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
     } else {
       row = (EntryRowView) convertView;
 
-      row.setCategoryName(mItems.get(position).mName);
       row.setTimestamp(mItems.get(position).mTsStart);
       row.setValue(mItems.get(position).mValue);
     }

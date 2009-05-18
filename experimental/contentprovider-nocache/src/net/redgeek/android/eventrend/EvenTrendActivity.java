@@ -70,6 +70,11 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
   public static final int CATEGORY_MODIFIED = RESULT_FIRST_USER + 3;
   public static final int CATEGORY_OP_ERR   = RESULT_FIRST_USER + 10;
 
+  public static final int ENTRY_CANCELED = CATEGORY_OP_ERR + 1;
+  public static final int ENTRY_MODIFIED = CATEGORY_OP_ERR + 2;
+  public static final int ENTRY_DELETED  = CATEGORY_OP_ERR + 3;
+  public static final int ENTRY_OP_ERR   = CATEGORY_OP_ERR + 10;
+
   protected Context mCtx;
   protected ContentResolver mContent;
   protected DialogUtil mDialogUtil;

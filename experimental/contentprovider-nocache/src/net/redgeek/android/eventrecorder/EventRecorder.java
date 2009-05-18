@@ -195,7 +195,7 @@ public class EventRecorder extends Service {
       int datapointId;
       try {
         datapointId = Integer.parseInt(uri.getPathSegments().get(
-            TimeSeriesProvider.PATH_SEGMENT_DATAPOINT_ID));
+            TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_DATAPOINT_ID));
       } catch (Exception e) {
         LockUtil.unlock(mLock);
         return -1;
@@ -332,7 +332,7 @@ public class EventRecorder extends Service {
 
       try {
         datapointId = Integer.parseInt(uri.getPathSegments().get(
-            TimeSeriesProvider.PATH_SEGMENT_DATAPOINT_ID));
+            TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_DATAPOINT_ID));
       } catch (Exception e) {
         LockUtil.unlock(mLock);
         return -1;

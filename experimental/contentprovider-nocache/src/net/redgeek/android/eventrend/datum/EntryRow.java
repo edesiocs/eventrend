@@ -20,15 +20,13 @@ public class EntryRow implements Comparable<EntryRow> {
   public long mId;
   public long mTimeSeriesId;
   public double mValue;
-  public double mEntries;
+  public int mEntries;
   public int mTsStart;
   public int mTsEnd;
-  public String mName;
 
   private boolean mSelectable = true;
 
-  public EntryRow(String catName) {
-    mName = catName;
+  public EntryRow() {
   }
 
   public boolean isSelectable() {
