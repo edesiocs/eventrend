@@ -20,6 +20,7 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -27,25 +28,22 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.AdapterView.OnItemSelectedListener;
 
-import net.redgeek.android.eventgrapher.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
+import net.redgeek.android.eventrecorder.DateMapCache.DateItem;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
-import net.redgeek.android.eventrend.util.DateUtil;
-
-import java.util.Calendar;
 
 public class EntryEditActivity extends EvenTrendActivity {
   // Dialog IDs
@@ -55,7 +53,7 @@ public class EntryEditActivity extends EvenTrendActivity {
   static final int END_DATE_DIALOG_ID = 3;
 
   // UI elements
-  private TextView mCategoryName;
+  private TextView mCategoryNameView;
   private TextView mValueLabel;
   private EditText mValueView;
   private TextView mEntriesLabel;
@@ -63,18 +61,19 @@ public class EntryEditActivity extends EvenTrendActivity {
   private Button mOk;
   private Button mDelete;
   private TextView mTsStartLabel;
+  private TextView mTsStartValue;
   private Button mPickStartDate;
   private Button mPickStartTime;
   private Button mPickStartNow;
   private TextView mTsEndLabel;
+  private TextView mTsEndValue;
   private Button mPickEndDate;
   private Button mPickEndTime;
   private Button mPickEndNow;
   private TableRow mTsEndRow;
-  private TableRow mEditTsEndRow;
+  private TableRow mEditTsEndLabelRow;
 
   // Listeners
-  private OnItemSelectedListener mCategoryMenuListener;
   private View.OnClickListener mPickStartDateListener;
   private View.OnClickListener mPickStartTimeListener;
   private View.OnClickListener mPickStartNowListener;
@@ -93,20 +92,18 @@ public class EntryEditActivity extends EvenTrendActivity {
   // Private data
   private EntryRow mRow;
   private String mCategoryType;
-  private double mValue = 0.0;
-  private boolean mTimestampChanged = false;
-  private boolean mSave = false;
-  private int mAggregation;
+  private String mCategoryName;
+  private DateMapCache mDateMap;
 
   // original values
-  private long mOriginalCategoryId;
   private double mOriginalValue;
-  private DateUtil.DateItem mOriginalTimestamp;
+  private int mOriginalEntries;
+  private DateMapCache.DateItem mOriginalStartTs;
+  private DateMapCache.DateItem mOriginalEndTs;
 
   // picker values
-  private DateUtil.DateItem mStartPickerTimestamp;
-  private DateUtil.DateItem mEndPickerTimestamp;
-  private Calendar mCal;
+  private DateMapCache.DateItem mStartPickerTimestamp;
+  private DateMapCache.DateItem mEndPickerTimestamp;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -115,15 +112,13 @@ public class EntryEditActivity extends EvenTrendActivity {
     setupData(icicle);
     setupUI();
     populateFields(mRow);
-    saveOriginalValues();
 
-    setTimestamp();
+    setTimestamps();
   }
 
   private void setupData(Bundle icicle) {
     Long rowId = null;
-    Long catId = null;
-    mRow = new EntryRow("");
+    mRow = new EntryRow();
     
     Intent it = getIntent();
     // prefer uris ...
@@ -133,8 +128,6 @@ public class EntryEditActivity extends EvenTrendActivity {
         try {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_DATAPOINT_ID);
           rowId = Long.valueOf(rowIdStr);
-          String catIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
-          catId = Long.valueOf(catIdStr);
         } catch (Exception e) { } // nothing
       }
     }
@@ -145,30 +138,38 @@ public class EntryEditActivity extends EvenTrendActivity {
         rowId = icicle.getLong(TimeSeriesData.Datapoint._ID);
         if (rowId < 0)
           rowId = null;
-        catId = icicle.getLong(TimeSeriesData.Datapoint.TIMESERIES_ID);
-        if (catId < 0)
-          catId = null;
       }
       // lastly, fall back on the bundle ...
       if (rowId == null) {
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
           rowId = extras.getLong(TimeSeriesData.Datapoint._ID);
-          catId = extras.getLong(TimeSeriesData.Datapoint.TIMESERIES_ID);
         }
       }
     }
     
     mRow.mId = rowId;
-    mRow.mTimeSeriesId = catId;
     
+    mOriginalStartTs = new DateMapCache.DateItem();
+    mOriginalEndTs = new DateMapCache.DateItem();
+    mStartPickerTimestamp = new DateMapCache.DateItem();
+    mEndPickerTimestamp = new DateMapCache.DateItem();
+
+    mDateMap = new DateMapCache();
+    mDateMap.populateCache(mCtx);
+
     Uri uri = ContentUris.withAppendedId(
-        TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mTimeSeriesId).buildUpon()
-        .appendPath("datapoints").appendPath(""+mRow.mId).build();
+        TimeSeriesData.Datapoint.CONTENT_URI, mRow.mId);
     Cursor c = mCtx.getContentResolver().query(uri, null, null, null, null);
     if (c != null && c.getCount() > 0) {      
       c.moveToFirst();
-      // TODO:  fetch original data
+      mRow.mTimeSeriesId = Datapoint.getTimeSeriesId(c);
+      mRow.mValue = Datapoint.getValue(c);
+      mRow.mEntries = Datapoint.getEntries(c);
+      mRow.mTsStart = Datapoint.getTsStart(c);
+      mRow.mTsEnd = Datapoint.getTsEnd(c);
+      
+      saveOriginalValues(mRow.mValue, mRow.mEntries, mRow.mTsStart, mRow.mTsEnd);
     }
     c.close();
 
@@ -178,14 +179,9 @@ public class EntryEditActivity extends EvenTrendActivity {
     if (c != null && c.getCount() > 0) {      
       c.moveToFirst();
       mCategoryType = TimeSeries.getType(c);
-      mRow.mName = TimeSeries.getTimeSeriesName(c);
+      mCategoryName = TimeSeries.getTimeSeriesName(c);
     }
     c.close();
-
-    mCal = Calendar.getInstance();
-    mOriginalTimestamp = new DateUtil.DateItem();
-    mStartPickerTimestamp = new DateUtil.DateItem();
-    mEndPickerTimestamp = new DateUtil.DateItem();
   }
 
   private void setupUI() {
@@ -193,34 +189,59 @@ public class EntryEditActivity extends EvenTrendActivity {
 
     setupListeners();
 
-    mCategoryName = (TextView) findViewById(R.id.entry_edit_name);
-
+    mCategoryNameView = (TextView) findViewById(R.id.entry_edit_name);
     mValueView = (EditText) findViewById(R.id.entry_edit_value);
-    mValueView.setOnKeyListener(mValueViewListener);
     mValueLabel = (TextView) findViewById(R.id.entry_value_label);
-
     mEntriesView = (EditText) findViewById(R.id.entry_edit_entries);
-    mEntriesView.setOnKeyListener(mValueViewListener);
     mEntriesLabel = (TextView) findViewById(R.id.entry_entries_label);
 
+    if (mCategoryType.toLowerCase().equals(TimeSeries.TYPE_DISCRETE.toLowerCase())) {      
+      mValueView.setOnKeyListener(mValueViewListener);
+      mEntriesView.setOnKeyListener(mEntriesViewListener);
+    } else {
+      mValueView.setFocusable(false);
+      mEntriesView.setFocusable(false);
+    }
+
     mTsStartLabel = (TextView) findViewById(R.id.entry_ts_start_label);
+    mTsStartValue = (TextView) findViewById(R.id.entry_edit_ts_start);
     mPickStartDate = (Button) findViewById(R.id.entry_set_ts_start_date);
-    mPickStartDate.setOnClickListener(mPickStartDateListener);
     mPickStartTime = (Button) findViewById(R.id.entry_set_ts_start_time);
-    mPickStartTime.setOnClickListener(mPickStartTimeListener);
     mPickStartNow = (Button) findViewById(R.id.entry_set_ts_start_now);
-    mPickStartNow.setOnClickListener(mPickStartNowListener);
+
+    if (mCategoryType.toLowerCase().equals(TimeSeries.TYPE_DISCRETE.toLowerCase()) ||
+        mCategoryType.toLowerCase().equals(TimeSeries.TYPE_RANGE.toLowerCase())) {      
+      if (mCategoryType.toLowerCase().equals(TimeSeries.TYPE_RANGE.toLowerCase())) {  
+        mTsStartLabel.setText("Start Timestamp");
+      }
+      mPickStartDate.setOnClickListener(mPickStartDateListener);
+      mPickStartTime.setOnClickListener(mPickStartTimeListener);
+      mPickStartNow.setOnClickListener(mPickStartNowListener);
+    } else {
+      mPickStartDate.setVisibility(View.GONE);
+      mPickStartTime.setVisibility(View.GONE);
+      mPickStartNow.setVisibility(View.GONE);
+    }
 
     mTsEndLabel = (TextView) findViewById(R.id.entry_ts_end_label);
+    mTsEndValue = (TextView) findViewById(R.id.entry_edit_ts_end);
     mPickEndDate = (Button) findViewById(R.id.entry_set_ts_end_date);
-    mPickEndDate.setOnClickListener(mPickEndDateListener);
     mPickEndTime = (Button) findViewById(R.id.entry_set_ts_end_time);
-    mPickEndTime.setOnClickListener(mPickEndTimeListener);
     mPickEndNow = (Button) findViewById(R.id.entry_set_ts_end_now);
-    mPickEndNow.setOnClickListener(mPickEndNowListener);
-
     mTsEndRow = (TableRow) findViewById(R.id.entry_ts_end_row);
-    mEditTsEndRow = (TableRow) findViewById(R.id.entry_edit_ts_end_row);
+    mEditTsEndLabelRow = (TableRow) findViewById(R.id.entry_ts_end_label_row);
+
+    if (mCategoryType.toLowerCase().equals(TimeSeries.TYPE_RANGE.toLowerCase())) {
+      mPickEndDate.setOnClickListener(mPickEndDateListener);
+      mPickEndTime.setOnClickListener(mPickEndTimeListener);
+      mPickEndNow.setOnClickListener(mPickEndNowListener);
+    } else {
+      mPickEndDate.setVisibility(View.GONE);
+      mPickEndTime.setVisibility(View.GONE);
+      mPickEndNow.setVisibility(View.GONE);
+      mTsEndRow.setVisibility(View.GONE);
+      mEditTsEndLabelRow.setVisibility(View.GONE);
+    }
 
     mOk = (Button) findViewById(R.id.entry_edit_ok);
     mOk.setOnClickListener(mOkListener);
@@ -248,19 +269,19 @@ public class EntryEditActivity extends EvenTrendActivity {
       }
     };
 
-    mPickStartDateListener = new View.OnClickListener() {
+    mPickEndDateListener = new View.OnClickListener() {
       public void onClick(View v) {
         showDialog(END_DATE_DIALOG_ID);
       }
     };
 
-    mPickStartTimeListener = new View.OnClickListener() {
+    mPickEndTimeListener = new View.OnClickListener() {
       public void onClick(View v) {
         showDialog(END_TIME_DIALOG_ID);
       }
     };
 
-    mPickStartNowListener = new View.OnClickListener() {
+    mPickEndNowListener = new View.OnClickListener() {
       public void onClick(View v) {
         resetTimestamp(mEndPickerTimestamp);
       }
@@ -269,6 +290,13 @@ public class EntryEditActivity extends EvenTrendActivity {
     mValueViewListener = new View.OnKeyListener() {
       public boolean onKey(View v, int keyCode, KeyEvent event) {
         updateValueMarker();
+        return false;
+      }
+    };
+
+    mEntriesViewListener = new View.OnKeyListener() {
+      public boolean onKey(View v, int keyCode, KeyEvent event) {
+        updateEntriesMarker();
         return false;
       }
     };
@@ -313,8 +341,7 @@ public class EntryEditActivity extends EvenTrendActivity {
 
     mOkListener = new View.OnClickListener() {
       public void onClick(View view) {
-        mSave = true;
-        setResult(RESULT_OK);
+        setResult(saveState());
         finish();
       }
     };
@@ -374,105 +401,101 @@ public class EntryEditActivity extends EvenTrendActivity {
     }
   }
 
-  private void saveOriginalValues() {
-    mOriginalTimestamp.mMillis = mPickerTimestamp.mMillis;
-    mCal.setTimeInMillis(mOriginalTimestamp.mMillis);
-    mOriginalTimestamp.setTo(mCal);
-    mPickerTimestamp.setTo(mCal);
+  private void saveOriginalValues(double value, int entries, int tsStart, int tsEnd) {
+    mDateMap.getDateItem(tsStart, mOriginalStartTs);
+    mStartPickerTimestamp.set(mOriginalStartTs);
 
-    mOriginalCategoryId = mCategoryId;
-    mOriginalValue = mValue;
+    mDateMap.getDateItem(tsEnd, mOriginalEndTs);
+    mEndPickerTimestamp.set(mOriginalEndTs);
+
+    mOriginalValue = value;
+    mOriginalEntries = entries;
   }
 
-  public void setTimestamp() {
-    mCal.setTimeInMillis(mPickerTimestamp.mMillis);
-    mPickerTimestamp.setTo(mCal);
+  public void setTimestamps() {
     updateDisplay();
   }
 
-  public void resetTimestamp() {
-    mCal.setTimeInMillis(System.currentTimeMillis());
-    mPickerTimestamp.setTo(mCal);
+  public void resetTimestamp(DateItem timestamp) {
+    timestamp.mEpochSeconds = (int) (System.currentTimeMillis() / DateMap.SECOND_MS);
+    mDateMap.getDateItem(timestamp.mEpochSeconds, timestamp);
     updateDisplay();
   }
 
   private void updateValueMarker() {
     String s = mValueView.getText().toString();
     if (s.equals("")) {
-      mValueChanged.setText("*");
-      mOk.setClickable(false);
-      mOk.setTextColor(Color.LTGRAY);
-      return;
+      mValueLabel.setTextColor(Color.RED);
     }
 
     double value = Double.valueOf(s).doubleValue();
     if (value != mOriginalValue) {
-      mValueChanged.setText("*");
+      mValueLabel.setTextColor(Color.RED);
     } else {
-      mValueChanged.setText("");
+      mValueLabel.setTextColor(Color.LTGRAY);
     }
-    mOk.setClickable(true);
-    mOk.setTextColor(Color.BLACK);
   }
 
-  private void updateCategoryMarker() {
-    if (mCategoryId != mOriginalCategoryId) {
-      mCategoryChanged.setText("*");
+  private void updateEntriesMarker() {
+    String s = mEntriesView.getText().toString();
+    if (s.equals("")) {
+      mEntriesLabel.setTextColor(Color.RED);
+    }
+
+    int entries = Integer.valueOf(s).intValue();
+    if (entries != mOriginalEntries) {
+      mEntriesLabel.setTextColor(Color.RED);
     } else {
-      mCategoryChanged.setText("");
+      mEntriesLabel.setTextColor(Color.LTGRAY);
     }
   }
 
   private void updateTimestampMarker() {
-    if (mPickerTimestamp.isEqual(mOriginalTimestamp)) {
-      mTimestampChangedView.setText("");
-      mTimestampChanged = false;
+    if (mStartPickerTimestamp.isEqual(mOriginalStartTs)) {
+      mTsStartLabel.setTextColor(Color.LTGRAY);
     } else {
-      mTimestampChangedView.setText("*");
-      mTimestampChanged = true;
+      mTsStartLabel.setTextColor(Color.RED);
+    }
+
+    if (mEndPickerTimestamp.isEqual(mOriginalEndTs)) {
+      mTsEndLabel.setTextColor(Color.LTGRAY);
+    } else {
+      mTsEndLabel.setTextColor(Color.RED);
     }
   }
 
   private void updateDisplay() {
-    mCal.set(Calendar.YEAR, mPickerTimestamp.mYear);
-    mCal.set(Calendar.MONTH, mPickerTimestamp.mMonth);
-    mCal.set(Calendar.DAY_OF_MONTH, mPickerTimestamp.mDay);
-    mCal.set(Calendar.HOUR_OF_DAY, mPickerTimestamp.mHour);
-    mCal.set(Calendar.MINUTE, mPickerTimestamp.mMinute);
-    mCal.set(Calendar.SECOND, mPickerTimestamp.mSecond);
-    mPickerTimestamp.setTo(mCal);
-
-    mTimestampView.setText(DateUtil.toTimestamp(mCal));
-    updateCategoryMarker();
+    String str;
+    int seconds;
+    
+    seconds = mDateMap.getEpochSeconds(mStartPickerTimestamp);
+    str = mDateMap.toDisplayTime(seconds, 0);
+    mTsStartValue.setText(str);
+    
+    seconds = mDateMap.getEpochSeconds(mEndPickerTimestamp);
+    str = mDateMap.toDisplayTime(seconds, 0);
+    mTsEndValue.setText(str);
+    
     updateValueMarker();
+    updateEntriesMarker();
     updateTimestampMarker();
   }
 
   private void populateFields(EntryRow entry) {
-    if (mRowId != null) {
-      if (entry == null)
-        mEntry = getDbh().fetchEntry(mRowId);
-      else
-        mEntry = entry;
-
-      mCategoryId = mEntry.getCategoryId();
-      mValue = mEntry.getValue();
-      mPickerTimestamp.mMillis = mEntry.getTimestamp();
-      mAggregation = mEntry.getNEntries();
-
-      mValueView.setText(String.valueOf(mValue));
-      mTimestampView.setText(DateUtil.toTimestamp(mPickerTimestamp.mMillis));
-      mAggregationView.setText(Integer.valueOf(mAggregation).toString());
+    if (mRow.mId > 0) {
+      mCategoryNameView.setText(mCategoryName);
+      mValueView.setText(String.valueOf(mRow.mValue));
+      mEntriesView.setText(String.valueOf(mRow.mEntries));
+      mTsStartValue.setText(mDateMap.toDisplayTime(mStartPickerTimestamp.mEpochSeconds, 0));
+      mTsEndValue.setText(mDateMap.toDisplayTime(mEndPickerTimestamp.mEpochSeconds, 0));
     }
   }
 
   @Override
   protected void onSaveInstanceState(Bundle outState) {
-    if (mRowId != null) {
-      outState.putLong(Datapoint._ID, mRowId);
-      outState.putLong(Datapoint.TIMESERIES_ID, mTimeSeriesId);
-    } else {
-      outState.putLong(CategoryDbTable.KEY_ROWID, -1);
+    if (mRow.mId > 0) {
+      outState.putLong(Datapoint._ID, mRow.mId);
+      outState.putLong(Datapoint.TIMESERIES_ID, mRow.mTimeSeriesId);
     }
     super.onSaveInstanceState(outState);
   }
@@ -486,57 +509,29 @@ public class EntryEditActivity extends EvenTrendActivity {
   @Override
   protected void onResume() {
     super.onResume();
-    setupPrefs();
     populateFields(null);
   }
 
-  private void saveState() {
-    if (mSave == true) {
-      EntryDbTable.Row entry = new EntryDbTable.Row();
-
-      entry.setId(mRowId);
-      entry.setCategoryId(mCategoryId);
-      entry.setValue(Double.valueOf(mValueView.getText().toString())
-          .doubleValue());
-      entry.setTimestamp(mPickerTimestamp.mMillis);
-
-      if (mRowId != null) {
-        CategoryDbTable.Row cat = getDbh().fetchCategory(mCategoryId);
-
-        if (mTimestampChanged == true && cat != null) {
-          EntryDbTable.Row other = getDbh().fetchCategoryEntryInPeriod(
-              cat.getId(), cat.getPeriodMs(), entry.getTimestamp());
-          if (other != null) {
-            other.setValue(other.getValue() + entry.getValue());
-            other.setNEntries(other.getNEntries() + entry.getNEntries());
-            getDbh().updateEntry(other);
-            getDbh().deleteEntry(entry.getId());
-            if (cat != null) {
-              TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-              tsc.setHistory(mHistory);
-              tsc.setSmoothing(mSmoothing);
-              tsc.setSensitivity(mSensitivity);
-              tsc.setInterpolators(((EvenTrendActivity) getCtx())
-                  .getInterpolators());
-              tsc.updateTimeSeriesMetaLocking(true);
-              tsc.updateCategoryTrend(mCategoryId);
-            }
-            return;
-          }
-        }
-
-        getDbh().updateEntry(entry);
-        if (cat != null) {
-          TimeSeriesCollector tsc = new TimeSeriesCollector(getDbh());
-          tsc.setHistory(mHistory);
-          tsc.setSmoothing(mSmoothing);
-          tsc.setSensitivity(mSensitivity);
-          tsc.setInterpolators(((EvenTrendActivity) getCtx())
-              .getInterpolators());
-          tsc.updateTimeSeriesMetaLocking(true);
-          tsc.updateCategoryTrend(mCategoryId);
-        }
-      }
+  private int saveState() {
+    ContentValues values = new ContentValues();
+    Datapoint.setEntries(values, Integer.parseInt(mEntriesView.getText().toString()));
+    Datapoint.setTsStart(values, mStartPickerTimestamp.mEpochSeconds);
+    
+    if (mCategoryType.toLowerCase().equals(TimeSeries.TYPE_RANGE.toLowerCase())) {
+      Datapoint.setTsEnd(values, mEndPickerTimestamp.mEpochSeconds);
+      Datapoint.setValue(values, mEndPickerTimestamp.mEpochSeconds - mStartPickerTimestamp.mEpochSeconds);
+    } else {
+      Datapoint.setValue(values, Double.parseDouble(mValueView.getText().toString()));
+      Datapoint.setTsEnd(values, mStartPickerTimestamp.mEpochSeconds);
     }
+      
+    if (mRow.mId > 0 && mRow.mTimeSeriesId > 0) {
+      Uri uri = ContentUris.withAppendedId(
+          TimeSeriesData.TimeSeries.CONTENT_URI, mRow.mTimeSeriesId).buildUpon()
+          .appendPath("datapoints").appendPath(""+mRow.mId).build();
+      getContentResolver().update(uri, values, null, null);
+      return ENTRY_MODIFIED;
+    }
+    return ENTRY_OP_ERR;
   }
 }

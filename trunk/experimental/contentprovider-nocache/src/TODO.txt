@@ -11,6 +11,8 @@ remove all DateUtil.* fcns, or more to DateMapCache
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
+- get range recording working again
+- 24h format
 - cache of category views
 CategoryEdit/Wizard:
 - test changing all fields, changing orientation
@@ -29,11 +31,15 @@ Grapher:
 - add back in correlator
 - add colored y-tick marks?
 EntryLister:
-- finish conversion
 - change to fast-scroll list
+- fix timestamp display
 EntryEditor:
+- notice when fields are non-editable
+- finish conversion
+Exporter:
 - implement
 Preferences:
+- 12/24h format
 - auto backup frequency
 - auto backup format
 - auto-discard data

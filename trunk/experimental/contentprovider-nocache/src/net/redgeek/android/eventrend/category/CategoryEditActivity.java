@@ -126,7 +126,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
       Uri uri = it.getData();
       if (uri != null) {
         try {
-          String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+          String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_ID);
           mRowId = Long.valueOf(rowIdStr);
         } catch (Exception e) { } // nothing
       }
@@ -500,7 +500,7 @@ public class CategoryEditActivity extends EvenTrendActivity {
           TimeSeriesData.TimeSeries.CONTENT_URI, values);
       if (uri != null) {
         String rowIdStr = uri.getPathSegments().get(
-            TimeSeriesProvider.PATH_SEGMENT_TIMERSERIES_ID);
+            TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_ID);
         mRowId = Long.valueOf(rowIdStr);
         return CATEGORY_CREATED;
       }

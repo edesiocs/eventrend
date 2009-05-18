@@ -53,12 +53,13 @@ public class TimeSeriesProvider extends ContentProvider {
 
   private static final int TIMESERIES = 1;
   private static final int TIMESERIES_ID = 2;
-  private static final int DATAPOINTS = 3;
-  private static final int DATAPOINTS_ID = 4;
-  private static final int DATAPOINTS_RECENT = 5;
-  private static final int DATAPOINTS_RANGE = 6;
+  private static final int TIMESERIES_DATAPOINTS = 3;
+  private static final int TIMESERIES_DATAPOINTS_ID = 4;
+  private static final int TIMESERIES_DATAPOINTS_RECENT = 5;
+  private static final int TIMESERIES_DATAPOINTS_RANGE = 6;
   private static final int DATEMAP = 7;
   private static final int DATEMAP_ID = 8;
+  private static final int DATAPOINTS_ID = 9;
   
   private DatabaseHelper mDbHelper;
   private static UriMatcher sURIMatcher;
@@ -74,29 +75,32 @@ public class TimeSeriesProvider extends ContentProvider {
   private DateMapCache mDateMap;
   private Lock mLock;
   
-  public static final int PATH_SEGMENT_TIMERSERIES_ID = 1;
-  public static final int PATH_SEGMENT_DATAPOINT_ID = 3;
-  public static final int PATH_SEGMENT_DATAPOINT_RECENT_COUNT = 3;
-  public static final int PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION = 4;
-  public static final int PATH_SEGMENT_DATAPOINT_RANGE_START = 3;
-  public static final int PATH_SEGMENT_DATAPOINT_RANGE_END = 4;
-  public static final int PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION = 5;
+  public static final int PATH_SEGMENT_TIMESERIES_ID = 1;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_ID = 3;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_RECENT_COUNT = 3;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_RECENT_AGGREGATION = 4;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_START = 3;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_END = 4;
+  public static final int PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_AGGREGATION = 5;
   public static final int PATH_SEGMENT_DATEMAP_ID = 1;
+  public static final int PATH_SEGMENT_DATAPOINT_ID = 1;
   
   static {
     sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
 
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries", TIMESERIES);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#", TIMESERIES_ID);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints", DATAPOINTS);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints/#", DATAPOINTS_ID);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#", DATAPOINTS_RECENT);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#/*", DATAPOINTS_RECENT);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#", DATAPOINTS_RANGE);
-    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#/*", DATAPOINTS_RANGE);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints", TIMESERIES_DATAPOINTS);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/datapoints/#", TIMESERIES_DATAPOINTS_ID);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#", TIMESERIES_DATAPOINTS_RECENT);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/recent/#/*", TIMESERIES_DATAPOINTS_RECENT);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#", TIMESERIES_DATAPOINTS_RANGE);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "timeseries/#/range/#/#/*", TIMESERIES_DATAPOINTS_RANGE);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/", DATEMAP);
     sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datemap/#", DATEMAP_ID);
-      
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datapoints/", TIMESERIES_DATAPOINTS);
+    sURIMatcher.addURI(TimeSeriesData.AUTHORITY, "datapoints/#", DATAPOINTS_ID);
+
     sTimeSeriesProjection = new HashMap<String, String>();
     sTimeSeriesProjection.put(TimeSeries._ID, TimeSeries._ID);
     sTimeSeriesProjection.put(TimeSeries.TIMESERIES_NAME, TimeSeries.TIMESERIES_NAME);
@@ -351,10 +355,12 @@ public class TimeSeriesProvider extends ContentProvider {
         return TimeSeries.CONTENT_TYPE;
       case TIMESERIES_ID:
         return TimeSeries.CONTENT_ITEM_TYPE;
-      case DATAPOINTS:
-      case DATAPOINTS_RECENT:
-      case DATAPOINTS_RANGE:
+      case TIMESERIES_DATAPOINTS:
+      case TIMESERIES_DATAPOINTS_RECENT:
+      case TIMESERIES_DATAPOINTS_RANGE:
         return Datapoint.CONTENT_TYPE;
+      case TIMESERIES_DATAPOINTS_ID:
+        return Datapoint.CONTENT_ITEM_TYPE;
       case DATAPOINTS_ID:
         return Datapoint.CONTENT_ITEM_TYPE;
       case DATEMAP:
@@ -1079,7 +1085,7 @@ public class TimeSeriesProvider extends ContentProvider {
         }
         
         break;
-      case DATAPOINTS:
+      case TIMESERIES_DATAPOINTS:
         Long timeSeriesId = values.getAsLong(Datapoint.TIMESERIES_ID);
         if (timeSeriesId < 1) {
           throw new IllegalArgumentException("insert: Invalid URI " + uri);
@@ -1206,6 +1212,7 @@ public class TimeSeriesProvider extends ContentProvider {
 
   private Cursor queryInternal(Uri uri, String[] projection, String selection,
       String[] selectionArgs, String sortOrder, HashMap<String, String> map) {
+    String tsId;
     String agg;
     String orderBy = sortOrder;
     String groupBy = null;
@@ -1228,44 +1235,47 @@ public class TimeSeriesProvider extends ContentProvider {
         qb.setTables(TimeSeries.TABLE_NAME);
         if (map == null)
           qb.setProjectionMap(sTimeSeriesProjection);
-        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = TimeSeries.DEFAULT_SORT_ORDER;
         break;
-      case DATAPOINTS:
+      case TIMESERIES_DATAPOINTS:
         qb.setTables(Datapoint.TABLE_NAME);
-        qb.appendWhere(TimeSeries._ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        try {
+          tsId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
+          qb.appendWhere(TimeSeries._ID + " = " + tsId);
+        } catch (Exception e) { } // nothing
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
         break;
-      case DATAPOINTS_RECENT:
-        String count = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_COUNT);
+      case TIMESERIES_DATAPOINTS_RECENT:
+        String count = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_RECENT_COUNT);
         qb.setTables(Datapoint.TABLE_NAME);
 
         orderBy = Datapoint.TS_START + " desc";
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);
         try {
-          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RECENT_AGGREGATION);
+          agg = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_RECENT_AGGREGATION);
           if (map == null && agg != null)
             qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = fetchGroupByString(agg);
         } catch (Exception e) { } // nothing
-        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID));
+        qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID));
         limit = count;
         break;
-      case DATAPOINTS_RANGE:
-        String start = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_START);
-        String end = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_END);
+      case TIMESERIES_DATAPOINTS_RANGE:
+        String start = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_START);
+        String end = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_END);
         qb.setTables(Datapoint.TABLE_NAME);
 
         orderBy = Datapoint.TS_START + " desc";
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);
         try {
-          agg = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_RANGE_AGGREGATION);
+          agg = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_RANGE_AGGREGATION);
           if (map == null && agg != null)
             qb.setProjectionMap(fetchProjectionMap(agg));
           groupBy = fetchGroupByString(agg);
@@ -1275,15 +1285,26 @@ public class TimeSeriesProvider extends ContentProvider {
         } catch (Exception e) { } // nothing
         
         qb.appendWhere(Datapoint.TIMESERIES_ID + " = " 
-            + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
+            + uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID) + " AND ");
         qb.appendWhere(Datapoint.TS_START + " >= " + start + " AND ");
         qb.appendWhere(Datapoint.TS_START + " < " + end + " ");
+        break;
+      case TIMESERIES_DATAPOINTS_ID:
+        qb.setTables(Datapoint.TABLE_NAME);
+        if (map == null)
+          qb.setProjectionMap(sDatapointProjection);
+        try {
+          tsId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
+          qb.appendWhere(TimeSeries._ID + " = " + tsId + " AND ");
+        } catch (Exception e) { } // nothing
+        qb.appendWhere(Datapoint._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_ID));
+        if (TextUtils.isEmpty(sortOrder))
+          orderBy = Datapoint.DEFAULT_SORT_ORDER;
         break;
       case DATAPOINTS_ID:
         qb.setTables(Datapoint.TABLE_NAME);
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);
-        qb.appendWhere(Datapoint.TIMESERIES_ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID) + " AND ");
         qb.appendWhere(Datapoint._ID + "=" + uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID));
         if (TextUtils.isEmpty(sortOrder))
           orderBy = Datapoint.DEFAULT_SORT_ORDER;
@@ -1332,7 +1353,7 @@ public class TimeSeriesProvider extends ContentProvider {
     
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES_ID:
-        timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
+        timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
 
         LockUtil.waitForLock(mLock);
         db.beginTransaction();
@@ -1383,9 +1404,9 @@ public class TimeSeriesProvider extends ContentProvider {
           LockUtil.unlock(mLock);
         }
         break;
-      case DATAPOINTS_ID:
-        timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
-        datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
+      case TIMESERIES_DATAPOINTS_ID:
+        timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
+        datapointId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_ID);
         long tsId = Long.valueOf(timeSeriesId);
         
         LockUtil.waitForLock(mLock);
@@ -1471,7 +1492,7 @@ public class TimeSeriesProvider extends ContentProvider {
     int count;
     switch (sURIMatcher.match(uri)) {
       case TIMESERIES_ID:
-        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
+        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
 
         LockUtil.waitForLock(mLock);        
         db.beginTransaction();
@@ -1500,9 +1521,9 @@ public class TimeSeriesProvider extends ContentProvider {
         }
 
         break;
-      case DATAPOINTS_ID:
-        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMERSERIES_ID);
-        datapointId = uri.getPathSegments().get(PATH_SEGMENT_DATAPOINT_ID);
+      case TIMESERIES_DATAPOINTS_ID:
+        seriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
+        datapointId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_ID);
         long tsId = Long.valueOf(seriesId);
         
         LockUtil.waitForLock(mLock);

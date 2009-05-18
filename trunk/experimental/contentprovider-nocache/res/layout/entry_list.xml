@@ -13,27 +13,18 @@
 		android:layout_height="wrap_content"
 		android:layout_gravity="center_horizontal|center_vertical"
 		android:orientation="horizontal">
-		<Button 
-			android:id="@+id/edit_list_prev" 
-			android:text="Earlier"
-			android:layout_gravity="center_horizontal|center_vertical"
-			android:layout_width="wrap_content" 
-			android:layout_height="wrap_content">
-		</Button>
 		<TextView 
 			android:id="@+id/edit_list_status" 
 			android:layout_gravity="center_horizontal|center_vertical"
 			android:layout_width="wrap_content" 
-			android:layout_height="wrap_content">
+			android:layout_height="wrap_content"
+      android:text="Category:">
 		</TextView>
-		<Button 
-			android:id="@+id/edit_list_next" 
-			android:text="Later"
-			android:layout_gravity="center_horizontal|center_vertical"
-			android:layout_width="wrap_content" 
-			android:layout_height="wrap_content">
-		</Button>
-</LinearLayout>
+    <net.redgeek.android.eventrend.util.DynamicSpinner 
+          android:layout_height="wrap_content"
+          android:layout_width="fill_parent" 
+          android:id="@+id/entry_list_category_spinner" android:layout_gravity="center_horizontal|center_vertical"/>
+  </LinearLayout>
 	
 	<LinearLayout 
 		android:layout_width="fill_parent" 

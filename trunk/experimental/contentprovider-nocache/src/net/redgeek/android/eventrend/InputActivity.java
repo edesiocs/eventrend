@@ -59,6 +59,7 @@ import net.redgeek.android.eventgrapher.GraphActivity;
 import net.redgeek.android.eventrecorder.DateMapCache;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.category.CategoryRow;
@@ -743,9 +744,9 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   private void editEntries() {
-//    Intent i = new Intent(this, EntryListActivity.class);
-//    mTSC.clearSeriesLocking();
-//    startActivityForResult(i, ENTRY_LIST);
+    Uri uri = Datapoint.CONTENT_URI;
+    Intent i = new Intent(Intent.ACTION_PICK, uri);
+    startActivityForResult(i, ARC_ENTRY_LIST);
   }
 
   private void editPrefs() {

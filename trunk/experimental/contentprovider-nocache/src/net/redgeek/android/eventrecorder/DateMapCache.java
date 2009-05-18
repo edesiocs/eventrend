@@ -33,15 +33,15 @@ public class DateMapCache {
   private Calendar mCal;
   private DateMapCacheEntry[] mSecToEntry;
   private TreeMap<Integer, ArrayList<DateMapCacheEntry>> mYearToEntry;
-    
+
   public static class DateMapCacheEntry {
-    public long   mId = 0;
-    public int    mYear;
-    public int    mMonth;
-    public int    mDOW;
-    public int    mSeconds;
-    
-    public DateMapCacheEntry() {      
+    public long mId = 0;
+    public int mYear;
+    public int mMonth;
+    public int mDOW;
+    public int mSeconds;
+
+    public DateMapCacheEntry() {
     }
 
     public DateMapCacheEntry(int year, int month, int dow, int seconds) {
@@ -49,9 +49,9 @@ public class DateMapCache {
       mMonth = month;
       mDOW = dow;
       mSeconds = seconds;
-    }  
+    }
   }
-  
+
   public static class DateItem {
     public int mYear;
     public int mMonth;
@@ -59,10 +59,12 @@ public class DateMapCache {
     public int mDay;
     public int mHour;
     public int mMinute;
-    
+    public int mSecond;
+    public int mEpochSeconds;
+
     public DateItem() {
     }
-    
+
     public void set(DateItem d) {
       mYear = d.mYear;
       mMonth = d.mMonth;
@@ -70,9 +72,17 @@ public class DateMapCache {
       mDay = d.mDay;
       mHour = d.mHour;
       mMinute = d.mMinute;
+      mSecond = d.mSecond;
+      mEpochSeconds = d.mEpochSeconds;
+    }
+    
+    public boolean isEqual(DateItem d) {
+      if (mEpochSeconds == d.mEpochSeconds)
+        return true;
+      return false;
     }
   }
-  
+
   public String toDisplayTime(int seconds, int period) {
     DateItem d = new DateItem();
     String s;
@@ -81,33 +91,29 @@ public class DateMapCache {
 
     if (period == DateMap.YEAR_SECS) {
       s = "" + d.mYear;
-    }
-    else if (period == DateMap.QUARTER_SECS) {
+    } else if (period == DateMap.QUARTER_SECS) {
       int quarter = (d.mMonth / 3) + 1;
       s = d.mYear + " Q" + quarter;
-    }
-    else if (period == DateMap.MONTH_SECS) {
+    } else if (period == DateMap.MONTH_SECS) {
       s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth);
-    }
-    else if (period == DateMap.WEEK_SECS || period == DateMap.DAY_SECS) {
-      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth)
-          + "/" + (d.mDay < 10 ? "0" + d.mDay : d.mDay);
-    }
-    else {
-      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth)
-          + "/" + (d.mDay < 10 ? "0" + d.mDay : d.mDay) + " "
+    } else if (period == DateMap.WEEK_SECS || period == DateMap.DAY_SECS) {
+      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth) + "/"
+          + (d.mDay < 10 ? "0" + d.mDay : d.mDay);
+    } else {
+      s = d.mYear + "/" + (d.mMonth < 10 ? "0" + d.mMonth : d.mMonth) + "/"
+          + (d.mDay < 10 ? "0" + d.mDay : d.mDay) + " "
           + (d.mHour < 10 ? "0" + d.mHour : d.mHour) + ":"
-          + (d.mMinute < 10 ? "0" + d.mMinute : d.mMinute);
+          + (d.mMinute < 10 ? "0" + d.mMinute : d.mMinute) + ":"
+          + (d.mSecond < 10 ? "0" + d.mSecond : d.mSecond);
     }
     return s;
   }
 
-  
   public DateMapCache() {
     mCal = Calendar.getInstance();
     mYearToEntry = new TreeMap<Integer, ArrayList<DateMapCacheEntry>>();
   }
-  
+
   public void clear() {
     mSecToEntry = null;
     mYearToEntry.clear();
@@ -116,11 +122,11 @@ public class DateMapCache {
   public DateMapCacheEntry getEntry(int year, int month) {
     ArrayList<DateMapCacheEntry> months = null;
     DateMapCacheEntry entry = null;
-    
+
     try {
       months = mYearToEntry.get(Integer.valueOf(year));
       entry = months.get(month);
-    } catch(Exception e) {
+    } catch (Exception e) {
     }
 
     if (entry == null) {
@@ -131,12 +137,12 @@ public class DateMapCache {
       mCal.set(Calendar.MINUTE, 0);
       mCal.set(Calendar.SECOND, 0);
       mCal.set(Calendar.MILLISECOND, 0);
-      
+
       int dow = mCal.get(Calendar.DAY_OF_WEEK);
       int seconds = (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS);
       entry = new DateMapCacheEntry(year, month, dow, seconds);
     }
-    
+
     return entry;
   }
 
@@ -199,7 +205,7 @@ public class DateMapCache {
         d = mSecToEntry[mid];
       }
     }
-    
+
     if (d == null) {
       mCal.setTimeInMillis(seconds * DateMap.SECOND_MS);
       mCal.set(Calendar.DAY_OF_MONTH, 1);
@@ -207,16 +213,14 @@ public class DateMapCache {
       mCal.set(Calendar.MINUTE, 0);
       mCal.set(Calendar.SECOND, 0);
       mCal.set(Calendar.MILLISECOND, 0);
-      d = new DateMapCacheEntry(
-          mCal.get(Calendar.YEAR),
-          mCal.get(Calendar.MONTH),
-          mCal.get(Calendar.DAY_OF_WEEK),
-          (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS));
+      d = new DateMapCacheEntry(mCal.get(Calendar.YEAR), mCal
+          .get(Calendar.MONTH), mCal.get(Calendar.DAY_OF_WEEK), (int) (mCal
+          .getTimeInMillis() / DateMap.SECOND_MS));
     }
 
     return d;
   }
-  
+
   public int secondsOfPeriodStart(int seconds, int period) {
     int secs;
     int nPeriods = 0;
@@ -224,15 +228,14 @@ public class DateMapCache {
 
     entry = getEntry(seconds, true);
     secs = entry.mSeconds;
-    
+
     if (entry.mSeconds == seconds || period == DateMap.MONTH_SECS)
       return secs;
 
     if (period < DateMap.WEEK_SECS) {
       secs += period * ((seconds - secs) / period);
-    }
-    else if (period == DateMap.WEEK_SECS) {
-      // get the DOW of the first day of the month, and subtract out the 
+    } else if (period == DateMap.WEEK_SECS) {
+      // get the DOW of the first day of the month, and subtract out the
       // seconds from then until the start of the week from the last month:
       secs = (int) ((entry.mSeconds) - (DateMap.DAY_SECS * (entry.mDOW - 1)));
       if (seconds - period >= entry.mSeconds) {
@@ -240,24 +243,21 @@ public class DateMapCache {
         // advance until we get to the week before this one:
         secs += period * ((seconds - secs) / period);
       }
-    }
-    else if (period == DateMap.QUARTER_SECS) {
-      while (!(entry.mMonth == 0 || entry.mMonth == 3 
-          || entry.mMonth == 6 || entry.mMonth == 9)) {
-        entry = getEntry(entry.mSeconds - 1, true);        
+    } else if (period == DateMap.QUARTER_SECS) {
+      while (!(entry.mMonth == 0 || entry.mMonth == 3 || entry.mMonth == 6 || entry.mMonth == 9)) {
+        entry = getEntry(entry.mSeconds - 1, true);
       }
       secs = entry.mSeconds;
-    }
-    else { // YEAR_MS / SECOND_MS
+    } else { // YEAR_MS / SECOND_MS
       while (entry.mMonth != 0) {
-        entry = getEntry(entry.mSeconds - 1, true);        
+        entry = getEntry(entry.mSeconds - 1, true);
       }
       secs = entry.mSeconds;
     }
 
     return secs;
   }
-  
+
   public int secondsOfPeriodEnd(int seconds, int period) {
     DateMapCacheEntry entry;
     int secs = secondsOfPeriodStart(seconds, period);
@@ -280,7 +280,7 @@ public class DateMapCache {
       }
       secs = entry.mSeconds - 1;
     }
-      
+
     return secs;
   }
 
@@ -307,35 +307,51 @@ public class DateMapCache {
       return DateMap.MINUTE_SECS;
     }
   }
-  
-  public boolean getDateItem(int seconds, DateItem label) {
-    int delta;
+
+  public boolean getDateItem(int seconds, DateItem item) {
+    int delta1, delta2;
     int minute, hour, day, month, year, dow;
 
-    if (label == null)
+    if (item == null)
       return false;
-    
+
     DateMapCacheEntry entry = getEntry(seconds, true);
     if (entry == null)
       return false;
-    
-    label.mYear = entry.mYear;
-    label.mMonth = entry.mMonth;    
-    delta = seconds - entry.mSeconds;
-    label.mDay = (delta / DateMap.DAY_SECS) + 1;
-    label.mDOW = ((entry.mDOW + label.mDay - 1) % 7) + 1;
-    label.mHour = (delta - ((label.mDay - 1) * DateMap.DAY_SECS)) / DateMap.HOUR_SECS;
-    label.mMinute = (delta - ((label.mDay - 1) * DateMap.DAY_SECS) - (label.mHour * DateMap.HOUR_SECS))/ DateMap.HOUR_SECS;
 
+    item.mYear = entry.mYear;
+    item.mMonth = entry.mMonth;
+    delta1 = seconds - entry.mSeconds;
+    item.mDay = (delta1 / DateMap.DAY_SECS) + 1;
+    item.mDOW = ((entry.mDOW + item.mDay - 1) % 7) + 1;
+    delta2 = (item.mDay - 1) * DateMap.DAY_SECS;
+    item.mHour = (delta1 - delta2) / DateMap.HOUR_SECS;
+    delta2 -= (item.mHour * DateMap.HOUR_SECS);
+    item.mMinute = (delta1 -  delta2) / DateMap.HOUR_SECS;
+    delta2 -= (item.mMinute * DateMap.MINUTE_SECS);
+    item.mSecond = (delta1 - delta2) / DateMap.HOUR_SECS;
+    item.mEpochSeconds = seconds;
+    
     return true;
   }
 
+  public int getEpochSeconds(DateItem item) {
+    mCal.set(Calendar.YEAR, item.mYear);
+    mCal.set(Calendar.MONTH, item.mMonth);
+    mCal.set(Calendar.DAY_OF_MONTH, item.mDay);
+    mCal.set(Calendar.HOUR_OF_DAY, item.mHour);
+    mCal.set(Calendar.MINUTE, item.mMinute);
+    mCal.set(Calendar.SECOND, item.mSecond);
+    mCal.set(Calendar.MILLISECOND, 0);
+    return (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS);
+  }
+  
   public void populateCache(Context ctx) {
     DateMapCacheEntry entry = null;
 
     Uri datemap = TimeSeriesData.DateMap.CONTENT_URI;
-    Cursor c = ctx.getContentResolver().query(datemap, null, null, null, 
-      DateMap.DEFAULT_SORT_ORDER);
+    Cursor c = ctx.getContentResolver().query(datemap, null, null, null,
+        DateMap.DEFAULT_SORT_ORDER);
     if (c.moveToFirst()) {
       int count = c.getCount();
       mSecToEntry = new DateMapCacheEntry[count];
@@ -344,17 +360,17 @@ public class DateMapCache {
         int month = TimeSeriesData.DateMap.getMonth(c);
         int dow = TimeSeriesData.DateMap.getDOW(c);
         int secs = TimeSeriesData.DateMap.getSeconds(c);
-        
+
         entry = new DateMapCacheEntry(year, month, dow, secs);
         insertEntry(entry, i);
         c.moveToNext();
-      }      
+      }
     }
     c.close();
-    
+
     return;
   }
-  
+
   // not intended for use outside of the TimeSeriesProvider:
   public void populateCacheLocalToProvider(SQLiteDatabase db) {
     DateMapCacheEntry entry = null;
@@ -370,14 +386,14 @@ public class DateMapCache {
         int month = TimeSeriesData.DateMap.getMonth(c);
         int dow = TimeSeriesData.DateMap.getDOW(c);
         int secs = TimeSeriesData.DateMap.getSeconds(c);
-        
+
         entry = new DateMapCacheEntry(year, month, dow, secs);
         insertEntry(entry, i);
         c.moveToNext();
-      }      
+      }
     }
     c.close();
-        
+
     return;
   }
 
@@ -386,19 +402,19 @@ public class DateMapCache {
     if (dmce == null)
       return;
 
-    Integer year = Integer.valueOf(dmce.mYear);    
+    Integer year = Integer.valueOf(dmce.mYear);
     try {
       months = mYearToEntry.get(year);
-    } catch(Exception e) {
+    } catch (Exception e) {
     }
-    
+
     if (months == null) {
       months = new ArrayList<DateMapCacheEntry>(12);
       mYearToEntry.put(year, months);
-    }    
+    }
     months.add(dmce.mMonth, dmce);
     mSecToEntry[pos] = dmce;
 
     return;
-  }  
+  }
 }
