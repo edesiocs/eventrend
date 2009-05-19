@@ -503,7 +503,6 @@ public class EntryEditActivity extends EvenTrendActivity {
   @Override
   protected void onPause() {
     super.onPause();
-    saveState();
   }
 
   @Override
