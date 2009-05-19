@@ -52,7 +52,6 @@ public class EntryListActivity extends EvenTrendActivity {
   private static final int MENU_ENTRY_EXPORT_MAIL_ID = Menu.FIRST;
   private static final int MENU_ENTRY_EXPORT_FILE_ID = Menu.FIRST + 1;
   private static final int MENU_ENTRY_IMPORT_REPLACE_ID = Menu.FIRST + 2;
-  private static final int MENU_ENTRY_IMPORT_MERGE_ID = Menu.FIRST + 3;
 
   // Dialogs
   private static final int DIALOG_EXPORT_SUCCESS = 0;
@@ -191,10 +190,6 @@ public class EntryListActivity extends EvenTrendActivity {
     menu.add(0, MENU_ENTRY_IMPORT_REPLACE_ID, 0,
         R.string.menu_entry_import_replace).setIcon(
         android.R.drawable.ic_menu_revert);
-    // TODO: find better icon:
-    menu.add(0, MENU_ENTRY_IMPORT_MERGE_ID, 0,
-        R.string.menu_entry_import_merge).setIcon(
-            android.R.drawable.ic_menu_revert);
     return result;
   }
 
@@ -211,10 +206,6 @@ public class EntryListActivity extends EvenTrendActivity {
       case MENU_ENTRY_IMPORT_REPLACE_ID:
         i = new Intent(this, ImportActivity.class);
         startActivityForResult(i, ARC_IMPORT_REPLACE);
-        return true;
-      case MENU_ENTRY_IMPORT_MERGE_ID:
-        i = new Intent(this, ImportActivity.class);
-        startActivityForResult(i, ARC_IMPORT_MERGE);
         return true;
     }
     return super.onOptionsItemSelected(item);

@@ -79,9 +79,7 @@ public class CSV {
     StringBuffer buffer = new StringBuffer();
     int len = TimeSeries.EXPORTABLE_COLS.length;
     for (int i = 0; i < len; i++) {
-      if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries._ID))
-        buffer.append(row.mId);
-      else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.TIMESERIES_NAME))
+      if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.TIMESERIES_NAME))
         buffer.append(row.mTimeSeriesName);
       else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.RECORDING_DATAPOINT_ID))
         buffer.append(row.mRecordingDatapointId);
@@ -115,7 +113,7 @@ public class CSV {
         buffer.append(row.mSensitivity);
       else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.SMOOTHING))
         buffer.append(row.mSmoothing);
-      else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.TIMESERIES_NAME))
+      else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.HISTORY))
         buffer.append(row.mHistory);
       else if (TimeSeries.EXPORTABLE_COLS[i].equals(TimeSeries.DECIMALS))
         buffer.append(row.mDecimals);
@@ -140,9 +138,7 @@ public class CSV {
     StringBuffer buffer = new StringBuffer();
     int len = Datapoint.EXPORTABLE_COLS.length;
     for (int i = 0; i < len; i++) {
-      if (Datapoint.EXPORTABLE_COLS[i].equals(Datapoint._ID))
-        buffer.append(row.mId);
-      else if (Datapoint.EXPORTABLE_COLS[i].equals(Datapoint.TIMESERIES_ID))
+      if (Datapoint.EXPORTABLE_COLS[i].equals(Datapoint.TIMESERIES_ID))
         buffer.append(row.mTimeSeriesId);
       else if (Datapoint.EXPORTABLE_COLS[i].equals(Datapoint.VALUE))
         buffer.append(row.mValue);

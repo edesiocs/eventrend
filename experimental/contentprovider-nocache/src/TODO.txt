@@ -23,8 +23,6 @@ Import:
   * batchInserts
 * implement v1 importing
 - implement spreadsheet importing/exporting
-- implement merge importing
-  - merge icon
 Grapher:
 - establish "gathering data" dialog
 - fix markers when zooming (esp. zoom out far)
@@ -38,6 +36,9 @@ Grapher:
 EntryLister:
 - change to fast-scroll list
 - recalc category stats option
+* export current DB before importing new one
+Exporter:
+- speed up
 EntryEditor:
 - timestamp label is incorrectly red (DateMapCache.getEpochSeconds is diff from
   Calendar time)
@@ -48,6 +49,7 @@ Preferences:
 - auto backup frequency
 - auto backup format
 - auto-discard data
+
 GData Spreadsheet interface
 
 This file intended for temporary notes only.  See
