@@ -136,10 +136,14 @@ public class ExportTask {
             dpCur.moveToNext();
           }
         }
+        if (dpCur != null)
+          dpCur.close();
         tsCur.moveToNext();
       }
     }
-    
+    if (tsCur != null)
+      tsCur.close();
+
     return output.toString();
   }
 }
