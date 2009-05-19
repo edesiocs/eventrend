@@ -6,35 +6,40 @@ test ranges and synthetics
 set correct inputType on all views
 kill all TODOs
 scale the goal (if a sum) in graph/calendar views
-remove all DateUtil.* fcns, or more to DateMapCache
+remove all DateUtil.* fcns, or move to DateMapCache
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
 Input Activity:
-- get range recording working again
+- values/trend display should be not be based on the aggregation
 - 24h format
 - cache of category views?
 CategoryEdit/Wizard:
 - test changing all fields, changing orientation
 Import:
-- implement v2 importing
-- implement v1 importing
+* implement v2 importing
+  * including converting ranges
+  * batchInserts
+* implement v1 importing
 - implement spreadsheet importing/exporting
+- implement merge importing
+  - merge icon
 Grapher:
 - establish "gathering data" dialog
 - fix markers when zooming (esp. zoom out far)
 - make sure aggregation is correct
-- graph ranged datapoints differently
-- fix x-labels when zoomed to minute level
-- only graph the visible portions
-- fix graph range when range == 0 or 1
+* graph ranged datapoints differently
+* fix x-labels when zoomed to minute level
+* only graph the visible portions
+* fix graph range when range == 0 or 1
 - add back in correlator
 - add colored y-tick marks?
 EntryLister:
 - change to fast-scroll list
+- recalc category stats option
 EntryEditor:
-- timestamp label is red on re-launch after editing timestamp once
-- back/cancel still saves
+- timestamp label is incorrectly red (DateMapCache.getEpochSeconds is diff from
+  Calendar time)
 - print notice when fields are non-editable
 - test on all types of series
 Exporter:

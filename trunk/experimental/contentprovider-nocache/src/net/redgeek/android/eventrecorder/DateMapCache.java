@@ -24,6 +24,7 @@ import android.net.Uri;
 import android.util.Log;
 
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
+import net.redgeek.android.eventrend.util.Number;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -107,6 +108,26 @@ public class DateMapCache {
           + (d.mSecond < 10 ? "0" + d.mSecond : d.mSecond);
     }
     return s;
+  }
+  
+  public static String toScaledTime(double seconds) {
+    if (seconds > DateMap.YEAR_SECS) {
+      return Number.Round(seconds / DateMap.YEAR_SECS) + " yr";
+    } else if (seconds > DateMap.QUARTER_SECS) {
+      return Number.Round(seconds / DateMap.QUARTER_SECS) + " qtr";
+    } else if (seconds > DateMap.MONTH_SECS) {
+      return Number.Round(seconds / DateMap.MONTH_SECS) + " mo";
+    } else if (seconds > DateMap.WEEK_SECS) {
+      return Number.Round(seconds / DateMap.WEEK_SECS) + " wk";
+    } else if (seconds > DateMap.DAY_SECS) {
+      return Number.Round(seconds / DateMap.DAY_SECS) + " day";
+    } else if (seconds > DateMap.HOUR_SECS) {
+      return Number.Round(seconds / DateMap.HOUR_SECS) + " hr";
+    } else if (seconds > DateMap.MINUTE_SECS) {
+      return Number.Round(seconds / DateMap.MINUTE_SECS) + " min";
+    } else { // if (millis > SECOND_MS) {
+      return Number.Round(seconds) + " sec";
+    }
   }
 
   public DateMapCache() {
