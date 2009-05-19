@@ -13,7 +13,7 @@ Provider:
 Input Activity:
 - get range recording working again
 - 24h format
-- cache of category views
+- cache of category views?
 CategoryEdit/Wizard:
 - test changing all fields, changing orientation
 Import:
@@ -22,7 +22,7 @@ Import:
 - implement spreadsheet importing/exporting
 Grapher:
 - establish "gathering data" dialog
-- fix markers when zooming
+- fix markers when zooming (esp. zoom out far)
 - make sure aggregation is correct
 - graph ranged datapoints differently
 - fix x-labels when zoomed to minute level
@@ -32,10 +32,11 @@ Grapher:
 - add colored y-tick marks?
 EntryLister:
 - change to fast-scroll list
-- fix timestamp display
 EntryEditor:
-- notice when fields are non-editable
-- finish conversion
+- timestamp label is red on re-launch after editing timestamp once
+- back/cancel still saves
+- print notice when fields are non-editable
+- test on all types of series
 Exporter:
 - implement
 Preferences:
