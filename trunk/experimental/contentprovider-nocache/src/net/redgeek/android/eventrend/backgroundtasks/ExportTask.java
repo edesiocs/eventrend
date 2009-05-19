@@ -17,6 +17,15 @@
 package net.redgeek.android.eventrend.backgroundtasks;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.database.Cursor;
+import android.net.Uri;
+import android.net.Uri.Builder;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
+import net.redgeek.android.eventrend.category.CategoryRow;
+import net.redgeek.android.eventrend.datum.EntryRow;
+import net.redgeek.android.eventrend.importing.CSV;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -82,16 +91,11 @@ public class ExportTask {
   }
 
   private void exportToMail() {
-    
-    
-    
-    // TODO:
-//    mBody = mDbh.flattenDB();
+    mBody = flattenDb();
   }
 
   private void exportToFile() throws IOException {
-    // TODO:
-//  mBody = mDbh.flattenDB();
+    mBody = flattenDb();
 
     File f = new File(mDirectory);
     f.mkdirs();
@@ -101,5 +105,41 @@ public class ExportTask {
     output = new BufferedWriter(new FileWriter(f));
     output.write(mBody);
     output.close();
+  }
+  
+  private String flattenDb() {
+    StringBuffer output = new StringBuffer();
+    String[] line = new String[2];
+    CategoryRow cat = new CategoryRow();
+    EntryRow ent = new EntryRow();
+    int list = 0;
+    
+    output.append(CSV.createCSVHeader());
+    
+    Uri allSeries = TimeSeries.CONTENT_URI;
+    Cursor tsCur = mResolver.query(allSeries, null, null, null, null);
+    if (tsCur.moveToFirst()) {
+      int tsCount = tsCur.getCount();
+      for (int i = 0; i < tsCount; i++) {
+        cat.populateFromCursor(tsCur);
+        
+        Uri datapoints = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, 
+            cat.mId).buildUpon().appendPath("datapoints").build();
+        Cursor dpCur = mResolver.query(datapoints, null, null, null, null);
+        if (dpCur.moveToFirst()) {
+          line[0] = CSV.joinCSV(cat);
+          int dpCount = dpCur.getCount();
+          for (int j = 0; j < dpCount; j++) {
+            ent.populateFromCursor(dpCur);
+            line[1] = CSV.joinCSV(ent);
+            output.append(CSV.joinCSVTerminated(line));
+            dpCur.moveToNext();
+          }
+        }
+        tsCur.moveToNext();
+      }
+    }
+    
+    return output.toString();
   }
 }

@@ -96,8 +96,7 @@ public class EntryListActivity extends EvenTrendActivity {
   }
 
   private void setupTasksAndData() {
-    // TODO:
-    //    mExporter = new ExportTask(getDbh());
+    mExporter = new ExportTask(getContentResolver());
     mDateMap = new DateMapCache();
     mDateMap.populateCache(mCtx);
     mCategoryType = new HashMap<Long,String>();

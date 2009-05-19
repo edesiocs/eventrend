@@ -1245,7 +1245,7 @@ public class TimeSeriesProvider extends ContentProvider {
         qb.setTables(Datapoint.TABLE_NAME);
         try {
           tsId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
-          qb.appendWhere(TimeSeries._ID + " = " + tsId);
+          qb.appendWhere(Datapoint.TIMESERIES_ID + " = " + tsId);
         } catch (Exception e) { } // nothing
         if (map == null)
           qb.setProjectionMap(sDatapointProjection);

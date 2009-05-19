@@ -16,6 +16,7 @@ Input Activity:
 - cache of category views?
 CategoryEdit/Wizard:
 - test changing all fields, changing orientation
+- make numeric entry fields wider
 Import:
 * implement v2 importing
   * including converting ranges
@@ -42,8 +43,6 @@ EntryEditor:
   Calendar time)
 - print notice when fields are non-editable
 - test on all types of series
-Exporter:
-- implement
 Preferences:
 - 12/24h format
 - auto backup frequency
