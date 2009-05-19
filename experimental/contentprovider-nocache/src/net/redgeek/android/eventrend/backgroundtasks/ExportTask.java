@@ -26,7 +26,7 @@ import java.io.Writer;
 
 /**
  * Exports the user's database to a file or mail. Files are currently written to
- * a predefined directory on the sdcard with a predetermine (timestamp)
+ * a predefined directory on the sdcard with a predetermined (timestamp)
  * filename. Note that the actual mailing of the data is not done internally, but
  * shelled out to any other program that has it's intent filters set
  * appropriately.
@@ -82,6 +82,9 @@ public class ExportTask {
   }
 
   private void exportToMail() {
+    
+    
+    
     // TODO:
 //    mBody = mDbh.flattenDB();
   }

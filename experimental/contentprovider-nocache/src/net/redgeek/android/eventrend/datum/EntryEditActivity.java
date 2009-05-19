@@ -113,7 +113,7 @@ public class EntryEditActivity extends EvenTrendActivity {
     setupUI();
     populateFields(mRow);
 
-    setTimestamps();
+    updateDisplay();
   }
 
   private void setupData(Bundle icicle) {
@@ -410,10 +410,6 @@ public class EntryEditActivity extends EvenTrendActivity {
 
     mOriginalValue = value;
     mOriginalEntries = entries;
-  }
-
-  public void setTimestamps() {
-    updateDisplay();
   }
 
   public void resetTimestamp(DateItem timestamp) {

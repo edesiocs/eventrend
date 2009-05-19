@@ -17,24 +17,30 @@
 package net.redgeek.android.eventrend.datum;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
 import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class EntryListAdapter extends BaseAdapter {
   private Context mCtx;
   private DateMapCache mDateMap;
+  private HashMap<Long,String> mTsType;
   private List<EntryRow> mItems = new ArrayList<EntryRow>();
 
-  public EntryListAdapter(Context context, DateMapCache dateMap) {
+  public EntryListAdapter(Context context, DateMapCache dateMap, 
+      HashMap<Long,String> tsType) {
     mCtx = context;
     mDateMap = dateMap;
+    mTsType = tsType;
   }
 
   public void addItem(EntryRow it) {
@@ -71,8 +77,13 @@ public class EntryListAdapter extends BaseAdapter {
 
   public View getView(int position, View convertView, ViewGroup parent) {
     EntryRowView row;
+    String type = mTsType.get(Long.valueOf(mItems.get(position).mTimeSeriesId));
+    if (TextUtils.isEmpty(type) == true) {
+      type = TimeSeries.TYPE_DISCRETE;
+    }
+    
     if (convertView == null) {
-      row = new EntryRowView(mCtx, mItems.get(position), mDateMap);
+      row = new EntryRowView(mCtx, mItems.get(position), mDateMap, type);
       row.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
     } else {
       row = (EntryRowView) convertView;

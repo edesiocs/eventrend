@@ -24,6 +24,7 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 
 import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.util.DateUtil;
 
@@ -32,16 +33,18 @@ public class EntryRowView extends TableLayout {
   private TextView mTimestampText;
 
   private long mRowId;
+  private String mRowType;
   private Context mCtx;
   private DateMapCache mDateMap;
   
   private LinearLayout mRow;
   private int mPad = 2;
 
-  public EntryRowView(Context context, EntryRow anEntry, DateMapCache dateMap) {
+  public EntryRowView(Context context, EntryRow anEntry, DateMapCache dateMap, String rowType) {
     super(context);
     mCtx = context;
     mDateMap = dateMap;
+    mRowType = rowType;
     setupUI(context);
     populateFields(anEntry);
   }
@@ -59,12 +62,20 @@ public class EntryRowView extends TableLayout {
 
   private void populateFields(EntryRow entry) {
     mTimestampText.setText(mDateMap.toDisplayTime(entry.mTsStart, 0));
-    mValueText.setText(Double.valueOf(entry.mValue).toString());
+    if (mRowType.equals(TimeSeries.TYPE_RANGE)) {
+      mValueText.setText(DateMapCache.toScaledTime(entry.mValue));
+    } else {
+      mValueText.setText(Double.valueOf(entry.mValue).toString());
+    }
     mRowId = entry.mId;
   }
 
   public void setValue(double value) {
-    mValueText.setText(Double.valueOf(value).toString());
+    if (mRowType.equals(TimeSeries.TYPE_RANGE)) {
+      mValueText.setText(DateMapCache.toScaledTime(value));
+    } else {
+      mValueText.setText(Double.valueOf(value).toString());
+    }
   }
 
   public void setTimestamp(int timestamp) {

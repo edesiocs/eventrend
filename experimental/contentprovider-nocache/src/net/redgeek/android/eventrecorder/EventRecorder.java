@@ -181,7 +181,7 @@ public class EventRecorder extends Service {
       values.put(Datapoint.TS_START, now);
       values.put(Datapoint.TS_END, 0);
       values.put(Datapoint.VALUE, 0);
-      values.put(Datapoint.ENTRIES, 0);
+      values.put(Datapoint.ENTRIES, 1);
 
       Uri uri = ContentUris.withAppendedId(
           TimeSeries.CONTENT_URI, timeSeriesId).buildUpon()

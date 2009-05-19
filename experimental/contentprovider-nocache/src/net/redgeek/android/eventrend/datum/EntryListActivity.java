@@ -68,6 +68,7 @@ public class EntryListActivity extends EvenTrendActivity {
   private String mFilename;
   private String mErrMsg;
   ProgressIndicator.DialogSoft mProgress;
+  private HashMap<Long,String> mCategoryType;
 
   // Listeners
   private OnItemSelectedListener mCategoryMenuListener;
@@ -99,6 +100,7 @@ public class EntryListActivity extends EvenTrendActivity {
     //    mExporter = new ExportTask(getDbh());
     mDateMap = new DateMapCache();
     mDateMap.populateCache(mCtx);
+    mCategoryType = new HashMap<Long,String>();
   }
 
   private void setupUI() {
@@ -131,7 +133,7 @@ public class EntryListActivity extends EvenTrendActivity {
   
   public void setupMenu() {
     String[] projection = new String[] { 
-        TimeSeries._ID, TimeSeries.TIMESERIES_NAME };
+        TimeSeries._ID, TimeSeries.TIMESERIES_NAME, TimeSeries.TYPE };
     Uri timeseries = TimeSeriesData.TimeSeries.CONTENT_URI;
     Cursor c = getContentResolver().query(timeseries, projection, null, null,
           TimeSeries.TIMESERIES_NAME + " asc ");
@@ -142,7 +144,9 @@ public class EntryListActivity extends EvenTrendActivity {
       for (int i = 0; i < count; i++) {
         long catId = TimeSeries.getId(c);
         String label = TimeSeries.getTimeSeriesName(c);
+        String type = TimeSeries.getType(c);
         mCategoryMenu.addSpinnerItem(label, catId);
+        mCategoryType.put(Long.valueOf(catId), type);
         c.moveToNext();
       }
       c.close();
@@ -159,7 +163,7 @@ public class EntryListActivity extends EvenTrendActivity {
     Cursor c = mCtx.getContentResolver().query(uri, null, null, null, 
       Datapoint.TS_START + " desc ");
     
-    mEla = new EntryListAdapter(this, mDateMap);
+    mEla = new EntryListAdapter(this, mDateMap, mCategoryType);
     c.moveToFirst();
     for (int i = 0; i < c.getCount(); i++) {
       row = new EntryRow();
