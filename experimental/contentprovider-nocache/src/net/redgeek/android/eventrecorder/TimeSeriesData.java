@@ -135,6 +135,15 @@ public class TimeSeriesData {
       "year",
     };
 
+    public static final String[] EXPORTABLE_COLS = {
+      _ID,
+      TIMESERIES_ID,
+      VALUE,
+      ENTRIES,
+      TS_START,
+      TS_END,
+    };
+    
     /**
      * The table creation sql
      * We create tables for each aggregation level.
@@ -924,6 +933,29 @@ public class TimeSeriesData {
      * </p>
      */
     public static final String DECIMALS = "decimals";
+
+    public static final String[] EXPORTABLE_COLS = {
+      _ID,
+      TIMESERIES_NAME,
+      RECORDING_DATAPOINT_ID,
+      GROUP_NAME,
+      DEFAULT_VALUE,
+      INCREMENT,
+      GOAL,
+      COLOR,
+      PERIOD,
+      UNITS,
+      RANK,
+      AGGREGATION,
+      TYPE,
+      ZEROFILL,
+      FORMULA,
+      INTERPOLATION,
+      SENSITIVITY,
+      SMOOTHING,
+      HISTORY,
+      DECIMALS,
+    };
 
     /**
      * The table creation sql

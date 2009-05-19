@@ -18,7 +18,7 @@
 			android:layout_gravity="center_horizontal|center_vertical"
 			android:layout_width="wrap_content" 
 			android:layout_height="wrap_content"
-      android:text="Category:">
+      android:text="View Category:">
 		</TextView>
     <net.redgeek.android.eventrend.util.DynamicSpinner 
           android:layout_height="wrap_content"

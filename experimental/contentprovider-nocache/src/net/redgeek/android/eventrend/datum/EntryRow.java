@@ -16,6 +16,10 @@
 
 package net.redgeek.android.eventrend.datum;
 
+import android.database.Cursor;
+
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
+
 public class EntryRow implements Comparable<EntryRow> {
   public long mId;
   public long mTimeSeriesId;
@@ -27,6 +31,15 @@ public class EntryRow implements Comparable<EntryRow> {
   private boolean mSelectable = true;
 
   public EntryRow() {
+  }
+  
+  public void populateFromCursor(Cursor c) {
+    mId = Datapoint.getId(c);
+    mTimeSeriesId = Datapoint.getTimeSeriesId(c);
+    mValue = Datapoint.getValue(c);
+    mEntries = Datapoint.getEntries(c);
+    mTsStart = Datapoint.getTsStart(c);
+    mTsEnd = Datapoint.getTsEnd(c);
   }
 
   public boolean isSelectable() {
