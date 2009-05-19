@@ -598,7 +598,7 @@ public class TimeSeriesProvider extends ContentProvider {
         Datapoint.setValue(values, d.mValue);
         Datapoint.setEntries(values, 1);
 
-        setContentValues(db, values, timeSeriesId, recordingDatapointId,
+        setContentValues(db, values, timeSeriesId, 0, recordingDatapointId,
             d.mTsStart, d.mValue, 1, smoothing, history);
         db.insert(Datapoint.TABLE_NAME, null, values);
       }
@@ -929,12 +929,13 @@ public class TimeSeriesProvider extends ContentProvider {
   }
 
   private Cursor getPreviousDatapoints(SQLiteDatabase db, long timeSeriesId, 
-      long recordingDatapointId, int timestamp, int history) {
+      long recordingDatapointId, long additionalIgnoreId, int timestamp, int history) {
     StringBuilder where = new StringBuilder();
 
     where.append(Datapoint.TIMESERIES_ID).append(" = ").append(timeSeriesId).append(" and ");
     where.append(Datapoint.TS_START).append(" < ").append(timestamp).append(" and ");
-    where.append(Datapoint._ID).append(" != ").append(recordingDatapointId).append(" ");
+    where.append(Datapoint._ID).append(" != ").append(recordingDatapointId).append(" and ");
+    where.append(Datapoint._ID).append(" != ").append(additionalIgnoreId).append(" ");
     String sortOrder = Datapoint.TS_START + " desc ";
     String groupBy = Datapoint.TS_START;
     String limit = "" + history;
@@ -1037,9 +1038,10 @@ public class TimeSeriesProvider extends ContentProvider {
   }
 
   private void setContentValues(SQLiteDatabase db, ContentValues values,
-      long timeSeriesId, long recordingDatapointId, int tsStart, double value, 
-      int entries, double smoothing, int history) {
-    Cursor c = getPreviousDatapoints(db, timeSeriesId, recordingDatapointId, tsStart, history);
+      long timeSeriesId, long recordingDatapointId, long additionalIgnoreId,
+      int tsStart, double value, int entries, double smoothing, int history) {
+    Cursor c = getPreviousDatapoints(db, timeSeriesId, additionalIgnoreId, 
+        recordingDatapointId, tsStart, history);
     if (c.getCount() < 1) {
       // no earlier entries for this timestamp
       c.close();
@@ -1115,7 +1117,7 @@ public class TimeSeriesProvider extends ContentProvider {
           long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
           c.close();
 
-          setContentValues(db, values, timeSeriesId, recordingDatapointId,
+          setContentValues(db, values, timeSeriesId, 0, recordingDatapointId,
               tsStart, value, entries, smoothing, history);
           
           id = db.insert(Datapoint.TABLE_NAME, null, values);
@@ -1408,6 +1410,7 @@ public class TimeSeriesProvider extends ContentProvider {
         timeSeriesId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_ID);
         datapointId = uri.getPathSegments().get(PATH_SEGMENT_TIMESERIES_DATAPOINT_ID);
         long tsId = Long.valueOf(timeSeriesId);
+        long dpId = Long.valueOf(datapointId);
         
         LockUtil.waitForLock(mLock);
         db.beginTransaction();
@@ -1429,6 +1432,7 @@ public class TimeSeriesProvider extends ContentProvider {
           int oldStart = Datapoint.getTsStart(c);
           double oldValue = Datapoint.getValue(c);
           int oldEntries = Datapoint.getEntries(c);
+          c.close();
 
           int newStart = oldStart;
           double newValue = oldValue;
@@ -1453,8 +1457,8 @@ public class TimeSeriesProvider extends ContentProvider {
           long recordingDatapointId = TimeSeries.getRecordingDatapointId(c);
           c.close();
 
-          setContentValues(db, values, tsId, recordingDatapointId, newStart, 
-              newValue, newEntries, smoothing, history);
+          setContentValues(db, values, tsId, dpId, recordingDatapointId, 
+              newStart, newValue, newEntries, smoothing, history);
 
           count = db.update(Datapoint.TABLE_NAME, values, Datapoint._ID + "=" + datapointId
               + (!TextUtils.isEmpty(where) ? " AND (" + where + ')' : ""),

@@ -343,7 +343,8 @@ public class DateMapCache {
     mCal.set(Calendar.MINUTE, item.mMinute);
     mCal.set(Calendar.SECOND, item.mSecond);
     mCal.set(Calendar.MILLISECOND, 0);
-    return (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS);
+    item.mEpochSeconds = (int) (mCal.getTimeInMillis() / DateMap.SECOND_MS);
+    return item.mEpochSeconds;
   }
   
   public void populateCache(Context ctx) {
