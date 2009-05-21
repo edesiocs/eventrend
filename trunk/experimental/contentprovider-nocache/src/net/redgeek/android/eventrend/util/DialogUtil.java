@@ -22,9 +22,13 @@ import android.app.ProgressDialog;
 import android.app.AlertDialog.Builder;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+
+import net.redgeek.android.eventrend.R;
 
 /**
  * A factor for generating commonly generated dialogs
@@ -116,7 +120,7 @@ public class DialogUtil {
    * @see #newOkDialog(String, String, DialogInterface.OnClickListener)
    * @see #getDoNothingListener()
    */
-  public Dialog newOkDialog(String title, String message) {
+  public AlertDialog newOkDialog(String title, String message) {
     return newOkDialog(title, message,
         (DialogInterface.OnClickListener) mDoNothing);
   }
@@ -131,7 +135,7 @@ public class DialogUtil {
    *          The message to display in the dialog.
    * @return The Dialog.
    */
-  public Dialog newOkDialog(String title, String message,
+  public AlertDialog newOkDialog(String title, String message,
       DialogInterface.OnClickListener ok) {
     mBuilder.setTitle(title);
     mBuilder.setMessage(message);
@@ -157,7 +161,7 @@ public class DialogUtil {
    *      DialogInterface.OnClickListener)
    * @see #getDoNothingListener()
    */
-  public Dialog newOkCancelDialog(String title, String message,
+  public AlertDialog newOkCancelDialog(String title, String message,
       DialogInterface.OnClickListener ok) {
     return newOkCancelDialog(title, message, ok,
         (DialogInterface.OnClickListener) mDoNothing);
@@ -174,7 +178,7 @@ public class DialogUtil {
    *          The message to display in the dialog.
    * @return The Dialog.
    */
-  public Dialog newOkCancelDialog(String title, String message,
+  public AlertDialog newOkCancelDialog(String title, String message,
       DialogInterface.OnClickListener ok, DialogInterface.OnClickListener cancel) {
     mBuilder.setTitle(title);
     mBuilder.setMessage(message);
@@ -213,6 +217,40 @@ public class DialogUtil {
     dialog.setIndeterminate(true);
     return dialog;
   }
+  
+  /**
+   * Creates a new ProgressDialog will the message specified. The dialog is
+   * cancel-able and progress is indeterminate.
+   * 
+   * @param message
+   *          The message to display in the dialog.
+   * @return The Dialog.
+   */
+  public ProgressDialog newProgressBarDialog(String message) {
+    return newProgressBarDialog(null, message);
+  }
+
+  /**
+   * Creates a new ProgressDialog will the message and title specified. The
+   * dialog is cancel-able and progress is indeterminate.
+   * 
+   * @param message
+   *          The title of the dialog.
+   * @param title
+   *          The message to display in the dialog.
+   * @return The ProgressDialog.
+   */
+  public ProgressDialog newProgressBarDialog(String title, String message) {
+    ProgressDialog d = new ProgressDialog(mCtx);
+    d.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+
+    if (title != null)
+      d.setTitle(title);
+    d.setMessage(message);
+    d.setCancelable(true);
+    return d;
+  }
+
 
   /**
    * Retrieve a reference to a listener that does nothing. Multiple calls will

@@ -17,11 +17,13 @@
 package net.redgeek.android.eventrend.backgroundtasks;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
-import android.net.Uri.Builder;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 
+import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.datum.EntryRow;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashMap;
 
 /**
  * Exports the user's database to a file or mail. Files are currently written to
@@ -47,7 +50,10 @@ import java.io.Writer;
  */
 public class ExportTask {
   private ContentResolver mResolver;
-
+  private Handler mHandler;
+  private int mNumRecords;
+  private int mNumRecordsDone;
+  
   public String mDirectory;
   public String mFilename;
   public String mSubject = "";
@@ -57,13 +63,15 @@ public class ExportTask {
   public ExportTask() {
   }
 
-  public ExportTask(ContentResolver resolver) {
+  public ExportTask(ContentResolver resolver, Handler handler) {
     mResolver = resolver;
+    mHandler = handler;
   }
 
-  public ExportTask(ContentResolver resolver, String filename) {
+  public ExportTask(ContentResolver resolver, String filename, Handler handler) {
     mResolver = resolver;
     mFilename = filename;
+    mHandler = handler;
   }
 
   public void setFilename(String filename) {
@@ -113,6 +121,7 @@ public class ExportTask {
     CategoryRow cat = new CategoryRow();
     EntryRow ent = new EntryRow();
     int list = 0;
+    HashMap<Long, String> catMap = new HashMap<Long, String>();
     
     output.append(CSV.createCSVHeader());
     
@@ -121,29 +130,43 @@ public class ExportTask {
     if (tsCur.moveToFirst()) {
       int tsCount = tsCur.getCount();
       for (int i = 0; i < tsCount; i++) {
-        cat.populateFromCursor(tsCur);
-        
-        Uri datapoints = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, 
-            cat.mId).buildUpon().appendPath("datapoints").build();
-        Cursor dpCur = mResolver.query(datapoints, null, null, null, null);
-        if (dpCur.moveToFirst()) {
-          line[0] = CSV.joinCSV(cat);
-          int dpCount = dpCur.getCount();
-          for (int j = 0; j < dpCount; j++) {
-            ent.populateFromCursor(dpCur);
-            line[1] = CSV.joinCSV(ent);
-            output.append(CSV.joinCSVTerminated(line));
-            dpCur.moveToNext();
-          }
-        }
-        if (dpCur != null)
-          dpCur.close();
+        CategoryRow row = new CategoryRow(tsCur);
+        String rowCSV =  CSV.joinCSV(cat);
+        catMap.put(cat.mId, rowCSV);
         tsCur.moveToNext();
       }
     }
     if (tsCur != null)
       tsCur.close();
 
+    Uri datapoints = Datapoint.CONTENT_URI;
+    Cursor dpCur = mResolver.query(datapoints, null, null, null, null);
+    if (dpCur.moveToFirst()) {
+      int dpCount = dpCur.getCount();
+      mNumRecords = dpCount;
+      for (int j = 0; j < dpCount; j++) {
+        ent.populateFromCursor(dpCur);
+        line[0] = catMap.get(ent.mTimeSeriesId);
+        line[1] = CSV.joinCSV(ent);
+        output.append(CSV.joinCSVTerminated(line));
+        mNumRecordsDone = j; 
+        updateStatus();
+        dpCur.moveToNext();
+      }
+    }
+    if (dpCur != null)
+      dpCur.close();
+    tsCur.moveToNext();
+
     return output.toString();
+  }
+  
+  private void updateStatus() {
+    Message msg = mHandler.obtainMessage();
+    Bundle b = new Bundle();
+    b.putInt("done", mNumRecordsDone);
+    b.putInt("total", mNumRecords);
+    msg.setData(b);
+    mHandler.sendMessage(msg);
   }
 }

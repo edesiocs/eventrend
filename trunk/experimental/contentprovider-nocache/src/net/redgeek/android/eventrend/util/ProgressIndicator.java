@@ -117,49 +117,4 @@ public interface ProgressIndicator {
       ((Activity) mCtx).dismissDialog(mId);
     }
   }
-
-  /**
-   * A ProgressIndicator composed of a dialog box with an updateable progress
-   * bar. <strong>Not yet implemented</strong>
-   * 
-   * @author barclay
-   * @see ProgressIndicator
-   * @see DialogUtil
-   */
-  public static class DialogWithBar implements ProgressIndicator {
-    private DialogUtil mDU;
-    private Dialog mDialog;
-    private int mId;
-    private ProgressBar mProgress;
-
-    public DialogWithBar(DialogUtil du, int id, String msg) {
-      mDU = du;
-      mId = id;
-      mProgress = new ProgressBar(mDU.getContext());
-      mProgress.setIndeterminate(false);
-      mDialog = mDU.newViewDialog(msg, mProgress);
-    }
-
-    public DialogWithBar(DialogUtil du, int id, String title, String msg) {
-      mDU = du;
-      mId = id;
-      mProgress = new ProgressBar(mDU.getContext());
-      mProgress.setIndeterminate(false);
-      mDialog = mDU.newViewDialog(title, msg, mProgress);
-    }
-
-    public Dialog getDialog() {
-      return mDialog;
-    }
-
-    public void showProgressIndicator() {
-      mProgress.setProgress(0);
-      mProgress.setSecondaryProgress(0);
-      ((Activity) mDU.getContext()).showDialog(mId);
-    }
-
-    public void hideProgressIndicator() {
-      ((Activity) mDU.getContext()).dismissDialog(mId);
-    }
-  }
 }

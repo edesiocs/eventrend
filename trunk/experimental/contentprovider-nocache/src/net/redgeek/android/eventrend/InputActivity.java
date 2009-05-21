@@ -19,6 +19,7 @@ package net.redgeek.android.eventrend;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.app.TimePickerDialog;
 import android.app.AlertDialog.Builder;
 import android.content.ContentUris;
@@ -32,6 +33,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
+import android.os.RemoteException;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -57,6 +61,7 @@ import android.widget.ViewFlipper;
 
 import net.redgeek.android.eventgrapher.GraphActivity;
 import net.redgeek.android.eventrecorder.DateMapCache;
+import net.redgeek.android.eventrecorder.EventRecorder;
 import net.redgeek.android.eventrecorder.IEventRecorderService;
 import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
@@ -93,8 +98,9 @@ public class InputActivity extends EvenTrendActivity {
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
   private static final int SERVICE_CONNECTING_DIALOG_ID = 3;
-  private static final int DELETE_DIALOG_ID = 4;
-  private static final int EARLY_ENTRY_DIALOG_ID = 5;
+  private static final int SERVICE_BUSY_DIALOG_ID = 4;
+  private static final int DELETE_DIALOG_ID = 5;
+  private static final int EARLY_ENTRY_DIALOG_ID = 6;
   private static final int ERROR_DIALOG_ID = 10;
 
   // Generated IDs for flipper scrollviews
@@ -113,6 +119,7 @@ public class InputActivity extends EvenTrendActivity {
 
   ProgressIndicator.Titlebar mProgress;
   ProgressIndicator.DialogSoft mProgressBox;
+  private ProgressDialog mServiceProgressBarDialog;
   private GestureDetector mGestureDetector;
 
   // Trend state:
@@ -170,6 +177,9 @@ public class InputActivity extends EvenTrendActivity {
   // Tasks, handlers, etc
   private Runnable mUpdateNowTime;
   private Handler mNowHandler;
+  private Handler mConnectionChangeHandler;
+  private Runnable mServiceZerofillStatus;
+  private Handler mServiceZerofillHandler;
 
   @Override
   public void onCreate(Bundle icicle) {
@@ -182,11 +192,7 @@ public class InputActivity extends EvenTrendActivity {
     setContentView(R.layout.category_list);
 
     setupTasksAndData();
-    
     setupUI();
-    fillCategoryData(-1);
-    setCurrentViews(true);
-    
     scheduleUpdateNow();
   }
 
@@ -206,6 +212,9 @@ public class InputActivity extends EvenTrendActivity {
   
   @Override
   public void afterExecute() {
+    mRecorderConnection.setConnectionCallback(mConnectionChangeHandler);
+    fillCategoryData(-1);
+    setCurrentViews(true);
   }
 
   @Override
@@ -216,6 +225,38 @@ public class InputActivity extends EvenTrendActivity {
   private void setupTasksAndData() {
     mUndoLock = new ReentrantLock();
     
+    mConnectionChangeHandler = new Handler() {
+      @Override
+      public void handleMessage(Message msg) {
+        boolean connected = msg.getData().getBoolean(EventRecorderConnection.MSG_CONNECTED);
+        if (connected == true) {
+          dismissDialog(SERVICE_CONNECTING_DIALOG_ID);
+          showDialog(SERVICE_BUSY_DIALOG_ID);
+          mServiceZerofillHandler.post(mServiceZerofillStatus);
+        }
+      }
+    };
+    
+    mServiceZerofillStatus = new Runnable() {
+      public void run() {
+        try {
+          if (mRecorderService.getServiceStatus() == EventRecorder.ERSERVICE_BUSY) {
+            int total = mRecorderService.getServiceFillsTotal();
+            int done = mRecorderService.getServiceFillsPerformed();
+            mServiceProgressBarDialog.setMax(total);
+            mServiceProgressBarDialog.setProgress(done);
+            mServiceProgressBarDialog.setSecondaryProgress(done);
+          } else { 
+            dismissDialog(SERVICE_BUSY_DIALOG_ID);
+            mServiceZerofillHandler.removeCallbacks(mServiceZerofillStatus);
+          }
+        } catch (RemoteException e) { } // nothing
+        mServiceZerofillHandler.postDelayed(mServiceZerofillStatus, 50);
+      }
+    };
+    mServiceZerofillHandler = new Handler();
+    
+    showDialog(SERVICE_CONNECTING_DIALOG_ID);
     GUITaskQueue.getInstance().addTask(mProgressBox, this);
     
     mTimestamp = new DateUtil.DateItem();
@@ -233,7 +274,6 @@ public class InputActivity extends EvenTrendActivity {
         mNowHandler.postDelayed(mUpdateNowTime, DateMap.SECOND_MS);
       }
     };
-
     mNowHandler = new Handler();
     
     mCategories = new ArrayList<LinearLayout>();
@@ -546,7 +586,7 @@ public class InputActivity extends EvenTrendActivity {
         mDeleteCategoryId = row.mId;
         mDeleteCategoryName = row.mTimeSeriesName;
         showDialog(DELETE_DIALOG_ID);
-        break;      
+        break;   
       default:
         return super.onContextItemSelected(item);
     }
@@ -568,8 +608,8 @@ public class InputActivity extends EvenTrendActivity {
         return new DatePickerDialog(this, mDateSetListener, mTimestamp.mYear,
             mTimestamp.mMonth, mTimestamp.mDay);
       case HELP_DIALOG_ID:
-        String str = getResources().getString(R.string.overview);
-        return mDialogUtil.newOkDialog("Help", str);
+        msg = getResources().getString(R.string.overview);
+        return mDialogUtil.newOkDialog("Help", msg);
       case SERVICE_CONNECTING_DIALOG_ID:
         Dialog d = mDialogUtil.newProgressDialog(
             "Connecting to recorder service ... "
@@ -589,6 +629,15 @@ public class InputActivity extends EvenTrendActivity {
         return mDialogUtil.newOkDialog(title, msg);        
       case ERROR_DIALOG_ID:
         return mDialogUtil.newOkDialog(mDialogErrorTitle, mDialogErrorMsg);
+      case SERVICE_BUSY_DIALOG_ID:
+        title = "EventRecorder Service";
+        msg = "Waiting on EventRecorder Service to update Zero-fills ... "
+            + "(This is only necessary if the application hasn't been run "
+            + "in a while, or data was just imported.)";
+        mServiceProgressBarDialog = mDialogUtil.newProgressBarDialog(title, msg);
+        mServiceProgressBarDialog.setCancelable(false);
+        return mServiceProgressBarDialog;
+
     }
     return null;
   }
