@@ -24,9 +24,8 @@ CategoryEdit/Wizard:
 Import:
 - speed up
 - refresh datapoint listing after import
-- implement v2 importing
-  * batchInserts/full import/exports
-* v1 importing: converting ranges
+- merge the conversion dialog into the confirmation dialog
+- batchInserts/full import/exports
 Grapher:
 - establish "gathering data" dialog
 - fix markers when zooming (esp. zoom out far)

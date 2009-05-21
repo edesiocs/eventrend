@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.TreeMap;
 
 /**
  * Import a CSV file into the database, replacing existing data. (Merge import
@@ -57,10 +58,18 @@ import java.util.HashMap;
  * 
  */
 public class ImportTask {
-  private ContentResolver mResolver = null;
-  private String mFilename = null;
-  private HashMap <String,Long> mCatMap;
-  private Handler mHandler;
+  // These must map to R.array.import_conversion_types in order
+  public static final int CONVERT_DISCRETE = 0;
+  public static final int CONVERT_RANGE_START = 1;
+  public static final int CONVERT_RANGE_END = 2;
+
+  // These must map to R.array.import_conversion_units in order
+  public static final int CONVERT_MINUTES = 0;
+  public static final int CONVERT_HOURS = 1;
+  public static final int CONVERT_DAYS = 2;
+
+  public TreeMap<String, Integer> mCatConversionMap;
+  public TreeMap<String, Integer> mCatConversionUnitsMap;
   
   public int mNumRecords = -1;
   public int mNumRecordsParsed = 0;
@@ -68,6 +77,10 @@ public class ImportTask {
   public int mDbFormat = 1;
 
   private ArrayList<ContentValues> mNewEntries;
+  private ContentResolver mResolver = null;
+  private String mFilename = null;
+  private HashMap<String,Long> mCatIdMap;
+  private Handler mHandler;
 
   // This is just a giant hack ... but I just kind of want to get the I/O
   // done with:
@@ -94,20 +107,26 @@ public class ImportTask {
   }
     
   public ImportTask(Handler handler) {
-    mCatMap = new HashMap <String,Long>();
+    mCatIdMap = new HashMap <String,Long>();
+    mCatConversionMap = new TreeMap<String, Integer>();
+    mCatConversionUnitsMap = new TreeMap<String, Integer>();
     mHandler = handler;
   }
 
   public ImportTask(ContentResolver resolver, Handler handler) {
     mResolver = resolver;
-    mCatMap = new HashMap <String,Long>();
+    mCatIdMap = new HashMap <String,Long>();
+    mCatConversionMap = new TreeMap<String, Integer>();
+    mCatConversionUnitsMap = new TreeMap<String, Integer>();
     mHandler = handler;
   }
 
   public ImportTask(ContentResolver resolver, String filename, Handler handler) {
     mResolver = resolver;
     mFilename = filename;
-    mCatMap = new HashMap <String,Long>();
+    mCatIdMap = new HashMap <String,Long>();
+    mCatConversionMap = new TreeMap<String, Integer>();
+    mCatConversionUnitsMap = new TreeMap<String, Integer>();
     mHandler = handler;
   }
 
@@ -115,7 +134,10 @@ public class ImportTask {
     mFilename = filename;
   }
   
-  public int getApproxNumItems() throws IOException {
+  public int getFileMetaData() throws IOException {
+    String datum, column, columnMapping, name = null;
+    int conversionType;
+    ArrayList<String> data = null;
     ArrayList<String> columns = null;
     String line;
     BufferedReader input = null;
@@ -124,13 +146,45 @@ public class ImportTask {
     
     int i = 0;
     mNumRecords = 0;
+    int nCols = 0;
     while ((line = input.readLine()) != null) {
       if (i == 0) {
         columns = CSV.parseHeader(line);
         if (columns.contains(TimeSeries.RECORDING_DATAPOINT_ID)) {
           mDbFormat = 2;
         }
+        nCols = columns.size();
       } else {
+        data = CSV.getNextLine(line);
+        if (mDbFormat == 1) { 
+          // Fetch the name and type
+          conversionType = -1;
+          int nDatums = data.size();
+          for (i = 0; i < nDatums && i < nCols; i++) {
+            datum = data.get(i);
+            column = columns.get(i);
+            columnMapping = sDb1To2mapping.get(column);
+            if (TextUtils.isEmpty(columnMapping) == true)
+              continue;
+
+            if (columnMapping.equals(TimeSeries.TYPE)) {
+              conversionType = Integer.valueOf(datum);
+            }
+            else if (columnMapping.equals(TimeSeries.TIMESERIES_NAME)) {
+              name = new String(datum);
+            }
+            if (conversionType >= 0 && TextUtils.isEmpty(name) != true)
+              break;
+          }
+          
+          if (conversionType >= 0 && TextUtils.isEmpty(name) != true) {
+            if (conversionType == 0) {// not synthetic, candidate for conversion
+              mCatConversionMap.put(name, CONVERT_DISCRETE);
+              mCatConversionUnitsMap.put(name, CONVERT_HOURS);
+            }
+          }
+        }
+
         mNumRecords++;
       }
       i++;
@@ -163,7 +217,7 @@ public class ImportTask {
     if (c != null)
       c.close();
 
-    mCatMap.clear();
+    mCatIdMap.clear();
     mNumRecordsDone = 0;
     mNumRecordsParsed = 0;
     updateStatus();
@@ -274,13 +328,13 @@ public class ImportTask {
       }
     }
 
-    catId = mCatMap.get(catname[0]);
+    catId = mCatIdMap.get(catname[0]);
     if (catId == null) {
       Cursor c = mResolver.query(tsByName, null, 
           TimeSeries.TIMESERIES_NAME + " = ? ", catname, null);
       if (c.moveToFirst() && c.getCount() > 0) {
         catId = TimeSeries.getId(c);
-        mCatMap.put(catname[0], catId);
+        mCatIdMap.put(catname[0], catId);
       }
       if (c != null)
         c.close();
@@ -290,7 +344,7 @@ public class ImportTask {
         if (uri != null) {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_ID);
           catId = Long.valueOf(rowIdStr);
-          mCatMap.put(catname[0], catId);
+          mCatIdMap.put(catname[0], catId);
         }
       }
     }
@@ -299,11 +353,6 @@ public class ImportTask {
       newEntry.put(Datapoint.TIMESERIES_ID, catId);
       mNewEntries.add(newEntry);
       mNumRecordsParsed++;
-//      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
-//          .buildUpon().appendPath("datapoints").build();
-//      Uri uri = mResolver.insert(datapoint, newEntry);
-//      mNumRecordsDone++;
-//      updateStatus();
     }
 
     return;
@@ -385,13 +434,13 @@ public class ImportTask {
     newSeries.put(TimeSeries.HISTORY, 20);
     newSeries.put(TimeSeries.DECIMALS, 2);
 
-    catId = mCatMap.get(catname[0]);
+    catId = mCatIdMap.get(catname[0]);
     if (catId == null) {
       Cursor c = mResolver.query(tsByName, null, 
           TimeSeries.TIMESERIES_NAME + " = ? ", catname, null);
       if (c.moveToFirst() && c.getCount() > 0) {
         catId = TimeSeries.getId(c);
-        mCatMap.put(catname[0], catId);
+        mCatIdMap.put(catname[0], catId);
       }
       if (c != null)
         c.close();
@@ -401,22 +450,51 @@ public class ImportTask {
         if (uri != null) {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_ID);
           catId = Long.valueOf(rowIdStr);
-          mCatMap.put(catname[0], catId);
+          mCatIdMap.put(catname[0], catId);
         }
       }
     }
     
     if (catId > 0) {
       if (isSynthetic == false) {
+        Integer conversion = mCatConversionMap.get(catname[0]);
+        Integer units = mCatConversionUnitsMap.get(catname[0]);
+        if (conversion != null && units != null) {
+          int multiplier = 1;
+          switch (units) {
+            case CONVERT_DAYS:
+              multiplier = DateMap.DAY_SECS;
+              break;
+            case CONVERT_HOURS:
+              multiplier = DateMap.HOUR_SECS;
+              break;
+            case CONVERT_MINUTES:
+            default:
+              multiplier = DateMap.MINUTE_SECS;
+          }
+
+          double value = newEntry.getAsDouble(Datapoint.VALUE);
+          switch (conversion) {
+            case CONVERT_RANGE_START:
+              int start = newEntry.getAsInteger(Datapoint.TS_START);
+              newEntry.put(Datapoint.VALUE, value * multiplier);
+              newEntry.put(Datapoint.TS_END, start + (value * multiplier));
+              break;
+            case CONVERT_RANGE_END:
+              int end = newEntry.getAsInteger(Datapoint.TS_END);
+              newEntry.put(Datapoint.VALUE, value * multiplier);
+              newEntry.put(Datapoint.TS_END, end - (value * multiplier));
+              break;
+            case CONVERT_DISCRETE:
+            default:
+              // nothing
+          }
+        }      
+
         newEntry.put(Datapoint.TIMESERIES_ID, catId);
         mNewEntries.add(newEntry);
       }
       mNumRecordsParsed++;
-//      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
-//          .buildUpon().appendPath("datapoints").build();
-//      Uri uri = mResolver.insert(datapoint, newEntry);
-//      mNumRecordsDone++;
-//      updateStatus();
     }
 
     return;

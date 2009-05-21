@@ -19,14 +19,21 @@ package net.redgeek.android.eventrend.importing;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.app.AlertDialog.Builder;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import net.redgeek.android.eventrend.EvenTrendActivity;
@@ -37,6 +44,7 @@ import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
 
 import java.io.File;
+import java.util.Iterator;
 
 /**
  * ImportActivity handles the listing of importable files, spawning the actual
@@ -57,6 +65,7 @@ public class ImportActivity extends EvenTrendActivity {
   private static final int DIALOG_COUNT_PROGRESS = 2;
   private static final int DIALOG_CONFIRM = 3;
   private static final int DIALOG_INSERT_PROGRESS = 4;
+  private static final int DIALOG_CONVERT = 5;
 
   // UI elements
   private ImportListAdapter mILA;
@@ -65,6 +74,10 @@ public class ImportActivity extends EvenTrendActivity {
   private ProgressIndicator.DialogSoft mInsertProgress;
   private DialogInterface.OnClickListener mConfirmImport;
   private DialogInterface.OnClickListener mCancelImport;
+  private Spinner mConversionSpinner;
+  private Spinner.OnItemSelectedListener mConversionSpinnerListener;
+  private Spinner mConversionUnitsSpinner;
+  private Spinner.OnItemSelectedListener mConversionUnitsSpinnerListener;
   private int mEndDialogId;
   private int mEndFailDialogId;
   
@@ -73,13 +86,16 @@ public class ImportActivity extends EvenTrendActivity {
   private AlertDialog mImportCountDialog;
   private AlertDialog mImportConfirmDialog;
   private ProgressDialog mProgressBarDialog;
+  private AlertDialog mImportConvertDialog;
 
   // Data
   private String mFilename;
   private String mErrMsg;
   private String mImportDir;
-  private boolean mConfirmed;
-
+  private boolean mConfirmed = false;
+  private boolean mConverted = false;
+  private String mConvertSeries = "";
+  
   // Tasks
   private ImportTask mImporter;
   private Handler mProgressHandler;
@@ -127,6 +143,7 @@ public class ImportActivity extends EvenTrendActivity {
         mEndDialogId = DIALOG_IMPORT_SUCCESS;
         mEndFailDialogId = DIALOG_ERR_FILEREAD;
         mConfirmed = true;
+        
         GUITaskQueue.getInstance().addTask(mInsertProgress, (GUITask)mCtx);
       }
     };
@@ -136,6 +153,19 @@ public class ImportActivity extends EvenTrendActivity {
       public void onClick(DialogInterface arg0, int arg1) {
         mConfirmed = false;
       }
+    };
+    
+    mConversionSpinnerListener = new Spinner.OnItemSelectedListener() {
+      @Override
+      public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+          long arg3) {
+        int conversion = mConversionSpinner.getSelectedItemPosition();
+        mImporter.mCatConversionMap.put(mConvertSeries, conversion);
+      }
+
+      @Override
+      public void onNothingSelected(AdapterView<?> arg0) {
+      }      
     };
   }
 
@@ -159,16 +189,25 @@ public class ImportActivity extends EvenTrendActivity {
   @Override
   public void executeNonGuiTask() throws Exception {
     if (mConfirmed == false) {
-      mImporter.getApproxNumItems();
+      mImporter.getFileMetaData();
     } else {
       mImporter.doImport();
-      mConfirmed = false;
     }
   }
 
   @Override
   public void afterExecute() {
     showDialog(mEndDialogId);
+    if (mConfirmed == false) {
+      if (mImporter.mCatConversionMap.size() > 0) {
+        Iterator<String> iterator = mImporter.mCatConversionMap.keySet()
+            .iterator();
+        for (int i = 0; iterator.hasNext(); i++) {
+          mConvertSeries = iterator.next();
+          showDialog(DIALOG_CONVERT);
+        }
+      }
+    }    
   }
 
   @Override
@@ -212,7 +251,13 @@ public class ImportActivity extends EvenTrendActivity {
             + mFilename + "? This may take a while, and is cannot be undone.");
         break;
       case DIALOG_INSERT_PROGRESS:
-        mProgressBarDialog.setMessage("Importing data from " + mFilename + " ...");
+        mProgressBarDialog.setMessage("Importing data from " + mFilename + " ...");        
+        break;
+      case DIALOG_CONVERT:
+        mImportConvertDialog.setTitle(mConvertSeries);
+        TextView text = (TextView) mImportConvertDialog.findViewById(R.id.message);
+        text.setText("It looks like you're importing an old file format.  Please" +
+        		"select a conversion for the category \"" + mConvertSeries + "\"");        
         break;
       default:
     }
@@ -225,9 +270,11 @@ public class ImportActivity extends EvenTrendActivity {
     switch (id) {
       case DIALOG_IMPORT_SUCCESS:
         mImportSuccessDialog = mDialogUtil.newOkDialog("Import Success", "");
+        mConfirmed = false;
         return mImportSuccessDialog;
       case DIALOG_ERR_FILEREAD:
         mImportErrDialog = mDialogUtil.newOkDialog("Import Failure", "");
+        mConfirmed = false;
         return mImportErrDialog;
       case DIALOG_COUNT_PROGRESS:
         mImportCountDialog = mDialogUtil.newProgressDialog("");
@@ -242,6 +289,33 @@ public class ImportActivity extends EvenTrendActivity {
         msg = "Importing data from " + mFilename + " ...";
         mProgressBarDialog = mDialogUtil.newProgressBarDialog(title, msg);
         return mProgressBarDialog;
+      case DIALOG_CONVERT:
+        LayoutInflater inflater = (LayoutInflater) mCtx.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.dialog_series_conversion, null);
+        
+        mConversionSpinner = (Spinner) layout.findViewById(R.id.menu);
+        ArrayAdapter<CharSequence> conversions = ArrayAdapter.createFromResource(mCtx, R.array.import_conversion_types,
+          android.R.layout.simple_spinner_dropdown_item);
+        mConversionSpinner.setAdapter(conversions);
+        mConversionSpinner.setOnItemSelectedListener(mConversionSpinnerListener);
+
+        mConversionUnitsSpinner = (Spinner) layout.findViewById(R.id.units);
+        ArrayAdapter<CharSequence> units = ArrayAdapter.createFromResource(mCtx, R.array.import_conversion_units,
+          android.R.layout.simple_spinner_dropdown_item);
+        mConversionUnitsSpinner.setAdapter(units);
+        mConversionUnitsSpinner.setOnItemSelectedListener(mConversionUnitsSpinnerListener);
+
+        Builder builder = new AlertDialog.Builder(mCtx);
+        builder.setTitle("Conversion");
+        builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+          @Override
+          public void onClick(DialogInterface dialog, int which) {
+            return;
+          }});
+        builder.setView(layout);
+
+        mImportConvertDialog = builder.create();
+        return mImportConvertDialog;
       default:
     }
     return null;
