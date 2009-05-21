@@ -19,17 +19,17 @@ package net.redgeek.android.eventrend.backgroundtasks;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.UriMatcher;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 
-import net.redgeek.android.eventrecorder.TimeSeriesData;
 import net.redgeek.android.eventrecorder.TimeSeriesProvider;
 import net.redgeek.android.eventrecorder.TimeSeriesData.Datapoint;
 import net.redgeek.android.eventrecorder.TimeSeriesData.DateMap;
 import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
-import net.redgeek.android.eventrend.category.CategoryRow;
 import net.redgeek.android.eventrend.datum.EntryRow;
 import net.redgeek.android.eventrend.importing.CSV;
 
@@ -60,6 +60,14 @@ public class ImportTask {
   private ContentResolver mResolver = null;
   private String mFilename = null;
   private HashMap <String,Long> mCatMap;
+  private Handler mHandler;
+  
+  public int mNumRecords = -1;
+  public int mNumRecordsParsed = 0;
+  public int mNumRecordsDone = 0;
+  public int mDbFormat = 1;
+
+  private ArrayList<ContentValues> mNewEntries;
 
   // This is just a giant hack ... but I just kind of want to get the I/O
   // done with:
@@ -85,27 +93,51 @@ public class ImportTask {
     sDb1To2mapping.put("n_entries", Datapoint.ENTRIES);
   }
     
-  // Intended for future discrete progress bar indicator:
-  public int mNumRecords;
-  public int mNumRecordsDone;
-
-  public ImportTask() {
+  public ImportTask(Handler handler) {
     mCatMap = new HashMap <String,Long>();
+    mHandler = handler;
   }
 
-  public ImportTask(ContentResolver resolver) {
+  public ImportTask(ContentResolver resolver, Handler handler) {
     mResolver = resolver;
     mCatMap = new HashMap <String,Long>();
+    mHandler = handler;
   }
 
-  public ImportTask(ContentResolver resolver, String filename) {
+  public ImportTask(ContentResolver resolver, String filename, Handler handler) {
     mResolver = resolver;
     mFilename = filename;
     mCatMap = new HashMap <String,Long>();
+    mHandler = handler;
   }
 
   public void setFilename(String filename) {
     mFilename = filename;
+  }
+  
+  public int getApproxNumItems() throws IOException {
+    ArrayList<String> columns = null;
+    String line;
+    BufferedReader input = null;
+    FileInputStream f = new FileInputStream(mFilename);
+    input = new BufferedReader(new InputStreamReader(new DataInputStream(f)));
+    
+    int i = 0;
+    mNumRecords = 0;
+    while ((line = input.readLine()) != null) {
+      if (i == 0) {
+        columns = CSV.parseHeader(line);
+        if (columns.contains(TimeSeries.RECORDING_DATAPOINT_ID)) {
+          mDbFormat = 2;
+        }
+      } else {
+        mNumRecords++;
+      }
+      i++;
+    }
+    input.close();
+
+    return mNumRecords;
   }
 
   public void doImport() throws IOException {
@@ -115,7 +147,6 @@ public class ImportTask {
     String line;
     ArrayList<String> columns = null;
     ArrayList<String> data = null;
-    int dbFormat = 1; // super-ugly horrible hack
     
     // delete the existing timeseries
     Uri allSeries = TimeSeries.CONTENT_URI;
@@ -133,6 +164,10 @@ public class ImportTask {
       c.close();
 
     mCatMap.clear();
+    mNumRecordsDone = 0;
+    mNumRecordsParsed = 0;
+    updateStatus();
+    mNewEntries = new ArrayList<ContentValues>(mNumRecords);
 
     // Now read in the new ones:
     BufferedReader input = null;
@@ -144,24 +179,44 @@ public class ImportTask {
       if (i == 0) {
         columns = CSV.parseHeader(line);
         if (columns.contains(TimeSeries.RECORDING_DATAPOINT_ID)) {
-          dbFormat = 2;
+          mDbFormat = 2;
         }
       } else {
         data = CSV.getNextLine(line);
-        if (dbFormat == 1) {
-          insertEntryV1(data, columns);
+        if (mDbFormat == 1) {
+          appendEntryV1(data, columns);
         } else {
-          insertEntryV2(data, columns);          
+          appendEntryV2(data, columns);          
         }
       }
       i++;
     }
     input.close();
 
+    int nEntries = mNewEntries.size();
+    for (i = 0; i < nEntries; i++) {
+      ContentValues values = mNewEntries.get(i);
+      Uri datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, 
+          values.getAsLong(Datapoint.TIMESERIES_ID))
+          .buildUpon().appendPath("datapoints").build();
+      Uri uri = mResolver.insert(datapoint, values);
+      mNumRecordsDone++;
+      updateStatus();
+    }
+
+//    int nEntries = mNewEntries.size();
+//    ContentValues[] bulkInsertEntries = new ContentValues[nEntries];
+//    for (i = 0; i < nEntries; i++) {
+//      bulkInsertEntries[i] = mNewEntries.get(i);
+//    }
+//    
+//    Uri datapoint = Datapoint.CONTENT_URI;
+//    mResolver.bulkInsert(datapoint, bulkInsertEntries);
+    
     return;
   }
 
-  private void insertEntryV2(ArrayList<String> data, ArrayList<String> columns) {
+  private void appendEntryV2(ArrayList<String> data, ArrayList<String> columns) {
     ContentValues newSeries = new ContentValues();
     ContentValues newEntry = new ContentValues();
     int i = 0;
@@ -172,7 +227,9 @@ public class ImportTask {
     String datum, column;
 
     Long catId = new Long(0);
-    for (i = 0; i < data.size() && i < columns.size(); i++) {
+    int nDatums = data.size();
+    int nCols = columns.size();
+    for (i = 0; i < nDatums && i < nCols; i++) {
       datum = data.get(i);
       column = columns.get(i);
 
@@ -185,7 +242,7 @@ public class ImportTask {
           || column.equals(TimeSeries.FORMULA)
           || column.equals(TimeSeries.INTERPOLATION)) {
         if (column.equals(TimeSeries.TIMESERIES_NAME)) {
-          catname[0] = datum;
+          catname[0] = new String(datum);
         }
         newSeries.put(column, datum);
       }
@@ -240,15 +297,19 @@ public class ImportTask {
     
     if (catId > 0) {
       newEntry.put(Datapoint.TIMESERIES_ID, catId);
-      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
-          .buildUpon().appendPath("datapoints").build();
-      Uri uri = mResolver.insert(datapoint, newEntry);
+      mNewEntries.add(newEntry);
+      mNumRecordsParsed++;
+//      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
+//          .buildUpon().appendPath("datapoints").build();
+//      Uri uri = mResolver.insert(datapoint, newEntry);
+//      mNumRecordsDone++;
+//      updateStatus();
     }
 
     return;
   }
   
-  private void insertEntryV1(ArrayList<String> data, ArrayList<String> columns) {
+  private void appendEntryV1(ArrayList<String> data, ArrayList<String> columns) {
     ContentValues newSeries = new ContentValues();
     ContentValues newEntry = new ContentValues();
     EntryRow entry = new EntryRow();
@@ -259,8 +320,11 @@ public class ImportTask {
     Uri tsByName = TimeSeries.CONTENT_URI;
     Uri datapoint;
 
+    boolean isSynthetic = false;
     Long catId = new Long(0);
-    for (i = 0; i < data.size() && i < columns.size(); i++) {
+    int nDatums = data.size();
+    int nCols = columns.size();
+    for (i = 0; i < nDatums && i < nCols; i++) {
       datum = data.get(i);
       column = columns.get(i);
       columnMapping = sDb1To2mapping.get(column);
@@ -273,21 +337,22 @@ public class ImportTask {
       }
       else if (columnMapping.equals(TimeSeries.TYPE)) {
         if (Integer.valueOf(datum) != 0) {
-          newSeries.put(columnMapping, TimeSeries.TYPE_SYNTHETIC);          
+          newSeries.put(columnMapping, TimeSeries.TYPE_SYNTHETIC);      
+          isSynthetic = true;
         } else {
           newSeries.put(columnMapping, TimeSeries.TYPE_DISCRETE);
         }
       }
       else if (columnMapping.equals(TimeSeries.PERIOD)) {
-        newSeries.put(columnMapping, Integer.valueOf(datum) / DateMap.SECOND_MS);
+        newSeries.put(columnMapping, Long.valueOf(datum) / DateMap.SECOND_MS);
       }
       else if (columnMapping.equals(TimeSeries.TIMESERIES_NAME)
           || columnMapping.equals(TimeSeries.GROUP_NAME)
           || columnMapping.equals(TimeSeries.COLOR)
           || columnMapping.equals(TimeSeries.FORMULA)
           || columnMapping.equals(TimeSeries.INTERPOLATION)) {
-        if (column.equals(TimeSeries.TIMESERIES_NAME)) {
-          catname[0] = datum;
+        if (columnMapping.equals(TimeSeries.TIMESERIES_NAME)) {
+          catname[0] = new String(datum);
         }
         newSeries.put(columnMapping, datum);
       }
@@ -307,8 +372,9 @@ public class ImportTask {
         newEntry.put(columnMapping, Integer.valueOf(datum));
       }      
       else if (columnMapping.equals(Datapoint.TS_START)) {
-        newEntry.put(columnMapping, Integer.valueOf(datum));
-        newEntry.put(Datapoint.TS_END, Integer.valueOf(datum));
+        int time = (int) (Long.valueOf(datum) / DateMap.SECOND_MS);
+        newEntry.put(columnMapping, time);
+        newEntry.put(Datapoint.TS_END, time);
       }      
     }
     
@@ -330,7 +396,7 @@ public class ImportTask {
       if (c != null)
         c.close();
 
-      if (catId <= 0) {
+      if (catId == null || catId <= 0) {
         Uri uri = mResolver.insert(tsByName, newSeries);
         if (uri != null) {
           String rowIdStr = uri.getPathSegments().get(TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_ID);
@@ -341,13 +407,28 @@ public class ImportTask {
     }
     
     if (catId > 0) {
-      newEntry.put(Datapoint.TIMESERIES_ID, catId);
-      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
-          .buildUpon().appendPath("datapoints").build();
-      Uri uri = mResolver.insert(datapoint, newEntry);
+      if (isSynthetic == false) {
+        newEntry.put(Datapoint.TIMESERIES_ID, catId);
+        mNewEntries.add(newEntry);
+      }
+      mNumRecordsParsed++;
+//      datapoint = ContentUris.withAppendedId(TimeSeries.CONTENT_URI, catId)
+//          .buildUpon().appendPath("datapoints").build();
+//      Uri uri = mResolver.insert(datapoint, newEntry);
+//      mNumRecordsDone++;
+//      updateStatus();
     }
 
     return;
   }
-
+  
+  private void updateStatus() {
+    Message msg = mHandler.obtainMessage();
+    Bundle b = new Bundle();
+    b.putInt("done", mNumRecordsDone);
+    b.putInt("total", mNumRecords);
+    b.putInt("parsed", mNumRecordsParsed);
+    msg.setData(b);
+    mHandler.sendMessage(msg);
+  }
 }

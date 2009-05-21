@@ -46,9 +46,16 @@ import java.util.concurrent.locks.ReentrantLock;
 // TODO:  move RPC processing to thread / thread pool
 // TODO:  have zerofill insert a datapoint even if none present
 public class EventRecorder extends Service {
+  public static final int ERSERVICE_SUCCESS       =  0;
+  public static final int ERSERVICE_OK            =  ERSERVICE_SUCCESS;
+  public static final int ERSERVICE_BUSY          = -1;
+  public static final int ERSERVICE_ERR_NOT_FOUND = -2;
+  public static final int ERSERVICE_ERR_PARAM     = -3;
+  public static final int ERSERVICE_ERR_OOM       = -4;
+  public static final int ERSERVICE_ERR_SQL       = -5;
+  
   private static final String TAG = "EventRecorder";
 
-  private Handler mHandler;
   private BroadcastReceiver mIntentReceiver;
   private Calendar mCal;
   private int mLastHr;
@@ -57,6 +64,15 @@ public class EventRecorder extends Service {
 
   private ArrayList<TimeSeriesInterpolator> mInterpolators;
 
+  private Thread mZerofillThread;
+  private Runnable mZerofiller;
+  private Handler mZerofillHandler;
+  private Handler mTimeChangeHandler;
+  
+  private boolean mFilling = false;
+  private int mFillsToGo = 0;
+  private int mFillsDone = 0;
+
   @Override
   public void onCreate() {
     super.onCreate();
@@ -64,7 +80,14 @@ public class EventRecorder extends Service {
     mCal = Calendar.getInstance();
     mLock = new ReentrantLock();
 
-    mHandler = new Handler();
+    mZerofiller = new Runnable() {
+      public void run() {
+        zerofill();
+      }
+    };
+    mZerofillHandler = new Handler();
+
+    mTimeChangeHandler = new Handler();
     mIntentReceiver = new BroadcastReceiver() {
       @Override
       public void onReceive(Context context, Intent intent) {
@@ -84,7 +107,7 @@ public class EventRecorder extends Service {
 
           if (hourChanged == true) {
             mLastHr = mCal.get(Calendar.HOUR_OF_DAY);
-            zerofill();
+            mZerofillThread.start();
           }
         }
       }
@@ -97,15 +120,18 @@ public class EventRecorder extends Service {
     filter.addAction(Intent.ACTION_TIME_TICK);
     filter.addAction(Intent.ACTION_TIME_CHANGED);
     filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
-    this.registerReceiver(mIntentReceiver, filter, null, mHandler);
+    this.registerReceiver(mIntentReceiver, filter, null, mTimeChangeHandler);
 
     mCal.setTimeInMillis(System.currentTimeMillis() / DateMap.SECOND_MS);    
     mDateMap = new DateMapCache();
 
     mLastHr = mCal.get(Calendar.HOUR_OF_DAY);
 
-    mDateMap.populateCache(this);
-    zerofill();
+    mDateMap.populateCache(this);    
+    mZerofillThread = new Thread(mZerofiller);
+    mZerofillThread.start();
+    
+    return;
   }
 
   @Override
@@ -123,28 +149,43 @@ public class EventRecorder extends Service {
   }
 
   private final IEventRecorderService.Stub mBinder = new IEventRecorderService.Stub() {
+    public int getServiceStatus() {
+      if (mFilling == true)
+        return ERSERVICE_BUSY;
+      else
+        return ERSERVICE_OK;
+    }
+
+    public int getServiceFillsTotal() {
+      return mFillsToGo;
+    }
+    
+    public int getServiceFillsPerformed() {
+      return mFillsDone;
+    }
+    
     // Returns the _id of the timeseries, 0 for not found, < 0 for error.
     // See TimeSeriesProvider
     public long getTimeSeriesId(String name) {
       if (name == null)
-        return -1;
+        return ERSERVICE_ERR_PARAM;
       
       String[] projection = new String[] { TimeSeries._ID };
       if (projection == null)
-        return -1;
+        return ERSERVICE_ERR_OOM;
 
       Uri timeseries = TimeSeries.CONTENT_URI;
       if (timeseries == null)
-        return -1;
+        return ERSERVICE_ERR_OOM;
       
       Cursor c = getContentResolver().query(timeseries, 
           projection, TimeSeries.TIMESERIES_NAME + " = ? ",
           new String[] { name }, null);
       if (c == null)
-        return -1;
+        return ERSERVICE_ERR_SQL;
       if (c.getCount() < 1) {
         c.close();
-        return 0;
+        return ERSERVICE_ERR_NOT_FOUND;
       }
 
       c.moveToFirst();
@@ -159,11 +200,11 @@ public class EventRecorder extends Service {
     // See TimeSeriesProvider
     public long recordEventStart(long timeSeriesId) {
       if (timeSeriesId < 1)
-        return 0;
+        return ERSERVICE_ERR_PARAM;
 
       ContentValues values = new ContentValues();
       if (values == null)
-        return -1;
+        return ERSERVICE_ERR_OOM;
 
       LockUtil.waitForLock(mLock);
       long id = currentlyRecordingId(timeSeriesId);
@@ -173,7 +214,7 @@ public class EventRecorder extends Service {
       }
       if (id > 1) { // datapoint already recording
         LockUtil.unlock(mLock);
-        return -2;
+        return ERSERVICE_ERR_PARAM;
       }
 
       long now = System.currentTimeMillis() / DateMap.SECOND_MS;
@@ -189,7 +230,7 @@ public class EventRecorder extends Service {
       uri = getContentResolver().insert(uri, values);
       if (uri == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_OOM;
       }
 
       int datapointId;
@@ -198,7 +239,7 @@ public class EventRecorder extends Service {
             TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_DATAPOINT_ID));
       } catch (Exception e) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
       
       values.clear();
@@ -207,13 +248,13 @@ public class EventRecorder extends Service {
           TimeSeries.CONTENT_URI, timeSeriesId);
       if (timeseries == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
 
       int count = getContentResolver().update(timeseries, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
       
       LockUtil.unlock(mLock);
@@ -226,7 +267,7 @@ public class EventRecorder extends Service {
     // See TimeSeriesProvider
     public long recordEventStop(long timeSeriesId) {
       if (timeSeriesId < 1)
-        return 0;
+        return ERSERVICE_ERR_PARAM;
 
       LockUtil.waitForLock(mLock);
       long datapointId = currentlyRecordingId(timeSeriesId);
@@ -236,13 +277,13 @@ public class EventRecorder extends Service {
       }
       if (datapointId == 0) { // no datapoint currently recording
         LockUtil.unlock(mLock);
-        return -2;
+        return ERSERVICE_ERR_PARAM;
       }
 
       ContentValues values = new ContentValues();
       if (values == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_OOM;
       }
 
       Uri uri = ContentUris.withAppendedId(
@@ -250,15 +291,15 @@ public class EventRecorder extends Service {
           .appendPath("datapoints").appendPath("" + datapointId).build();
       if (uri == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_OOM;
       }
-
+      
       Cursor c = getContentResolver().query(uri, null, null, null, null);
       if (c == null)
         return -1;
       if (c.getCount() < 1) {
         c.close();
-        return -1;
+        return ERSERVICE_ERR_NOT_FOUND;
       }
 
       c.moveToFirst();
@@ -272,7 +313,7 @@ public class EventRecorder extends Service {
       int count = getContentResolver().update(uri, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
 
       values.clear();
@@ -281,13 +322,13 @@ public class EventRecorder extends Service {
           TimeSeries.CONTENT_URI, timeSeriesId);
       if (timeseries == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_OOM;
       }
 
       count = getContentResolver().update(timeseries, values, null, null);
       if (count != 1) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
       
       LockUtil.unlock(mLock);
@@ -306,13 +347,13 @@ public class EventRecorder extends Service {
       }
       if (datapointId != 0) { // datapoint currently recording
         LockUtil.unlock(mLock);
-        return -2;
+        return ERSERVICE_ERR_PARAM;
       }
-        
+       
       ContentValues values = new ContentValues();
       if (values == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_OOM;
       }
 
       values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
@@ -327,7 +368,7 @@ public class EventRecorder extends Service {
       uri = getContentResolver().insert(uri, values);
       if (uri == null) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
 
       try {
@@ -335,7 +376,7 @@ public class EventRecorder extends Service {
             TimeSeriesProvider.PATH_SEGMENT_TIMESERIES_DATAPOINT_ID));
       } catch (Exception e) {
         LockUtil.unlock(mLock);
-        return -1;
+        return ERSERVICE_ERR_SQL;
       }
 
       LockUtil.unlock(mLock);
@@ -354,20 +395,20 @@ public class EventRecorder extends Service {
   private long currentlyRecordingId(long timeSeriesId) {
     String[] projection = new String[] { TimeSeries.RECORDING_DATAPOINT_ID };
     if (projection == null)
-      return -1;
+      return ERSERVICE_ERR_OOM;
 
     // don't add an event if there's one currently record
     Uri timeseries = ContentUris.withAppendedId(
         TimeSeries.CONTENT_URI, timeSeriesId);
     if (timeseries == null)
-      return -1;
+      return ERSERVICE_ERR_OOM;
 
     Cursor c = getContentResolver().query(timeseries, projection, null, null, null);
     if (c == null)
-      return -1;
+      return ERSERVICE_ERR_SQL;
     if (c.getCount() < 1) {
       c.close();
-      return -1;
+      return ERSERVICE_ERR_NOT_FOUND;
     }
 
     c.moveToFirst();
@@ -378,6 +419,8 @@ public class EventRecorder extends Service {
   }
 
   private void zerofill() {
+    mFilling = true;
+
     Cursor tsCur;
     Cursor dpCur;
     String[] timeSeriesProjection = new String[] {
@@ -386,17 +429,23 @@ public class EventRecorder extends Service {
         TimeSeries.PERIOD, };
     String[] datapointProjection = new String[] { Datapoint.TS_END };
 
-    if (timeSeriesProjection == null || datapointProjection == null)
+    if (timeSeriesProjection == null || datapointProjection == null) {
+      mFilling = false;
       return;
+    }
 
     ContentValues values = new ContentValues();
-    if (values == null)
+    if (values == null) {
+      mFilling = false;
       return;
+    }
 
     Uri timeseries = TimeSeries.CONTENT_URI;
-    if (timeseries == null)
+    if (timeseries == null) {
+      mFilling = false;
       return;
-
+    }
+ 
     LockUtil.waitForLock(mLock);
     tsCur = getContentResolver().query(timeseries, timeSeriesProjection, 
         TimeSeries.ZEROFILL + " != 0 and " +
@@ -404,17 +453,21 @@ public class EventRecorder extends Service {
         TimeSeries.TYPE + " != \"" + TimeSeries.TYPE_SYNTHETIC + "\" and " +
         TimeSeries.PERIOD + " != 0 ", null, null);
     if (tsCur == null) {
+      mFilling = false;
       LockUtil.unlock(mLock);
       return;
     }
     if (tsCur.getCount() < 1) {
       tsCur.close();
+      mFilling = false;
       LockUtil.unlock(mLock);
       return;
     }
 
     int now = (int) (System.currentTimeMillis() / DateMap.SECOND_MS);
-    
+    mFillsToGo = 0;
+    mFillsDone = 0;
+
     int count = tsCur.getCount();
     tsCur.moveToFirst();
     for (int i = 0; i < count; i++) {
@@ -445,6 +498,8 @@ public class EventRecorder extends Service {
 
       dpCur.moveToFirst();
       if (dpCur.getCount() < 1) {
+        mFillsToGo++;
+
         values.clear();
         values.put(Datapoint.TIMESERIES_ID, timeSeriesId);
         values.put(Datapoint.TS_START, periodStart);
@@ -456,9 +511,11 @@ public class EventRecorder extends Service {
         values.put(Datapoint.ENTRIES, 1);
         
         getContentResolver().insert(uri, values);
+        mFillsDone++;
       } else {
         int tsEnd = Datapoint.getTsEnd(dpCur);        
         int secs = mDateMap.secondsOfPeriodStart(tsEnd + period, period);
+        mFillsToGo += ((now - secs) / period);
 
         while (true) {
           if (secs + period >= now)
@@ -475,6 +532,8 @@ public class EventRecorder extends Service {
           values.put(Datapoint.ENTRIES, 1);
 
           getContentResolver().insert(uri, values);
+          mFillsDone++;
+
           secs = mDateMap.secondsOfPeriodStart(secs + period, period);
         }
       }
@@ -482,8 +541,12 @@ public class EventRecorder extends Service {
       tsCur.moveToNext();
     }
     
-    tsCur.close();
+    tsCur.close();    
     LockUtil.unlock(mLock);
+    
+    mFillsToGo = 0;
+    mFillsDone = 0;
+    mFilling = false;
 
     return;
   }

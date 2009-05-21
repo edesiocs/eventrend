@@ -17,6 +17,17 @@
 package net.redgeek.android.eventrecorder;
 
 interface IEventRecorderService {
+  /** Returns the status of the service, either ERSERVICE_OK or ERSERVICE_BUSY
+   */
+  int getServiceStatus();
+
+  /** Returns the total number of zerofills being processed
+   */
+  int getServiceFillsTotal();
+
+  /** Returns number of zerofills completed
+   */
+  int getServiceFillsPerformed();
     
   /** Returns the _id of the timeseries, 0 for not found, < 0 for error.
    *  See TimeSeriesProvider

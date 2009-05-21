@@ -37,6 +37,8 @@ import net.redgeek.android.eventrecorder.TimeSeriesData.TimeSeries;
 import net.redgeek.android.eventrecorder.synthetic.Formula;
 import net.redgeek.android.eventrecorder.synthetic.SeriesData;
 import net.redgeek.android.eventrecorder.synthetic.SeriesData.Datum;
+import net.redgeek.android.eventrend.category.CategoryRow;
+import net.redgeek.android.eventrend.importing.CSV;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -614,7 +616,7 @@ public class TimeSeriesProvider extends ContentProvider {
     return;
   }
   
-  private void updateFormula(SQLiteDatabase db, long timeSeriesId, String formula) throws Exception{
+  private void updateFormula(SQLiteDatabase db, long timeSeriesId, String formula) throws Exception {
     db.delete(FormulaCache.TABLE_NAME, FormulaCache.RESULT_SERIES + "="  + timeSeriesId, null);
 
     HashMap<String, Long> nameMap = new HashMap<String, Long>();
@@ -1075,6 +1077,13 @@ public class TimeSeriesProvider extends ContentProvider {
         LockUtil.waitForLock(mLock);
         try {
           id = db.insert(TimeSeries.TABLE_NAME, null, values);
+          
+          String formula = values.getAsString(TimeSeries.FORMULA);
+          if (TextUtils.isEmpty(formula) != true) {
+            updateFormula(db, id, formula);
+            updateFormulaData(db, id, 0, null);
+          }
+
           if (id == -1) {
             outputUri = null;
           } else {
@@ -1153,6 +1162,54 @@ public class TimeSeriesProvider extends ContentProvider {
     return outputUri;
   }
   
+//  @Override
+//  public int bulkInsert(Uri uri, ContentValues[] values) {
+//    Uri outputUri = null;
+//    long id;
+//    int nInserts = 0;
+//    int period, oldPeriodStart, newPeriodStart, oldPeriodEnd, newPeriodEnd;
+//    SQLiteDatabase db = mDbHelper.getWritableDatabase();
+//    
+//    switch (sURIMatcher.match(uri)) {
+//      case TIMESERIES_DATAPOINTS:
+//        LockUtil.waitForLock(mLock);
+//
+//        try {
+//          nInserts = values.length;
+//          for (int i = 0; i < nInserts; i++) {
+//            id = db.insert(Datapoint.TABLE_NAME, null, values[i]);
+//          }
+//        
+//          Uri allSeries = TimeSeries.CONTENT_URI;
+//          Cursor c = query(allSeries, null, null, null, null);
+//          if (c.moveToFirst()) {
+//            int count = c.getCount();
+//            for (int i = 0; i < count; i++) {
+//              long tsId = TimeSeries.getId(c);
+//              updateStats(db, tsId, 0, Integer.MAX_VALUE);
+//              updateFormulaData(db, tsId, 0, null);
+//              c.moveToNext();
+//            }
+//          }
+//          if (c != null)
+//            c.close();
+//        } catch (Exception e) {
+//          Log.v(TAG, e.getMessage());
+//        } finally {
+//          LockUtil.unlock(mLock);
+//        }
+//
+//        break;
+//      default:
+//        throw new IllegalArgumentException("insert: Unknown URI " + uri);
+//    }      
+//    
+//    if (outputUri != null)
+//      getContext().getContentResolver().notifyChange(outputUri, null);
+//    
+//    return nInserts;
+//  }
+
   // TODO: move constant strings to defined values
   private HashMap<String, String> fetchProjectionMap(String aggregation) {
     if (aggregation == null) {

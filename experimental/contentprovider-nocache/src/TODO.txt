@@ -10,19 +10,23 @@ remove all DateUtil.* fcns, or move to DateMapCache
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
+* trend calculation is still not correct (try importing an old file)
+- speed up insertion
 Input Activity:
+- resume "updating zerofill" dialog if home is pressed and app re-launched
 - values/trend display should be not be based on the aggregation
 - 24h format
 - cache of category views?
+- make "connecting to recorder service" actually re-try
 CategoryEdit/Wizard:
 - test changing all fields, changing orientation
 - make numeric entry fields wider
 Import:
-* implement v2 importing
-  * including converting ranges
-  * batchInserts
-* implement v1 importing
-- implement spreadsheet importing/exporting
+- speed up
+- refresh datapoint listing after import
+- implement v2 importing
+  * batchInserts/full import/exports
+* v1 importing: converting ranges
 Grapher:
 - establish "gathering data" dialog
 - fix markers when zooming (esp. zoom out far)
@@ -36,9 +40,11 @@ Grapher:
 EntryLister:
 - change to fast-scroll list
 - recalc category stats option
-* export current DB before importing new one
+- export current DB before importing new one
 Exporter:
+- notice that it may take a while
 - speed up
+- progress dialog: make updates more frequent
 EntryEditor:
 - timestamp label is incorrectly red (DateMapCache.getEpochSeconds is diff from
   Calendar time)

@@ -17,18 +17,21 @@
 package net.redgeek.android.eventrend.datum;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 import net.redgeek.android.eventrecorder.DateMapCache;
@@ -57,7 +60,7 @@ public class EntryListActivity extends EvenTrendActivity {
   private static final int DIALOG_EXPORT_SUCCESS = 0;
   private static final int DIALOG_ERR_DIRECTORY = 1;
   private static final int DIALOG_ERR_FILEWRITE = 2;
-  private static final int DIALOG_PROGRESS = 3;
+  private static final int DIALOG_EXPORT_PROGRESS = 3;
 
   // UI elements
   private DateMapCache mDateMap;
@@ -66,8 +69,8 @@ public class EntryListActivity extends EvenTrendActivity {
   private DynamicSpinner mCategoryMenu;
   private String mFilename;
   private String mErrMsg;
-  ProgressIndicator.DialogSoft mProgress;
-  private HashMap<Long,String> mCategoryType;
+  private ProgressIndicator.DialogSoft mExportProgress;
+  private ProgressDialog mProgressBarDialog;
 
   // Listeners
   private OnItemSelectedListener mCategoryMenuListener;
@@ -75,9 +78,11 @@ public class EntryListActivity extends EvenTrendActivity {
   // Private Data
   private long mCatId;  
   private String mImportDir;
+  private HashMap<Long,String> mCategoryType;
 
   // Tasks
   private ExportTask mExporter;
+  private Handler mProgressHandler;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -95,7 +100,21 @@ public class EntryListActivity extends EvenTrendActivity {
   }
 
   private void setupTasksAndData() {
-    mExporter = new ExportTask(getContentResolver());
+    mProgressHandler = new Handler() {
+      @Override
+      public void handleMessage(Message msg) {
+        int done = msg.getData().getInt("done");
+        int total = msg.getData().getInt("total");
+        mProgressBarDialog.setMax(total);
+        mProgressBarDialog.setProgress(done);
+        mProgressBarDialog.setSecondaryProgress(done);
+        if (done >= total){
+          dismissDialog(DIALOG_EXPORT_PROGRESS);
+        }
+      }
+    };
+
+    mExporter = new ExportTask(getContentResolver(), mProgressHandler);
     mDateMap = new DateMapCache();
     mDateMap.populateCache(mCtx);
     mCategoryType = new HashMap<Long,String>();
@@ -111,7 +130,7 @@ public class EntryListActivity extends EvenTrendActivity {
     mCategoryMenu.setOnItemSelectedListener(mCategoryMenuListener);
     setupMenu();
 
-    mProgress = new ProgressIndicator.DialogSoft(mCtx, DIALOG_PROGRESS);
+    mExportProgress = new ProgressIndicator.DialogSoft(mCtx, DIALOG_EXPORT_PROGRESS);
   }
 
   private void setupListeners() {
@@ -242,7 +261,7 @@ public class EntryListActivity extends EvenTrendActivity {
 
     mExporter.setSubject(appName + " backup " + prettyDate);
     mExporter.setToFile(false);
-    GUITaskQueue.getInstance().addTask(mProgress, this);
+    GUITaskQueue.getInstance().addTask(mExportProgress, this);
   }
 
   private void exportToFile() {
@@ -253,7 +272,7 @@ public class EntryListActivity extends EvenTrendActivity {
     mExporter.setDirectory(mImportDir);
     mExporter.setFilename(mImportDir + "/" + mFilename);
     mExporter.setToFile(true);
-    GUITaskQueue.getInstance().addTask(mProgress, this);
+    GUITaskQueue.getInstance().addTask(mExportProgress, this);
   }
 
   @Override
@@ -273,6 +292,7 @@ public class EntryListActivity extends EvenTrendActivity {
 
   @Override
   protected Dialog onCreateDialog(int id) {
+    String title, msg;
     switch (id) {
       case DIALOG_EXPORT_SUCCESS:
         return mDialogUtil.newOkDialog("Export Success",
@@ -283,8 +303,11 @@ public class EntryListActivity extends EvenTrendActivity {
       case DIALOG_ERR_FILEWRITE:
         return mDialogUtil.newOkDialog("Export Failure",
             "Error writing to " + mFilename + ": " + mErrMsg);
-      case DIALOG_PROGRESS:
-        return mDialogUtil.newProgressDialog("Exporting database ...");
+      case DIALOG_EXPORT_PROGRESS:
+        title = "Export Progress";
+        msg = "Exporting database records ...";
+        mProgressBarDialog = mDialogUtil.newProgressBarDialog(title, msg);
+        return mProgressBarDialog;
       default:
     }
     return null;

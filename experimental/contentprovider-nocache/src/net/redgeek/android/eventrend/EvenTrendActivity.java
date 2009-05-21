@@ -23,7 +23,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.widget.Toast;
 
 import net.redgeek.android.eventrecorder.DateMapCache;
@@ -138,13 +140,36 @@ public class EvenTrendActivity extends ListActivity implements GUITask {
     }
   }
 
-  class EventRecorderConnection implements ServiceConnection {
+  class EventRecorderConnection implements ServiceConnection { 
+    public static final String MSG_CONNECTED = "connected";
+    private Handler mConnectionCallback = null;
+
+    @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
       mRecorderService = IEventRecorderService.Stub.asInterface(service);
+      if (mConnectionCallback != null) {
+        Message msg = mConnectionCallback.obtainMessage();
+        Bundle b = new Bundle();
+        b.putBoolean(MSG_CONNECTED, true);
+        msg.setData(b);
+        mConnectionCallback.sendMessage(msg);
+      }
     }
 
-    public void onServiceDisconnected(ComponentName className) {
-      mRecorderService = null;
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+      mRecorderService = null;    
+      if (mConnectionCallback != null) {
+        Message msg = mConnectionCallback.obtainMessage();
+        Bundle b = new Bundle();
+        b.putBoolean(MSG_CONNECTED, false);
+        msg.setData(b);
+        mConnectionCallback.sendMessage(msg);
+      }
     }
-  };  
+    
+    public void setConnectionCallback(Handler callback) {
+      mConnectionCallback = callback;
+    }
+  }
 }
