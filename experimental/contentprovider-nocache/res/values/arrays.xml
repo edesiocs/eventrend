@@ -9,4 +9,14 @@
 <item>previous value</item>
 <item>previous timestamp</item>
 </string-array> 
+<string-array name="import_conversion_types">
+<item>No conversion</item>
+<item>Range: Old Timestamp is Start</item>
+<item>Range: Old Timestamp is End</item>
+</string-array> 
+<string-array name="import_conversion_units">
+<item>Minutes</item>
+<item>Hours</item>
+<item>Days</item>
+</string-array> 
 </resources>
