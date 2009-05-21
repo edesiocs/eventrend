@@ -10,7 +10,6 @@ remove all DateUtil.* fcns, or move to DateMapCache
 
 Provider:
 - spawn zero-filler if zero-fill gets set for a category
-* trend calculation is still not correct (try importing an old file)
 - speed up insertion
 Input Activity:
 - resume "updating zerofill" dialog if home is pressed and app re-launched
