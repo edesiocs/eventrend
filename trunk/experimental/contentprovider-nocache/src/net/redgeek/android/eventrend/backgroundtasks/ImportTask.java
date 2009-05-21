@@ -427,6 +427,10 @@ public class ImportTask {
       }      
     }
     
+    // reset the number of entries for V1 imports -- the value has already been
+    // divided out.
+    newEntry.put(Datapoint.ENTRIES, 1);
+    
     newSeries.put(TimeSeries.RECORDING_DATAPOINT_ID, 0);
     newSeries.put(TimeSeries.UNITS, "");
     newSeries.put(TimeSeries.SENSITIVITY, 0.5);
