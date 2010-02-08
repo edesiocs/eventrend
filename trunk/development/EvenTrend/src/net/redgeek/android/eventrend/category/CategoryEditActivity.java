@@ -479,8 +479,12 @@ public class CategoryEditActivity extends EvenTrendActivity {
 
       mRow.setGroupName(mGroupCombo.getText().toString());
       mRow.setCategoryName(mCategoryText.getText().toString());
-      mRow.setDefaultValue(Float
-          .valueOf(mDefaultValueText.getText().toString()).floatValue());
+      String val = mDefaultValueText.getText().toString();
+      if (val.equals("")) {
+        mRow.setDefaultValue(0);
+      } else {
+        mRow.setDefaultValue(Float.valueOf(val).floatValue());
+      }
       mRow.setIncrement(Float.valueOf(mIncrementText.getText().toString())
           .floatValue());
       mRow.setGoal(Float.valueOf(mGoalText.getText().toString()).floatValue());

@@ -39,10 +39,13 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.app.AlertDialog.Builder;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -93,11 +96,13 @@ public class InputActivity extends EvenTrendActivity {
   private static final int CONTEXT_EDIT = Menu.FIRST + 5;
   private static final int CONTEXT_MOVE_UP = Menu.FIRST + 6;
   private static final int CONTEXT_MOVE_DOWN = Menu.FIRST + 7;
+  private static final int CONTEXT_DELETE = Menu.FIRST + 8;
 
   // Dialog IDs
   private static final int TIME_DIALOG_ID = 0;
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
+  private static final int DELETE_DIALOG_ID = 3;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -129,6 +134,10 @@ public class InputActivity extends EvenTrendActivity {
   private int mOldHour = 0;
   private DateUtil.DateItem mTimestamp;
   private Calendar mCal;
+  
+  // for delete
+  private long mDeleteId = 0;
+  private String mDeleteName = "";
 
   // From preferences
   private String mDefaultGroup;
@@ -264,7 +273,7 @@ public class InputActivity extends EvenTrendActivity {
 
     mUndo = (Button) findViewById(R.id.entry_undo);
     mUndo.setClickable(false);
-    mUndo.setTextColor(Color.LTGRAY);
+    mUndo.setTextColor(Color.GRAY);
     mUndo.setOnClickListener(mUndoListener);
 
     mFlipper = (ViewFlipper) findViewById(R.id.view_flipper);
@@ -442,6 +451,7 @@ public class InputActivity extends EvenTrendActivity {
     menu.add(0, CONTEXT_EDIT, 0, R.string.context_edit_category);
     menu.add(0, CONTEXT_MOVE_UP, 0, R.string.context_move_up);
     menu.add(0, CONTEXT_MOVE_DOWN, 0, R.string.context_move_down);
+    menu.add(0, CONTEXT_DELETE, 0, R.string.context_delete_category);
   }
 
   @Override
@@ -484,9 +494,10 @@ public class InputActivity extends EvenTrendActivity {
     int child = mFlipper.getDisplayedChild();
     CategoryListAdapter cla = mCLAs.get(child);
 
+    long catId;
     switch (item.getItemId()) {
       case CONTEXT_EDIT:
-        long catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
+        catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
         editCategory(catId);
         break;
       case CONTEXT_MOVE_UP:
@@ -496,6 +507,10 @@ public class InputActivity extends EvenTrendActivity {
       case CONTEXT_MOVE_DOWN:
         if (position + 1 < cla.getCount())
           swapCategoryPositions(cla, position, position + 1);
+        break;
+      case CONTEXT_DELETE:
+        catId = ((CategoryRow) cla.getItem(position)).getDbRow().getId();
+        deleteCategory(catId);
         break;
       default:
         return super.onContextItemSelected(item);
@@ -518,8 +533,37 @@ public class InputActivity extends EvenTrendActivity {
       case HELP_DIALOG_ID:
         String str = getResources().getString(R.string.overview);
         return getDialogUtil().newOkDialog("Help", str);
+      case DELETE_DIALOG_ID:
+        String title = "Delete the category \"" + mDeleteName + "\"?";
+        String msg = "All associated entries will also be deleted!";
+        return deleteDialog(title, msg, mDeleteId);
     }
     return null;
+  }
+
+  private Dialog deleteDialog(String title, String msg, final long catId) {
+    Builder b = new AlertDialog.Builder(getCtx());
+    b.setTitle(title);
+    b.setMessage(msg);
+    b.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+        getDbh().deleteCategory(catId);
+        getDbh().deleteCategoryEntries(catId);
+        mDeleteId = 0;
+        mDeleteName = "";
+        mTSC.clearCache();
+        mTSC.updateTimeSeriesMetaLocking(false);
+        fillCategoryData(mFlipper.getDisplayedChild());
+        setCurrentViews(false);
+      }
+    });
+    b.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+      public void onClick(DialogInterface dialog, int whichButton) {
+        setResult(RESULT_CANCELED);
+      }
+    });
+    Dialog d = b.create();
+    return d;
   }
 
   @Override
@@ -628,6 +672,12 @@ public class InputActivity extends EvenTrendActivity {
     Intent i = new Intent(this, CategoryEditActivity.class);
     i.putExtra(CategoryDbTable.KEY_ROWID, catId);
     startActivityForResult(i, CATEGORY_EDIT);
+  }
+
+  private void deleteCategory(long catId) {
+    mDeleteId = catId;
+    mDeleteName = mTSC.getSeriesByIdLocking(catId).getDbRow().getCategoryName();
+    showDialog(DELETE_DIALOG_ID);
   }
 
   private void editEntries() {
@@ -747,7 +797,7 @@ public class InputActivity extends EvenTrendActivity {
     slideOutRightIn(mLastAddRowView, getCtx());
 
     mUndo.setClickable(false);
-    mUndo.setTextColor(Color.LTGRAY);
+    mUndo.setTextColor(Color.GRAY);
   }
 
   private void setEnabledSeries() {
@@ -801,6 +851,7 @@ public class InputActivity extends EvenTrendActivity {
 
     swapUpDown(top, bottom, getCtx());    
     fillCategoryData(mFlipper.getDisplayedChild());
+    setCurrentViews(false);
   }
 
   public static void slideDown(ViewGroup group, Context ctx) {

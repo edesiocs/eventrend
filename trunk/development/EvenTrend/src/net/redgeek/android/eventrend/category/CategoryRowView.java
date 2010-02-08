@@ -71,7 +71,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private int mColorInt;
   private long mTimestamp;
   private float mAddValue;
-
+  private boolean mKeepCounting = false;
+  
   // Prefs
   private int mDecimals;
   private int mHistory;
@@ -206,27 +207,30 @@ public class CategoryRowView extends LinearLayout implements GUITask {
             .floatValue();
         value += mDbRow.getIncrement();
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
+        mDbRow.setDefaultValue(value);
         mDefaultValue.setText(Float.toString(value));
         mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
-
+    
     mMinusButtonListener = new OnClickListener() {
       public void onClick(View v) {
         float value = Float.valueOf(mDefaultValue.getText().toString())
             .floatValue();
         value -= mDbRow.getIncrement();
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
+        mDbRow.setDefaultValue(value);
         mDefaultValue.setText(Float.toString(value));
         mDbh.updateCategoryLastValue(mDbRow.getId(), value);
       }
     };
-
+    
     mAddListener = new OnClickListener() {
       public void onClick(View v) {
         addEntry();
         float value = mDbRow.getDefaultValue();
         mDbRow.setLastValue(value);
+        mDbRow.setDefaultValue(value);
         mDbh.updateCategoryLastValue(mDbRow.getId(), value);
         mDefaultValue.setText(Float.valueOf(value).toString());
       }

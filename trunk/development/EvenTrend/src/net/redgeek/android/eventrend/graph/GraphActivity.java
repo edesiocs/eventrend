@@ -61,10 +61,12 @@ public class GraphActivity extends EvenTrendActivity {
   private static final int MENU_GRAPH_SNAP_TO_PERIOD_ID = Menu.FIRST + 2;
   private static final int MENU_CALENDAR_VIEW_ID = Menu.FIRST + 3;
   private static final int MENU_GRAPH_PREFS_ID = Menu.FIRST + 4;
-
+  private static final int MENU_GRAPH_HELP_ID = Menu.FIRST + 5;
+  
   // Dialogs
   private static final int DIALOG_GRAPH_FILTER = 0;
   private static final int DIALOG_GRAPH_CORRELATE = 1;
+  private static final int DIALOG_GRAPH_HELP = 2;
 
   // UI elements
   private ToggleButton mShowTrendsToggle;
@@ -309,6 +311,8 @@ public class GraphActivity extends EvenTrendActivity {
         android.R.drawable.ic_menu_today);
     menu.add(0, MENU_GRAPH_PREFS_ID, 0, R.string.menu_app_prefs).setIcon(
         android.R.drawable.ic_menu_preferences);
+    menu.add(0, MENU_GRAPH_HELP_ID, 0, R.string.menu_app_help).setIcon(
+        android.R.drawable.ic_menu_help);
     return result;
   }
 
@@ -334,6 +338,9 @@ public class GraphActivity extends EvenTrendActivity {
         return true;
       case MENU_GRAPH_PREFS_ID:
         editPrefs();
+        return true;
+      case MENU_GRAPH_HELP_ID:
+        showDialog(DIALOG_GRAPH_HELP);
         return true;
     }
     return super.onOptionsItemSelected(item);
@@ -378,6 +385,9 @@ public class GraphActivity extends EvenTrendActivity {
         Dialog d;
         d = correlateDialog("Correlations");
         return d;
+      case DIALOG_GRAPH_HELP:
+        String str = getResources().getString(R.string.graph_help);
+        return getDialogUtil().newOkDialog("Help", str);
       default:
     }
     return null;
