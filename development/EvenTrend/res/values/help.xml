@@ -11,8 +11,8 @@ or right.</string>
 required to create a name, it make it much easier to tell different categories apart.</string>
 <string name="cat_default_value_title">Default Value</string>
 <string name="cat_default_value_desc">(Optional) Once a category is added, it will appear in a list on 
-the main screen. This is the value that will filled in by default, so if there's a particular 
-value that you tend to enter more frequently than others, feel free to set it here.</string>
+the main screen. This is the value that will filled in by default.  Once the category has had data entered,
+the value on the main screen will default to the most recently used value.</string>
 <string name="cat_synthetic_title">Calculated</string>
 <string name="cat_synthetic_desc">(Optional, Advanced) Calculated series are based on the inputs of
 one or more other series, such as adding two series together or referencing the previous
@@ -175,6 +175,22 @@ one.  The formula is defined as trend(n) = trend(n-1) + (smoothing) * (value(n) 
 a value of 1.0 indicates that a strict average of the last "History" points will be taken.  Anything
 less than 1.0 indicates that recent points have more influence over the trend than previous points,
 and the smaller the value, the more important recent data is.  Default is 0.1.
+\n\n
+</string>
+<string name="graph_help">
+Press and slide left or right to change the displayed period of time.  Long-press to enable zoom 
+buttons; these allow for viewing greater or lesser spans of time.  The menu at the top left controls
+how data is aggregated, for example, if you want to group all the data within a week into a single
+dot, choose "Week".  "Automatic" attempts to increase aggregation as you zoom out, and decrease it
+as you zoom in. 
+\n\n
+The numbers to the top left of the graph represent the maximum value of each category (within the
+displayed time range), so the highest peak of each category should be near the top of the graph.
+Similarly, the numbers at the bottom left represent the smalled number of each category, so the lowest
+trough of each category should be near the bottom of the graph.  Note that if the "Goals" button is
+enabled, and the goal is above the max or below the min for that category, the graph will be scaled to
+include the goal line.  Each category is graphed independently in order to maximize screen space, so a 
+line that goes from 0 to 5 on the y-axis may overlap a line that goes from 5 to 10.
 \n\n
 </string>
 </resources>
