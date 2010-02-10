@@ -228,7 +228,12 @@ public class CategoryRowView extends LinearLayout implements GUITask {
     mAddListener = new OnClickListener() {
       public void onClick(View v) {
         addEntry();
-        float value = mDbRow.getDefaultValue();
+        float value;
+        try {
+          value = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
+        } catch(Exception e) {
+          value = mDbRow.getDefaultValue();
+        }
         mDbRow.setLastValue(value);
         mDbRow.setDefaultValue(value);
         mDbh.updateCategoryLastValue(mDbRow.getId(), value);
