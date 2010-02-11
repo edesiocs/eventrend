@@ -54,7 +54,7 @@ public interface EvenTrendDbAdapter {
 
   public boolean updateCategoryRank(long rowId, int rank);
 
-  public boolean updateCategoryLastValue(long rowId, float value);
+  public boolean updateCategoryDefaultValue(long rowId, float value);
 
   public boolean updateCategoryTrend(long catId, String trendStr, float newTrend);
 
@@ -422,9 +422,9 @@ public interface EvenTrendDbAdapter {
           CategoryDbTable.KEY_ROWID + "=" + rowId, null) > 0;
     }
 
-    public boolean updateCategoryLastValue(long rowId, float value) {
+    public boolean updateCategoryDefaultValue(long rowId, float value) {
       ContentValues args = new ContentValues();
-      args.put(CategoryDbTable.KEY_LAST_VALUE, value);
+      args.put(CategoryDbTable.KEY_DEFAULT_VALUE, value);
 
       return mDb.update(CategoryDbTable.TABLE_NAME, args,
           CategoryDbTable.KEY_ROWID + "=" + rowId, null) > 0;

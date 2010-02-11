@@ -16,29 +16,6 @@
 
 package net.redgeek.android.eventrend;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
-import net.redgeek.android.eventrend.backgroundtasks.UpdateRecentDataTask;
-import net.redgeek.android.eventrend.calendar.CalendarActivity;
-import net.redgeek.android.eventrend.category.CategoryEditActivity;
-import net.redgeek.android.eventrend.category.CategoryListAdapter;
-import net.redgeek.android.eventrend.category.CategoryRow;
-import net.redgeek.android.eventrend.category.CategoryRowView;
-import net.redgeek.android.eventrend.datum.EntryListActivity;
-import net.redgeek.android.eventrend.db.CategoryDbTable;
-import net.redgeek.android.eventrend.db.EntryDbTable;
-import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
-import net.redgeek.android.eventrend.graph.GraphActivity;
-import net.redgeek.android.eventrend.primitives.TimeSeries;
-import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
-import net.redgeek.android.eventrend.util.DateUtil;
-import net.redgeek.android.eventrend.util.GUITask;
-import net.redgeek.android.eventrend.util.GUITaskQueue;
-import net.redgeek.android.eventrend.util.ProgressIndicator;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -50,7 +27,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.GestureDetector;
 import android.view.Menu;
@@ -75,6 +51,31 @@ import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 import android.widget.ViewFlipper;
+
+import net.redgeek.android.eventrend.backgroundtasks.UpdateRecentDataTask;
+import net.redgeek.android.eventrend.calendar.CalendarActivity;
+import net.redgeek.android.eventrend.category.CategoryEditActivity;
+import net.redgeek.android.eventrend.category.CategoryListAdapter;
+import net.redgeek.android.eventrend.category.CategoryRow;
+import net.redgeek.android.eventrend.category.CategoryRowView;
+import net.redgeek.android.eventrend.datum.EntryListActivity;
+import net.redgeek.android.eventrend.db.CategoryDbTable;
+import net.redgeek.android.eventrend.db.EntryDbTable;
+import net.redgeek.android.eventrend.db.EvenTrendDbAdapter;
+import net.redgeek.android.eventrend.graph.GraphActivity;
+import net.redgeek.android.eventrend.primitives.TimeSeries;
+import net.redgeek.android.eventrend.primitives.TimeSeriesCollector;
+import net.redgeek.android.eventrend.util.DateUtil;
+import net.redgeek.android.eventrend.util.GUITask;
+import net.redgeek.android.eventrend.util.GUITaskQueue;
+import net.redgeek.android.eventrend.util.ProgressIndicator;
+import net.redgeek.android.eventrend.util.ValuePickerDialog;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Main interface screen, aside from the GraphActivity. This is also the root
@@ -103,6 +104,7 @@ public class InputActivity extends EvenTrendActivity {
   private static final int DATE_DIALOG_ID = 1;
   private static final int HELP_DIALOG_ID = 2;
   private static final int DELETE_DIALOG_ID = 3;
+  private static final int DIALOG_NUMBER_PICKER_ID = 10;
 
   // Generated IDs for flipper listview
   public static final int SCROLL_VIEW_ID_BASE = 1000;
@@ -139,6 +141,11 @@ public class InputActivity extends EvenTrendActivity {
   private long mDeleteId = 0;
   private String mDeleteName = "";
 
+  // for the add dialog
+  private String mAddDialogCategory = "";
+  private float mAddDialogDefaultValue = 0;
+  private ValuePickerDialog.OnValueSetListener mAddDialogListener;
+  
   // From preferences
   private String mDefaultGroup;
   private int mHistory;
@@ -520,7 +527,13 @@ public class InputActivity extends EvenTrendActivity {
   }
 
   // *** dialogs ***//
-
+  public void showAddDialog(String category, float value, ValuePickerDialog.OnValueSetListener listener) {
+    mAddDialogCategory = category;
+    mAddDialogDefaultValue = value;
+    mAddDialogListener = listener;
+    showDialog(DIALOG_NUMBER_PICKER_ID);
+  }
+  
   @Override
   protected Dialog onCreateDialog(int id) {
     switch (id) {
@@ -537,6 +550,8 @@ public class InputActivity extends EvenTrendActivity {
         String title = "Delete the category \"" + mDeleteName + "\"?";
         String msg = "All associated entries will also be deleted!";
         return deleteDialog(title, msg, mDeleteId);
+      case DIALOG_NUMBER_PICKER_ID:
+        return new ValuePickerDialog(this, mAddDialogListener, mAddDialogCategory, mAddDialogDefaultValue);
     }
     return null;
   }
@@ -576,6 +591,11 @@ public class InputActivity extends EvenTrendActivity {
       case DATE_DIALOG_ID:
         ((DatePickerDialog) dialog).updateDate(mTimestamp.mYear,
             mTimestamp.mMonth, mTimestamp.mDay);
+        break;
+      case DIALOG_NUMBER_PICKER_ID:
+        ((ValuePickerDialog) dialog).updateTitle(mAddDialogCategory);
+        ((ValuePickerDialog) dialog).updateValue(mAddDialogDefaultValue);
+        ((ValuePickerDialog) dialog).setOnValueSetListener(mAddDialogListener);
         break;
     }
   }

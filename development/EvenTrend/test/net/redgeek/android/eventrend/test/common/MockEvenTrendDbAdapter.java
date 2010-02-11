@@ -566,13 +566,13 @@ public class MockEvenTrendDbAdapter implements EvenTrendDbAdapter {
     return false;
   }
 
-  public boolean updateCategoryLastValue(long rowId, float value) {
+  public boolean updateCategoryDefaultValue(long rowId, float value) {
     ArrayList<HashMap<String, String>> rows = mTables.get(CategoryDbTable.TABLE_NAME);
     
     for (int i = 0; i < rows.size(); i++) {
       long id = Long.parseLong(rows.get(i).get(CategoryDbTable.KEY_ROWID));
       if (id == rowId) {
-        rows.get(i).put(CategoryDbTable.KEY_LAST_VALUE, Float.toString(value));
+        rows.get(i).put(CategoryDbTable.KEY_DEFAULT_VALUE, Float.toString(value));
         return true;
       }
     }

@@ -16,6 +16,24 @@
 
 package net.redgeek.android.eventrend.category;
 
+import android.app.Activity;
+import android.app.Dialog;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.LayoutAnimationController;
+import android.view.animation.TranslateAnimation;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import net.redgeek.android.eventrend.InputActivity;
 import net.redgeek.android.eventrend.Preferences;
 import net.redgeek.android.eventrend.R;
@@ -29,28 +47,14 @@ import net.redgeek.android.eventrend.util.GUITask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.Number;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
-import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.LayoutAnimationController;
-import android.view.animation.TranslateAnimation;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
+import net.redgeek.android.eventrend.util.ValuePickerDialog;
+import net.redgeek.android.eventrend.util.ValuePickerFrame;
 
 public class CategoryRowView extends LinearLayout implements GUITask {
   // UI elements
   private CategoryRowView mRowView;
   private CategoryDbTable.Row mDbRow;
-  private EditText mDefaultValue;
+  private Button mDefaultValueButton;
   private Button mPlusButton;
   private Button mMinusButton;
   private Button mAddButton;
@@ -64,14 +68,15 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   // Listeners
   private View.OnClickListener mPlusButtonListener;
   private View.OnClickListener mMinusButtonListener;
+  private View.OnClickListener mDefaultValueButtonListener;
   private View.OnClickListener mAddListener;
+  private ValuePickerDialog.OnValueSetListener mValueSetListener;
 
   // Private data
   private TimeSeriesCollector mTSC;
   private int mColorInt;
   private long mTimestamp;
   private float mAddValue;
-  private boolean mKeepCounting = false;
   
   // Prefs
   private int mDecimals;
@@ -187,13 +192,14 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
     mMinusButton = (Button) findViewById(R.id.category_input_minus);
     mPlusButton = (Button) findViewById(R.id.category_input_plus);
-    mDefaultValue = (EditText) findViewById(R.id.category_input_value);
+    mDefaultValueButton = (Button) findViewById(R.id.category_input_value);
     mAddButton = (Button) findViewById(R.id.category_input_add);
     mTrendIconImage = (ImageView) findViewById(R.id.category_input_trend_icon);
     mTrendValueView = (TextView) findViewById(R.id.category_input_trend_value);
 
     mPlusButton.setOnClickListener(mPlusButtonListener);
     mMinusButton.setOnClickListener(mMinusButtonListener);
+    mDefaultValueButton.setOnClickListener(mDefaultValueButtonListener);
     mAddButton.setOnClickListener(mAddListener);
 
     mProgress = new ProgressIndicator.Titlebar(mCtx);
@@ -203,25 +209,25 @@ public class CategoryRowView extends LinearLayout implements GUITask {
   private void setupListeners() {
     mPlusButtonListener = new OnClickListener() {
       public void onClick(View v) {
-        float value = Float.valueOf(mDefaultValue.getText().toString())
+        float value = Float.valueOf(mDefaultValueButton.getText().toString())
             .floatValue();
         value += mDbRow.getIncrement();
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
         mDbRow.setDefaultValue(value);
-        mDefaultValue.setText(Float.toString(value));
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
+        mDefaultValueButton.setText(Float.toString(value));
+        mDbh.updateCategoryDefaultValue(mDbRow.getId(), value);
       }
     };
     
     mMinusButtonListener = new OnClickListener() {
       public void onClick(View v) {
-        float value = Float.valueOf(mDefaultValue.getText().toString())
+        float value = Float.valueOf(mDefaultValueButton.getText().toString())
             .floatValue();
         value -= mDbRow.getIncrement();
         value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
         mDbRow.setDefaultValue(value);
-        mDefaultValue.setText(Float.toString(value));
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
+        mDefaultValueButton.setText(Float.toString(value));
+        mDbh.updateCategoryDefaultValue(mDbRow.getId(), value);
       }
     };
     
@@ -230,14 +236,33 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         addEntry();
         float value;
         try {
-          value = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
+          value = Float.valueOf(mDefaultValueButton.getText().toString()).floatValue();
         } catch(Exception e) {
           value = mDbRow.getDefaultValue();
         }
-        mDbRow.setLastValue(value);
+        value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
         mDbRow.setDefaultValue(value);
-        mDbh.updateCategoryLastValue(mDbRow.getId(), value);
-        mDefaultValue.setText(Float.valueOf(value).toString());
+        mDbh.updateCategoryDefaultValue(mDbRow.getId(), value);
+        mDefaultValueButton.setText(Float.valueOf(value).toString());
+      }
+    };
+        
+    mValueSetListener = new ValuePickerDialog.OnValueSetListener(){
+      @Override
+      public void onValueSet(ValuePickerFrame view, float value) {
+        value = Number.Round(value, Preferences.getDecimalPlaces(mCtx));
+        mDbRow.setDefaultValue(value);
+        mDbh.updateCategoryDefaultValue(mDbRow.getId(), value);
+        mDefaultValueButton.setText(Float.toString(value));
+        return;
+      }      
+    };
+    
+    mDefaultValueButtonListener = new OnClickListener() {
+      public void onClick(View v) {
+        String name = mDbRow.getCategoryName();
+        float value = mDbRow.getDefaultValue();
+        ((InputActivity) mCtx).showAddDialog(name, value, mValueSetListener);
       }
     };
   }
@@ -260,8 +285,8 @@ public class CategoryRowView extends LinearLayout implements GUITask {
         mCategoryUpdateView.setText(str);
       }
 
-      float inputValue = mDbRow.getLastValue();
-      mDefaultValue.setText(Float.valueOf(inputValue).toString());
+      float inputValue = mDbRow.getDefaultValue();
+      mDefaultValueButton.setText(Float.valueOf(inputValue).toString());
       float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
           .getDecimalPlaces(mCtx));
       mTrendValueView.setText(Float.valueOf(trendValue).toString());
@@ -273,7 +298,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
       mMinusButton.setVisibility(View.INVISIBLE);
       mPlusButton.setVisibility(View.INVISIBLE);
-      mDefaultValue.setVisibility(View.INVISIBLE);
+      mDefaultValueButton.setVisibility(View.INVISIBLE);
       mAddButton.setVisibility(View.INVISIBLE);
 
       float trendValue = Number.Round(mDbRow.getLastTrend(), Preferences
@@ -347,7 +372,7 @@ public class CategoryRowView extends LinearLayout implements GUITask {
 
   public void addEntry() {
     mTimestamp = ((InputActivity) mCtx).getTimestampMs();
-    mAddValue = Float.valueOf(mDefaultValue.getText().toString()).floatValue();
+    mAddValue = Float.valueOf(mDefaultValueButton.getText().toString()).floatValue();
     GUITaskQueue.getInstance().addTask(mProgress, this);
 
     mAddButton.setClickable(false);
