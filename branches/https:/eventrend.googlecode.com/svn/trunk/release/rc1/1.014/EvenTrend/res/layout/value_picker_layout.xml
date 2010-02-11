@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="wrap_content" android:layout_height="wrap_content"
+  android:orientation="vertical" android:padding="5px" android:gravity="right|center_vertical"
+  android:layout_gravity="right|center_vertical">
+  <LinearLayout android:layout_width="wrap_content"
+    android:layout_height="wrap_content" android:id="@+id/input_layout"
+    android:orientation="horizontal" android:layout_gravity="right|center_vertical"
+    android:gravity="right|center_vertical">
+    <TextView android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:id="@+id/category_textview" android:text="Change value to:"></TextView>
+    <EditText android:layout_width="wrap_content"
+      android:layout_height="wrap_content" android:id="@+id/value_editext"
+      android:text="100.0" android:digits="0123456789.-" android:focusable="true"
+      android:inputType="phone" android:selectAllOnFocus="true" android:minEms="6"
+      android:gravity="right|center_vertical"></EditText>
+  </LinearLayout>
+  <LinearLayout android:layout_width="wrap_content"
+    android:layout_height="wrap_content" android:id="@+id/button_layout"
+    android:orientation="horizontal" android:layout_gravity="right|center_vertical"
+    android:gravity="right|center_vertical">
+    <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+      android:id="@+id/cancel_button" android:text="Cancel" android:focusable="true"></Button>
+    <Button android:layout_width="wrap_content" android:layout_height="wrap_content"
+      android:id="@+id/ok_button" android:text="Ok" android:focusable="true"></Button>
+  </LinearLayout>
+</LinearLayout>
