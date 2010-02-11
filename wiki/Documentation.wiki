@@ -76,7 +76,7 @@ Please see *Advanced Usage*.
 
 == Default Value ==
 
-Once a category is added, it will appear in a list on the main screen. This is the value that will filled in by default, so if there's a particular value that you tend to enter more frequently than others, feel free to set it here.
+Once a category is added, it will appear in a list on the main screen. This is the value that will filled in by default, so if there's a particular value that you tend to enter more frequently than others, feel free to set it here.  Note that the application has been updated to retain the last set value as it's default value, so this really only affects the category prior to inputting the first datapoint.
 
 == Increment/Decrement ==
 
