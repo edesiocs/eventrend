@@ -16,11 +16,17 @@
 
 package net.redgeek.android.eventrend.importing;
 
-import net.redgeek.android.eventrend.util.Number;
 import android.content.Context;
 import android.view.Gravity;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+
+import net.redgeek.android.eventrend.util.GUITaskQueue;
+import net.redgeek.android.eventrend.util.Number;
 
 /**
  * Implements the view of each row in the ListView of importable content. Each
@@ -32,6 +38,7 @@ import android.widget.TextView;
 public class ImportRowView extends LinearLayout {
   private TextView mFilename;
   private TextView mSize;
+  private Button   mImport;
   private Context mCtx;
   private boolean mSelectable = true;
 
@@ -45,7 +52,7 @@ public class ImportRowView extends LinearLayout {
 
   private void setupUI() {
     this.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-    this.setLongClickable(true);
+//    this.setLongClickable(true);
 
     mFilename = new TextView(mCtx);
     mFilename.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
@@ -53,9 +60,21 @@ public class ImportRowView extends LinearLayout {
         LayoutParams.WRAP_CONTENT));
 
     mSize = new TextView(mCtx);
-    mSize.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+    mSize.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
     addView(mSize, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         LayoutParams.WRAP_CONTENT));
+
+    mImport = new Button(mCtx);
+    mImport.setText("Import");
+    mImport.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    addView(mImport, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+        LayoutParams.WRAP_CONTENT));
+    mImport.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View v) {
+        ((ImportActivity)mCtx).doImport((String) mFilename.getText());
+      }
+    });
   }
 
   private void populateFields(ImportRow row) {

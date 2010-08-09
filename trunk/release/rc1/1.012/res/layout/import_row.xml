@@ -6,12 +6,18 @@
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:id="@+id/import_filename" 
-		android:paddingLeft="10px">
+		android:paddingLeft="10px"
+    android:text="Filename">
 	</TextView>
 	<TextView 
 		android:layout_width="wrap_content" 
 		android:layout_height="wrap_content" 
 		android:id="@+id/import_size" 
-		android:paddingLeft="10px">
+		android:paddingLeft="10px"
+    android:text="Size">
   	</TextView>
+    <Button android:text="Import"
+    android:id="@+id/restore_import" 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"></Button>
 </LinearLayout>
