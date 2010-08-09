@@ -16,7 +16,22 @@
 
 package net.redgeek.android.eventrend.datum;
 
-import java.util.Calendar;
+import android.app.Dialog;
+import android.content.Intent;
+import android.database.Cursor;
+import android.os.Bundle;
+import android.os.Environment;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.TableRow.LayoutParams;
+import android.widget.TextView;
 
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.R;
@@ -28,21 +43,8 @@ import net.redgeek.android.eventrend.util.DateUtil;
 import net.redgeek.android.eventrend.util.DynamicSpinner;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
-import android.app.Dialog;
-import android.content.Intent;
-import android.database.Cursor;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.TableRow.LayoutParams;
+
+import java.util.Calendar;
 
 public class EntryListActivity extends EvenTrendActivity {
   // Menu
@@ -96,7 +98,7 @@ public class EntryListActivity extends EvenTrendActivity {
 
   private void setupPrefs() {
     mFilterCategoryId = FILTER_ALL_ID;
-    mImportDir = getResources().getString(R.string.import_dir);
+    mImportDir = Environment.getExternalStorageDirectory() + getResources().getString(R.string.import_dir);
   }
 
   private void setupTasks() {

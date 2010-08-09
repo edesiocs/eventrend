@@ -16,12 +16,15 @@
 
 package net.redgeek.android.eventrend.importing;
 
+import net.redgeek.android.eventrend.util.GUITaskQueue;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
