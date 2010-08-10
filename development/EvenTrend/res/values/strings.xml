@@ -40,5 +40,5 @@
 <string name="graph_prefs">Graph Settings</string>
 <string name="menu_graph">Graph</string>
 <string name="graph_view_agg_prompt">Aggregate By</string>
-<string name="import_dir">/sdcard/eventrend</string>
+<string name="import_dir">/eventrend</string>
 </resources>

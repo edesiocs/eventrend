@@ -17,7 +17,7 @@
     		android:layout_width="wrap_content" 
     	    android:layout_height="wrap_content" 
     	    android:layout_gravity="center_horizontal|center_vertical"
-    	    android:text="Click on a file to import, trackball may be easiest.">
+    	    android:text="Select a file to import.  This will replace existing data.">
     	</TextView>
 	</LinearLayout>
 	
@@ -32,7 +32,8 @@
     		android:layout_width="wrap_content" 
     	  	android:layout_height="wrap_content" 
     	  	android:id="@+id/android:list" 
-    	  	android:choiceMode="singleChoice">
+    	  	android:choiceMode="singleChoice"
+          android:fastScrollEnabled="true">
     	</ListView>
     	<TextView 
     		android:layout_width="wrap_content" 

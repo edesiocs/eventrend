@@ -14,4 +14,8 @@
 		android:id="@+id/import_size" 
 		android:paddingLeft="10px">
   	</TextView>
+    <Button android:text="Import"
+    android:id="@+id/restore_import" 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"></Button>
 </LinearLayout>
