@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout 
+	android:layout_width="fill_parent" 
+	android:layout_height="fill_parent" 
+	xmlns:android="http://schemas.android.com/apk/res/android" 
+	android:layout_gravity="center_horizontal|center_vertical"
+	android:orientation="vertical">
+
+	<LinearLayout
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_gravity="center_horizontal|center_vertical"
+		android:orientation="horizontal">
+		
+		<TextView 
+    		android:layout_width="wrap_content" 
+    	    android:layout_height="wrap_content" 
+    	    android:layout_gravity="center_horizontal|center_vertical"
+    	    android:text="Select a file to import.  This will replace existing data.">
+    	</TextView>
+	</LinearLayout>
+	
+	<LinearLayout 
+		android:layout_width="fill_parent" 
+		android:layout_height="fill_parent" 
+		xmlns:android="http://schemas.android.com/apk/res/android" 
+		android:orientation="vertical" 
+		android:id="@+id/import_list">
+
+		<ListView
+    		android:layout_width="fill_parent" 
+    	  	android:layout_height="wrap_content" 
+    	  	android:id="@+id/android:list" 
+    	  	android:choiceMode="singleChoice"
+          android:fastScrollEnabled="true">
+    	</ListView>
+    	<TextView 
+    		android:layout_width="wrap_content" 
+    	    android:layout_height="wrap_content" 
+    	    android:id="@+id/android:empty" android:text="No importable files found">
+    	</TextView>
+	</LinearLayout>
+</LinearLayout>

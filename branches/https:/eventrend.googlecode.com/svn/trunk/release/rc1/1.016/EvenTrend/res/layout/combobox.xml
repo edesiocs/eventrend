@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view class="net.redgeek.android.eventrend.ComboBox" 
+  android:id="@+id/combobox"
+  android:orientation="horizontal"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:layout_gravity="right|center_vertical"
+  android:padding="10dip" 
+  xmlns:android="http://schemas.android.com/apk/res/android"/>
