@@ -17,6 +17,7 @@
 package net.redgeek.android.eventrend.importing;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -48,23 +49,27 @@ public class ImportRowView extends LinearLayout {
   }
 
   private void setupUI() {
-    this.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-    // this.setLongClickable(true);
-
+    this.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+    
     mFilename = new TextView(mCtx);
     mFilename.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
     addView(mFilename, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         LayoutParams.WRAP_CONTENT));
+    
+    LinearLayout rightAlign = new LinearLayout(mCtx);
+    rightAlign.setGravity(Gravity.RIGHT);
+    addView(rightAlign, new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,
+        LayoutParams.WRAP_CONTENT));
 
     mSize = new TextView(mCtx);
     mSize.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-    addView(mSize, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+    rightAlign.addView(mSize, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         LayoutParams.WRAP_CONTENT));
     
     mImport = new Button(mCtx);
     mImport.setText("Import");
     mImport.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
-    addView(mImport, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
+    rightAlign.addView(mImport, new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
         LayoutParams.WRAP_CONTENT));
     mImport.setOnClickListener(new OnClickListener() {
       @Override
@@ -78,13 +83,13 @@ public class ImportRowView extends LinearLayout {
     mFilename.setText(row.getFilename());
     long bytes = Long.valueOf(row.getSize()).longValue();
     if (bytes < 1024) {
-      mSize.setText(": " + bytes + " Bytes");
+      mSize.setText(" " + bytes + " B");
     } else {
       float size = ((float) bytes) / 1024.0f;
       if (size < 1024)
-        mSize.setText(": " + Number.Round(size) + " KBytes");
+        mSize.setText(" " + Number.Round(size) + " KB");
       else
-        mSize.setText(": " + Number.Round(size / 1024.0f) + " MBytes");
+        mSize.setText(" " + Number.Round(size / 1024.0f) + " MB");
     }
   }
 
