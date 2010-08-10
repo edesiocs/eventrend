@@ -16,7 +16,12 @@
 
 package net.redgeek.android.eventrend.importing;
 
-import java.io.File;
+import android.app.Dialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Environment;
+import android.view.Window;
+import android.widget.TextView;
 
 import net.redgeek.android.eventrend.EvenTrendActivity;
 import net.redgeek.android.eventrend.Preferences;
@@ -24,13 +29,8 @@ import net.redgeek.android.eventrend.R;
 import net.redgeek.android.eventrend.backgroundtasks.ImportTask;
 import net.redgeek.android.eventrend.util.GUITaskQueue;
 import net.redgeek.android.eventrend.util.ProgressIndicator;
-import android.app.Dialog;
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.view.Window;
-import android.widget.ListView;
-import android.widget.TextView;
+
+import java.io.File;
 
 /**
  * ImportActivity handles the listing of importable files, spawning the actual
@@ -86,7 +86,7 @@ public class ImportActivity extends EvenTrendActivity {
     setContentView(R.layout.import_list);
 
     mProgress = new ProgressIndicator.DialogSoft(getCtx(), DIALOG_PROGRESS);
-    mImportDir = getResources().getString(R.string.import_dir);
+    mImportDir = Environment.getExternalStorageDirectory() + getResources().getString(R.string.import_dir);
     mEmptyList = (TextView) findViewById(android.R.id.empty);
     mEmptyList.setText("No importable files found in " + mImportDir);
   }
@@ -124,11 +124,9 @@ public class ImportActivity extends EvenTrendActivity {
     showDialog(DIALOG_ERR_FILEREAD);
   }
 
-  @Override
-  protected void onListItemClick(ListView l, View v, int position, long id) {
-    super.onListItemClick(l, v, position, id);
-    mFilename = ((ImportRowView) v).getFilename();
-    mImporter.setFilename(mImportDir + "/" + mFilename);
+  public void doImport(String filename) {
+    mFilename = filename;
+    mImporter.setFilename(mImportDir + "/" + filename);
     mImporter.setHistory(mHistory);
     GUITaskQueue.getInstance().addTask(mProgress, this);
   }

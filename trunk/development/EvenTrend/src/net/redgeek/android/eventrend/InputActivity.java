@@ -359,7 +359,7 @@ public class InputActivity extends EvenTrendActivity {
             float deltaY = e2.getRawY() - e1.getRawY();
             int minSlideWidth = mFlipper.getWidth() / 2;
 
-            if (Math.abs(deltaY) < 100) {
+            if (Math.abs(deltaY) < Math.abs(deltaX)) {
               if (deltaX > minSlideWidth) {
                 slideRight();
                 return true;
